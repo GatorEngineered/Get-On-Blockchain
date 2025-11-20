@@ -1,3 +1,4 @@
+"use client"
 
 import { useEffect } from "react";
 import WalletFlowPlaceholder from "@/app/components/WalletFlowPlaceholder";
