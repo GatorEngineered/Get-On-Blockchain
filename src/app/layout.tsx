@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import  SmoothScroll  from "@/app/components/SmoothScroll";
+import Reveal from "@/app/components/Reveal";
+import { WalletProvider } from "@/app/providers/WalletProviders";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,7 +28,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+           <WalletProvider>
+          <SmoothScroll>
+            <Reveal selector=".reveal">
+              {children}
+            </Reveal>
+          </SmoothScroll>
+        </WalletProvider>
       </body>
     </html>
   );

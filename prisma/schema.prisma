@@ -1,0 +1,94 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Using SQLite for local dev. DATABASE_URL should be: DATABASE_URL="file:./dev.db"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  STARTER
+  GROWTH
+  PRO
+}
+
+// Types for events and plans used in the app
+enum EventType {
+  SCAN
+  CONNECT_WALLET
+  CREATE_EMAIL
+  REWARD_EARNED
+  REWARD_REDEEMED
+}
+
+enum MerchantPlan {
+  STARTER
+  GROWTH
+  PRO
+}
+
+// Optional: you can use this later if you want “Bronze / Silver / Gold”
+enum MemberTier {
+  BASE
+  VIP
+  SUPER
+}
+
+model Merchant {
+  id      String  @id @default(cuid())
+  slug    String  @unique
+  name    String
+  tagline String?
+  plan    Plan    @default(STARTER)
+
+  // 🔽 add these
+  welcomePoints Int @default(10)
+  earnPerVisit  Int @default(10)
+  vipThreshold  Int @default(100)
+
+  primaryColor String? // e.g. "#244B7A"
+  accentColor  String? // e.g. "#8BBCFF"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members Member[]
+  events  Event[]
+}
+
+model Member {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  email         String? // nullable: wallet-only members are okay
+  walletAddress String? // nullable: email-only members are okay
+
+  points Int    @default(0)
+  tier   String @default("BASE") // keep string for flexibility
+
+  events Event[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id         String   @id @default(cuid())
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  memberId String?
+  member   Member? @relation(fields: [memberId], references: [id])
+
+  type     EventType
+  source   String? // "wallet", "email", "staff", etc.
+  metadata Json? // stores points, reason, etc.
+
+  createdAt DateTime @default(now())
+}
