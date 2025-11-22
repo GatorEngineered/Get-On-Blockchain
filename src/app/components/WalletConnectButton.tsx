@@ -6,7 +6,7 @@ import { injected } from "wagmi/connectors";
 
 type WalletConnectButtonProps = {
   merchantSlug: string;
-  memberId?: string; // can be undefined until member exists
+  memberId?: string;
 };
 
 export default function WalletConnectButton({
@@ -15,7 +15,6 @@ export default function WalletConnectButton({
 }: WalletConnectButtonProps) {
   const { address, isConnected } = useAccount();
 
-  // wagmi v2: don't pass connector here
   const { connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
@@ -23,14 +22,10 @@ export default function WalletConnectButton({
     "idle"
   );
 
-  // prevent double POSTs if React re-renders
   const hasSynced = useRef(false);
 
   async function syncWalletToBackend(addr: string) {
-    if (!memberId) {
-      // We don't have a member yet – nothing to sync.
-      return;
-    }
+    if (!memberId) return;
 
     try {
       setStatus("syncing");
@@ -61,7 +56,6 @@ export default function WalletConnectButton({
   }
 
   useEffect(() => {
-    // when wallet becomes connected, send it to the backend once
     if (isConnected && address && !hasSynced.current) {
       hasSynced.current = true;
       void syncWalletToBackend(address);
@@ -70,16 +64,21 @@ export default function WalletConnectButton({
 
   const handleClick = async () => {
     if (isConnected) {
-      // Disconnect wallet
       hasSynced.current = false;
       setStatus("idle");
       disconnect();
       return;
     }
 
-    // wagmi v2: pass connector when calling connect()
-    const connector = injected();
-    await connect({ connector });
+    try {
+      const connector = injected({
+        shimDisconnect: true,
+      });
+
+      await connect({ connector });
+    } catch (e) {
+      console.error("MetaMask connection error:", e);
+    }
   };
 
   let label = "Connect wallet";

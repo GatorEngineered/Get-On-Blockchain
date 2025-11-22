@@ -1,5 +1,5 @@
 "use client"
-
+  
 import { useEffect } from "react";
 import WalletFlowPlaceholder from "@/app/components/WalletFlowPlaceholder";
 import { getMerchantBySlug } from "@/app/lib/merchants";
