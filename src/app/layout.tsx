@@ -56,9 +56,9 @@ export const metadata: Metadata = {
     follow: true,
   },
   icons: {
-    icon: "/getonblockchain-logo.png",
-    shortcut: "/getonblockchain-logo.png",
-    apple: "/getonblockchain-logo.png",
+    icon: "/getonblockchain-favicon.png",
+    shortcut: "/getonblockchain-favicon.png",
+    apple: "/getonblockchain-favicon.png",
   },
 };
 export default function RootLayout({
