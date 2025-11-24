@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import  SmoothScroll  from "@/app/components/SmoothScroll";
 import Reveal from "@/app/components/Reveal";
 import { WalletProvider } from "@/app/providers/WalletProviders";
+import Footer from "@/app/components/Footer";
+import CookieBanner from "@/app/components/CookieBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -76,6 +78,8 @@ export default function RootLayout({
             </Reveal>
           </SmoothScroll>
         </WalletProvider>
+        <Footer />
+        <CookieBanner />
       </body>
     </html>
   );

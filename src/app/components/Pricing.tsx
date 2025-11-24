@@ -1,3 +1,8 @@
+const STARTER_CHECKOUT_URL =
+  "https://www.paypal.com/ncp/payment/RLF6BN8GX9MRN";
+
+const SALES_PHONE_NUMBER = "+18134651195";
+
 export default function Pricing() {
   return (
     <section className="section pricing" id="pricing">
@@ -25,7 +30,13 @@ export default function Pricing() {
               <li>Basic analytics for scans, claims, and repeats</li>
               <li>Up to 1,500 active members</li>
             </ul>
-            <button className="btn btn-primary btn-full">Get Started</button>
+            <button
+  className="btn btn-primary btn-full"
+  onClick={() => {
+    window.open(STARTER_CHECKOUT_URL, "_blank");
+  }}
+>
+              Get Started</button>
             <p className="pricing-footnote">Perfect for cafés, salons, boutiques.</p>
           </div>
 
@@ -69,7 +80,11 @@ export default function Pricing() {
               <li>POS/ERP integration support</li>
               <li>Quarterly strategy reviews</li>
             </ul>
-            <button className="btn btn-secondary btn-full">Talk To Sales</button>
+            <button className="btn btn-secondary btn-full"
+            onClick={() => {
+                window.location.href = `tel:${SALES_PHONE_NUMBER}`;
+              }}>
+                Talk To Sales</button>
             <p className="pricing-footnote">Tailored scope, quoted after discovery.</p>
           </div>
         </div>
