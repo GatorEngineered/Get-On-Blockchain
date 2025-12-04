@@ -31,11 +31,11 @@ export default function Pricing() {
               <li>Up to 1,500 active members</li>
             </ul>
             <button
-  className="btn btn-primary btn-full"
-  onClick={() => {
-    window.open(STARTER_CHECKOUT_URL, "_blank");
-  }}
->
+              className="btn btn-primary btn-full"
+              onClick={() => {
+                window.open(STARTER_CHECKOUT_URL, "_blank");
+              }}
+            >
               Get Started</button>
             <p className="pricing-footnote">Perfect for cafés, salons, boutiques.</p>
           </div>
@@ -47,22 +47,22 @@ export default function Pricing() {
             <p className="pricing-price">$249<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup">+ $249 one-time setup</p>
             <ul className="pricing-list">
-              <li>Everything in Starter</li>
-              <li>Tiered VIP perks & birthday boosts</li>
-              <li>Optional branded VIP pass (NFT or badge)</li>
-              <li>Customer segments & basic automations</li>
-              <li>Custom domain or subdomain theme</li>
-              <li>Priority support</li>
-              <li>Up to 25,000 active members</li>
+              <li>Up to 3 locations</li>
+              <li>QR scan rewards for visits</li>
+              <li>Email login + wallet-based rewards (custodial wallet included)</li>
+              <li>You choose the stablecoin and wallet flow per business</li>
+              <li>3 merchant claim pages (yourbrand.getonblockchain.com)</li>
+              <li>5 custom points rules for visits, referrals, or spend tiers</li>
+              <li>Up to 15,000 active members & priority email support</li>
             </ul>
             <button
-  className="btn btn-primary btn-full"
-  onClick={() => {
-    window.location.href = "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled";
-  }}
->
-  Book A Demo
-</button>
+              className="btn btn-primary btn-full"
+              onClick={() => {
+                window.location.href = "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled";
+              }}
+            >
+              Book A Demo
+            </button>
             <p className="pricing-footnote">Best value for multi-location and online brands.</p>
           </div>
 
@@ -81,10 +81,10 @@ export default function Pricing() {
               <li>Quarterly strategy reviews</li>
             </ul>
             <button className="btn btn-secondary btn-full"
-            onClick={() => {
+              onClick={() => {
                 window.location.href = `tel:${SALES_PHONE_NUMBER}`;
               }}>
-                Talk To Sales</button>
+              Talk To Sales</button>
             <p className="pricing-footnote">Tailored scope, quoted after discovery.</p>
           </div>
         </div>
