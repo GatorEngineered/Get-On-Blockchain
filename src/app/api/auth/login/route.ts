@@ -1,3 +1,4 @@
+// src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
@@ -13,7 +14,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const merchant = await prisma.merchant.findUnique({
+    // Use findFirst because loginEmail is not a unique field in the schema
+    const merchant = await prisma.merchant.findFirst({
       where: { loginEmail: email },
     });
 
