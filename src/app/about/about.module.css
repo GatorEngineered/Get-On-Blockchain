@@ -1,0 +1,183 @@
+/* HERO */
+
+.aboutHero {
+  padding: 5rem 0 4rem;
+  background: radial-gradient(circle at top left, #f0f7ff 0, #edf4ff 35%, #f7f9fc 100%);
+}
+
+.aboutHeroInner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.aboutHeroCopy {
+  max-width: 640px;
+}
+
+.eyebrow {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.aboutHeroTitle {
+  font-size: clamp(2.4rem, 3vw + 1rem, 3.4rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: #0f172a;
+}
+
+.highlight {
+  color: #8bbcff;
+}
+
+.aboutHeroSubtitle {
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+.aboutHeroCard {
+  background: #ffffff;
+  border-radius: 1.75rem;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.aboutHeroCard h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.aboutHeroCard ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.aboutHeroCard li {
+  position: relative;
+  padding-left: 1.3rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.aboutHeroCard li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #2563eb;
+}
+
+/* BODY BLOCKS */
+
+.aboutBody {
+  padding: 4rem 0 3rem;
+}
+
+.aboutBodyInner {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.aboutBodyBlock {
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.aboutBodyBlock h2 {
+  font-size: 1.35rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.aboutBodyBlock p,
+.aboutBodyBlock li {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+/* VALUE CARDS */
+
+.aboutValues {
+  padding: 3.5rem 0 5rem;
+}
+
+.aboutValuesInner {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.aboutValuesTitle {
+  font-size: 1.7rem;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  color: #0f172a;
+}
+
+.aboutValuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.75rem;
+}
+
+/* Hover cards with subtle motion */
+.aboutValueCard {
+  background: radial-gradient(circle at top left, #f1f5ff 0, #ffffff 45%, #f9fafb 100%);
+  border-radius: 1.6rem;
+  padding: 1.75rem 1.9rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  transition:
+    transform 220ms ease-out,
+    box-shadow 220ms ease-out,
+    border-color 220ms ease-out,
+    background 220ms ease-out;
+}
+
+.aboutValueCard h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.aboutValueCard p {
+  font-size: 0.96rem;
+  line-height: 1.65;
+  color: #4b5563;
+}
+
+.aboutValueTag {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+/* hover / focus */
+.aboutValueCard:hover,
+.aboutValueCard:focus-within {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(37, 99, 235, 0.22);
+  border-color: rgba(37, 99, 235, 0.7);
+  background: radial-gradient(circle at top left, #e0ebff 0, #ffffff 45%, #f9fafb 100%);
+}

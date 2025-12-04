@@ -1,0 +1,26 @@
+.page {
+  padding: 56px 16px 80px;
+}
+
+.hero {
+  max-width: 720px;
+  margin: 0 auto 28px;
+  text-align: center;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #4b5563;
+}
+
+.formSection {
+  max-width: 720px;
+  margin: 0 auto;
+}

@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -38,6 +36,28 @@ enum MemberTier {
   SUPER
 }
 
+enum RewardType {
+  EARN
+  REDEEM
+  ADJUST
+}
+
+model Business {
+  id           String   @id @default(cuid())
+  slug         String   @unique // e.g. "tampa-fit", "latte-lab"
+  name         String
+  contactEmail String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  members            BusinessMember[]
+  rewardTransactions RewardTransaction[]
+}
+
+/**
+ * Merchant is your internal "plan" / configuration object for the SaaS.
+ * You can keep using this for pricing plans, welcome points logic, etc.
+ */
 model Merchant {
   id      String  @id @default(cuid())
   slug    String  @unique
@@ -45,39 +65,79 @@ model Merchant {
   tagline String?
   plan    Plan    @default(STARTER)
 
-  // 🔽 add these
+  // 🔐 Login fields for business portal
+  loginEmail   String @unique
+  passwordHash String
+
+  // Plan configuration
   welcomePoints Int @default(10)
   earnPerVisit  Int @default(10)
   vipThreshold  Int @default(100)
 
-  primaryColor String? // e.g. "#244B7A"
-  accentColor  String? // e.g. "#8BBCFF"
+  primaryColor String?
+  accentColor  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  members Member[]
-  events  Event[]
+  events Event[]
 }
 
+/**
+ * Member = a real person (or account) in your system.
+ * Not tied to a single business anymore.
+ */
 model Member {
-  id         String   @id @default(cuid())
-  merchantId String
-  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String  @unique
+  phone     String? // optional
+  address   String? // optional
 
-  email         String? // nullable: wallet-only members are okay
-  walletAddress String? // nullable: email-only members are okay
-
-  points Int    @default(0)
-  tier   String @default("BASE") // keep string for flexibility
+  // optional global wallet if you ever want it
+  walletAddress String?
 
   events Event[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  businesses         BusinessMember[]
+  rewardTransactions RewardTransaction[]
 }
 
+/**
+ * Link table: a Member's relationship with a specific Business.
+ * This is where per-business wallet, points, and tier live.
+ */
+model BusinessMember {
+  id         String   @id @default(cuid())
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String
+
+  member   Member @relation(fields: [memberId], references: [id])
+  memberId String
+
+  // Wallet is per-business
+  walletAddress String?
+  walletNetwork String? // "ethereum", "xrpl", etc
+  isCustodial   Boolean? // true if email-based wallet, false if external
+
+  // Points + tier are per business
+  points Int    @default(0)
+  tier   String @default("BASE")
+
+  createdAt          DateTime            @default(now())
+  rewardTransactions RewardTransaction[]
+
+  @@unique([businessId, memberId]) // same member can’t be duplicated for same business
+}
+
+/**
+ * Event log for analytics / audit.
+ * Still attached to Merchant and optionally Member.
+ */
 model Event {
   id         String   @id @default(cuid())
   merchantId String
@@ -89,6 +149,28 @@ model Event {
   type     EventType
   source   String? // "wallet", "email", "staff", etc.
   metadata Json? // stores points, reason, etc.
+
+  createdAt DateTime @default(now())
+}
+
+model RewardTransaction {
+  id               String         @id @default(cuid())
+  businessMember   BusinessMember @relation(fields: [businessMemberId], references: [id])
+  businessMemberId String
+
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String
+
+  member   Member @relation(fields: [memberId], references: [id])
+  memberId String
+
+  type     RewardType
+  amount   Int
+  currency String     @default("POINTS")
+  reason   String?
+
+  txHash        String?
+  walletNetwork String?
 
   createdAt DateTime @default(now())
 }

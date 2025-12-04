@@ -73,14 +73,14 @@ export default function PrivacyPolicy() {
           active or as required to comply with legal obligations.
         </p>
 
-        <h2>8. Children's Privacy</h2>
+        <h2>8. Children&apos;s Privacy</h2>
         <p>
           Our service is not intended for individuals under 16 years of age.
         </p>
 
         <h2>9. Contact</h2>
         <p>
-          For privacy questions, contact: privacy@gatorengineered.com
+          For privacy questions, contact: reva@gatorengineered.com
         </p>
       </div>
     </main>

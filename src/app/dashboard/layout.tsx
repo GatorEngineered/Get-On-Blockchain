@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react"; // ⬅️ updated
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./dashboard.css";
+
 
 type DashboardLayoutProps = {
   children: React.ReactNode;
@@ -15,8 +16,36 @@ const navLinks = [
   { href: "/dashboard/settings", label: "Settings" },
 ];
 
+type CurrentMerchant = {
+  id: string;
+  name: string;
+  slug: string;
+  plan: string;
+};
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const [merchant, setMerchant] = useState<CurrentMerchant | null>(null);
+
+ useEffect(() => {
+    const loadMerchant = async () => {
+      try {
+        const res = await fetch("/api/merchant/me");
+        if (!res.ok) return;
+        const json = await res.json();
+        setMerchant(json);
+      } catch (err) {
+        console.error("Failed to load merchant", err);
+      }
+    };
+
+    loadMerchant();
+  }, []);
+
+  const merchantName = merchant?.name ?? "Your business";
+  const merchantSubtitle = merchant?.plan
+    ? `Plan: ${merchant.plan}`
+    : "Merchant Portal";
 
   return (
     <div className="dashboard-card">
@@ -27,8 +56,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="dashboard-brand">
             <div className="dashboard-logo">⚡</div>
             <div>
-              <div className="dashboard-brand-title">Demo Coffee Shop</div>
-              <div className="dashboard-brand-subtitle">Merchant Portal</div>
+               <div className="dashboard-brand-title">{merchantName}</div>
+            <div className="dashboard-brand-subtitle">
+              {merchantSubtitle}
+            </div>
             </div>
           </div>
 

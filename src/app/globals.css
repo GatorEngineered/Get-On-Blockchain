@@ -95,6 +95,204 @@ main {
   color: #4b5563;
 }
 
+/* === Marketing site header === */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: blur(18px);
+  background: linear-gradient(
+    to right,
+    rgba(238, 244, 255, 0.96),
+    rgba(246, 250, 255, 0.96)
+  );
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.site-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0.9rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+
+
+
+
+/* ==== Business Login Page (compact, hero-style) ==== */
+
+.login-page {
+  min-height: 75vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem; /* was 4rem – less vertical padding so no scroll */
+  background:
+    radial-gradient(circle at top left, rgba(139, 188, 255, 0.35), transparent 60%),
+    radial-gradient(circle at bottom right, rgba(36, 75, 122, 0.20), transparent 55%),
+    linear-gradient(135deg, #eef4ff, #f8fafc); /* soft hero-style gradient */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 26px;
+  padding: 2rem 2.25rem; /* a bit tighter */
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.login-card h1 {
+  font-size: 2.05rem;
+  line-height: 1.15;
+  margin: 0 0 0.6rem;
+  color: var(--color-primary, #244b7a);
+}
+
+.login-subtitle {
+  margin: 0 0 1.4rem; /* less space under subtitle */
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(15, 23, 42, 0.75);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* tighter vertical rhythm */
+}
+
+.login-form label {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: rgba(15, 23, 42, 0.9);
+}
+
+.login-form input {
+  margin-top: 0.3rem;
+  width: 90%;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.login-form input:focus {
+  border-color: var(--color-accent, #8bbcff);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(139, 188, 255, 0.35);
+}
+
+.login-form button {
+  margin-top: 0.9rem;
+  width: 100%;
+  border-radius: 999px;
+  padding: 0.85rem 1rem;
+  border: none;
+  background: var(--color-primary, #244b7a);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.98rem;
+  cursor: pointer;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+  transition: transform 0.12s ease, box-shadow 0.12s ease,
+    background-color 0.12s ease, opacity 0.12s ease;
+}
+
+.login-form button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 52px rgba(15, 23, 42, 0.26);
+  background: #1e3f66;
+}
+
+.login-form button:active {
+  transform: translateY(0);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.2);
+}
+
+.login-form button:disabled {
+  opacity: 0.7;
+  cursor: default;
+  transform: none;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+}
+
+.error-text {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  color: #b91c1c;
+}
+
+.login-footer {
+  margin-top: 1.25rem; /* was ~1.75 – a bit tighter */
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.login-footer a {
+  color: var(--color-primary, #244b7a);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(36, 75, 122, 0.25);
+  padding-bottom: 1px;
+}
+
+.login-footer a:hover {
+  border-bottom-color: rgba(36, 75, 122, 0.85);
+}
+
+/* Tiny tweak for very short screens so it still fits without awkward scroll */
+@media (max-height: 720px) {
+  .login-page {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .login-card {
+    padding: 1.7rem 2rem;
+  }
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  width: 75%;
+  padding-right: 6rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.65);
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+}
+
+.password-toggle:hover {
+  color: rgba(15, 23, 42, 0.95);
+}
+
+
 /* Hero */
 
 .hero {
@@ -790,4 +988,187 @@ main {
     width: 100%;
     justify-content: flex-end;
   }
+}
+
+
+
+/* ABOUT PAGE */
+
+.about-hero {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  background: radial-gradient(circle at top left, #f0f7ff 0, #edf4ff 35%, #f7f9fc 100%);
+}
+
+.about-hero .site-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.about-hero .site-hero-copy {
+  max-width: 640px;
+}
+
+.about-hero .eyebrow {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.about-hero .site-hero-title {
+  font-size: clamp(2.4rem, 3vw + 1rem, 3.4rem);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  color: #0f172a;
+}
+
+.about-hero .site-hero-highlight {
+  color: #2563eb;
+}
+
+.about-hero .site-hero-subtitle {
+  font-size: 1.02rem;
+  line-height: 1.7;
+  color: #4b5563;
+  margin-bottom: 0.75rem;
+}
+
+.about-hero-card {
+  background: #ffffff;
+  border-radius: 1.75rem;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.about-hero-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.about-hero-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.about-hero-card li {
+  position: relative;
+  padding-left: 1.3rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.about-hero-card li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #2563eb;
+}
+
+/* BODY SECTION */
+
+.about-body {
+  padding: 4rem 0 3rem;
+}
+
+.about-body-inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.about-body-block {
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.about-body-block h2 {
+  font-size: 1.35rem;
+  margin-bottom: 0.75rem;
+  color: #111827;
+}
+
+.about-body-block p,
+.about-body-block li {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+/* VALUE CARDS */
+
+.about-values {
+  padding: 3.5rem 0 5rem;
+}
+
+.about-values-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.about-values-title {
+  font-size: 1.7rem;
+  text-align: center;
+  margin-bottom: 2.5rem;
+  color: #0f172a;
+}
+
+.about-values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.75rem;
+}
+
+/* Hover cards with subtle motion */
+.about-value-card {
+  background: radial-gradient(circle at top left, #f1f5ff 0, #ffffff 45%, #f9fafb 100%);
+  border-radius: 1.6rem;
+  padding: 1.75rem 1.9rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  transition:
+    transform 220ms ease-out,
+    box-shadow 220ms ease-out,
+    border-color 220ms ease-out,
+    background 220ms ease-out;
+}
+
+.about-value-card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.about-value-card p {
+  font-size: 0.96rem;
+  line-height: 1.65;
+  color: #4b5563;
+}
+
+.about-value-tag {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+/* hover / focus */
+.about-value-card:hover,
+.about-value-card:focus-within {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(37, 99, 235, 0.22);
+  border-color: rgba(37, 99, 235, 0.7);
+  background: radial-gradient(circle at top left, #e0ebff 0, #ffffff 45%, #f9fafb 100%);
 }

@@ -1,6 +1,7 @@
+// src/app/components/WalletConnectButton.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { injected } from "wagmi/connectors";
 
@@ -14,16 +15,16 @@ export default function WalletConnectButton({
   memberId,
 }: WalletConnectButtonProps) {
   const { address, isConnected } = useAccount();
-
-  const { connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
 
   const [status, setStatus] = useState<"idle" | "syncing" | "done" | "error">(
     "idle"
   );
 
-  const hasSynced = useRef(false);
+  // wagmi v2 style: use connectAsync for easier async/await flow
+  const { connectAsync, isPending } = useConnect();
 
+  // Helper to sync wallet address to backend
   async function syncWalletToBackend(addr: string) {
     if (!memberId) return;
 
@@ -32,9 +33,7 @@ export default function WalletConnectButton({
 
       const res = await fetch("/api/connect-wallet", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           merchantSlug,
           memberId,
@@ -55,29 +54,46 @@ export default function WalletConnectButton({
     }
   }
 
-  useEffect(() => {
-    if (isConnected && address && !hasSynced.current) {
-      hasSynced.current = true;
-      void syncWalletToBackend(address);
-    }
-  }, [isConnected, address]);
-
   const handleClick = async () => {
     if (isConnected) {
-      hasSynced.current = false;
+      // Disconnect wallet
       setStatus("idle");
       disconnect();
       return;
     }
 
     try {
-      const connector = injected({
-        shimDisconnect: true,
-      });
+      setStatus("idle");
 
-      await connect({ connector });
-    } catch (e) {
-      console.error("MetaMask connection error:", e);
+      const connector = injected({ shimDisconnect: true });
+
+      // Connect wallet and get back connection data
+      const result = await connectAsync({ connector });
+
+      // Safely extract an address from the result, then fall back to useAccount
+      let addr: string | undefined;
+
+      if (result && typeof result === "object" && "account" in result) {
+        const maybeAccount = (result as { account?: unknown }).account;
+        if (typeof maybeAccount === "string") {
+          addr = maybeAccount;
+        }
+      }
+
+      if (!addr && typeof address === "string") {
+        addr = address;
+      }
+
+      if (!addr) {
+        console.error("No wallet address found after connect");
+        setStatus("error");
+        return;
+      }
+
+      await syncWalletToBackend(addr);
+    } catch (error) {
+      console.error("MetaMask connection error:", error);
+      setStatus("error");
     }
   };
 
@@ -90,7 +106,7 @@ export default function WalletConnectButton({
     <button
       type="button"
       onClick={handleClick}
-      className={`btn btn-primary`}
+      className="btn btn-primary"
       disabled={isPending || status === "syncing"}
     >
       {label}

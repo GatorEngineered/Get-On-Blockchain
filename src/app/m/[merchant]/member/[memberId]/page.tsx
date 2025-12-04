@@ -12,8 +12,23 @@ type MemberPageProps = {
 
 export const dynamic = "force-dynamic";
 
+// Helper: safely extract `points` from event.metadata
+function getPointsFromMetadata(metadata: unknown): number | undefined {
+  if (
+    metadata &&
+    typeof metadata === "object" &&
+    "points" in metadata
+  ) {
+    const maybePoints = (metadata as { points?: unknown }).points;
+    if (typeof maybePoints === "number") {
+      return maybePoints;
+    }
+  }
+  return undefined;
+}
+
 export default async function MemberPage(props: MemberPageProps) {
-  // ✅ Handle both plain-object and Promise params (Next 16 is a bit weird here)
+  // ✅ Handle both plain-object and Promise params (Next 16 can pass either)
   const resolvedParams =
     props.params instanceof Promise ? await props.params : props.params;
 
@@ -43,12 +58,12 @@ export default async function MemberPage(props: MemberPageProps) {
     );
   }
 
-  // 2) Find member by ID
+  // 2) Find member by ID (global member, no merchantId/points fields)
   const member = await prisma.member.findUnique({
     where: { id: memberId },
   });
 
-  if (!member || member.merchantId !== merchantRecord.id) {
+  if (!member) {
     return (
       <main className="section">
         <div className="container">
@@ -62,20 +77,42 @@ export default async function MemberPage(props: MemberPageProps) {
     );
   }
 
-  // 3) Load recent events
+  // 3) Load recent events for this member for THIS merchant
   const events = await prisma.event.findMany({
-    where: { memberId: member.id },
+    where: {
+      memberId: member.id,
+      merchantId: merchantRecord.id,
+    },
     orderBy: { createdAt: "desc" },
     take: 10,
   });
 
- const vipThreshold = merchantRecord.vipThreshold ?? 100;
+  // Compute total points from events (earn vs redeem)
+  let totalPoints = 0;
 
-const currentCyclePoints = member.points % vipThreshold;
-const progress = vipThreshold === 0 ? 1 : currentCyclePoints / vipThreshold;
-const pointsToNext =
-  vipThreshold - (currentCyclePoints || vipThreshold);
+  for (const ev of events) {
+    const pts = getPointsFromMetadata(ev.metadata);
+    if (typeof pts !== "number") continue;
 
+    if (ev.type === "REWARD_REDEEMED") {
+      totalPoints -= pts;
+    } else {
+      totalPoints += pts;
+    }
+  }
+
+  const vipThreshold = merchantRecord.vipThreshold ?? 100;
+
+  const currentCyclePoints =
+    vipThreshold > 0 ? totalPoints % vipThreshold : totalPoints;
+
+  const progress =
+    vipThreshold === 0 ? 1 : currentCyclePoints / vipThreshold;
+
+  const pointsToNext =
+    vipThreshold === 0
+      ? 0
+      : vipThreshold - (currentCyclePoints || vipThreshold);
 
   return (
     <main className="section">
@@ -91,14 +128,15 @@ const pointsToNext =
         <div className="claim-box" style={{ marginTop: "1.5rem" }}>
           <p className="claim-label">Points balance</p>
           <h2 style={{ fontSize: "2.2rem", marginBottom: "0.4rem" }}>
-            {member.points} pts
+            {totalPoints} pts
           </h2>
-          <p style={{ marginBottom: "0.6rem" }}>
-  You&apos;re{" "}
-  <strong>{pointsToNext} points</strong> away from your next perk at{" "}
-  {vipThreshold} points.
-</p>
-
+          {vipThreshold > 0 && (
+            <p style={{ marginBottom: "0.6rem" }}>
+              You&apos;re{" "}
+              <strong>{pointsToNext} points</strong> away from your next perk at{" "}
+              {vipThreshold} points.
+            </p>
+          )}
 
           <div
             style={{
@@ -131,8 +169,7 @@ const pointsToNext =
           ) : (
             <ul style={{ listStyle: "none", padding: 0, marginTop: "0.75rem" }}>
               {events.map((ev) => {
-                const meta = (ev.metadata || {}) as any;
-                const pts = meta?.points as number | undefined;
+                const pts = getPointsFromMetadata(ev.metadata);
                 const created = new Date(ev.createdAt).toLocaleString();
 
                 let label = ev.type.replace(/_/g, " ").toLowerCase();

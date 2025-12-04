@@ -12,6 +12,12 @@ type MemberSummary = {
   createdAt: string;
 };
 
+type LookupBody = {
+  merchant: string;
+  memberId?: string;
+  email?: string;
+};
+
 export default function StaffRedeemPage() {
   // ✅ Get route params in a client component the Next 16 way
   const params = useParams<{ merchant: string }>();
@@ -41,7 +47,7 @@ export default function StaffRedeemPage() {
     setMember(null);
 
     try {
-      const body: any = { merchant: merchantSlug };
+      const body: LookupBody = { merchant: merchantSlug };
       if (searchMode === "memberId") body.memberId = searchValue.trim();
       if (searchMode === "email") body.email = searchValue.trim();
 

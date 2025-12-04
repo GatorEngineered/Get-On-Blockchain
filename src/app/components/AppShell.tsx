@@ -1,0 +1,76 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Image from "next/image";
+import styles from "@/app/styles/siteheader.module.css"; // IMPORT MODULE
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/support", label: "Support" },
+];
+
+export function SiteHeader() {
+  const pathname = usePathname();
+
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname?.startsWith(href);
+
+  return (
+    <header className={styles.siteHeader}>
+      <div className={styles.siteHeaderInner}>
+        {/* LEFT SIDE LOGO */}
+        <div className={styles.siteHeaderBrand}>
+          <Link href="/" className={styles.siteHeaderLogo}>
+            <Image
+              src="/getonblockchain-favicon.png"
+              alt="Get On Blockchain logo"
+              width={36}
+              height={36}
+              className={styles.siteHeaderLogoIcon}
+            />
+
+            <span className={styles.siteHeaderLogoText}>
+              Get On Blockchain
+            </span>
+          </Link>
+        </div>
+
+        {/* CENTER NAV */}
+        <nav className={styles.siteHeaderNav}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={
+                styles.siteHeaderNavLink +
+                " " +
+                (isActive(link.href) ? styles.isActive : "")
+              }
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* RIGHT CTA */}
+        <div className={styles.siteHeaderCta}>
+          <Link href="/login" className={styles.siteHeaderLoginBtn}>
+            Login
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="site-page">
+      <SiteHeader />
+      <main className="site-main">{children}</main>
+    </div>
+  );
+}

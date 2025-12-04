@@ -1,27 +1,44 @@
 // src/app/api/merchant-settings/route.ts
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
 
-const MERCHANT_SLUG = "demo-coffee-shop";
+// Helper to get current merchant from session cookie
+async function getCurrentMerchant() {
+  // ⬇⬇⬇ this was `const cookieStore = cookies();`
+  const cookieStore = await cookies();
+  const session = cookieStore.get("gob_merchant_session");
+  const merchantId = session?.value;
+
+  if (!merchantId) {
+    return null;
+  }
+
+  const merchant = await prisma.merchant.findUnique({
+    where: { id: merchantId },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      plan: true,
+      welcomePoints: true,
+      earnPerVisit: true,
+      vipThreshold: true,
+      primaryColor: true,
+      accentColor: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return merchant;
+}
+
 
 // GET /api/merchant-settings
-// Returns the current merchant + loyalty settings for the demo merchant
 export async function GET() {
   try {
-    const merchant = await prisma.merchant.findUnique({
-      where: { slug: MERCHANT_SLUG },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        plan: true,
-        welcomePoints: true,
-        earnPerVisit: true,
-        vipThreshold: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const merchant = await getCurrentMerchant();
 
     if (!merchant) {
       return NextResponse.json(
@@ -41,11 +58,18 @@ export async function GET() {
 }
 
 // PATCH /api/merchant-settings
-// Allows updating welcomePoints, earnPerVisit, and vipThreshold
 export async function PATCH(req: Request) {
   try {
-    const body = await req.json();
+    const merchant = await getCurrentMerchant();
 
+    if (!merchant) {
+      return NextResponse.json(
+        { error: "Merchant not found" },
+        { status: 404 }
+      );
+    }
+
+    const body = await req.json();
     const { welcomePoints, earnPerVisit, vipThreshold } = body ?? {};
 
     // Build a partial update object with only valid numeric fields
@@ -75,7 +99,7 @@ export async function PATCH(req: Request) {
     }
 
     const updatedMerchant = await prisma.merchant.update({
-      where: { slug: MERCHANT_SLUG },
+      where: { id: merchant.id }, // use the logged-in merchant, not a slug constant
       data,
       select: {
         id: true,
@@ -85,6 +109,8 @@ export async function PATCH(req: Request) {
         welcomePoints: true,
         earnPerVisit: true,
         vipThreshold: true,
+        primaryColor: true,
+        accentColor: true,
         createdAt: true,
         updatedAt: true,
       },

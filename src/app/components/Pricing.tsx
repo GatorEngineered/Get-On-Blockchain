@@ -1,5 +1,5 @@
 const STARTER_CHECKOUT_URL =
-  "https://www.paypal.com/ncp/payment/RLF6BN8GX9MRN";
+  "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled";
 
 const SALES_PHONE_NUMBER = "+18134651195";
 
@@ -58,7 +58,7 @@ export default function Pricing() {
             <button
   className="btn btn-primary btn-full"
   onClick={() => {
-    window.location.href = "https://outlook.office.com/book/GatorEngineeredConsults@gatorengineered.com/?ismsaljsauthenabled";
+    window.location.href = "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled";
   }}
 >
   Book A Demo

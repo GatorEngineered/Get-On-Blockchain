@@ -3,6 +3,7 @@
 
 import SmoothScroll from "./components/SmoothScroll";
 import Reveal from "./components/Reveal";
+
 import Hero from "./components/Hero";
 import DemoSection from "./components/DemoSection";
 import HowItWorks from "./components/HowItWorks";
@@ -16,6 +17,7 @@ export default function Home() {
     <SmoothScroll>
       <main>
         <Reveal selector=".section" y={40} stagger={0.16}>
+          
           <Hero />
           <DemoSection />
           <HowItWorks />

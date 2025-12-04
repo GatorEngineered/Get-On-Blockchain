@@ -4,25 +4,35 @@ import { prisma } from "@/app/lib/prisma";
 
 export async function GET() {
   try {
-    const [merchants, members, events] = await Promise.all([
+    // We only need merchants and events now
+    const [merchants, events] = await Promise.all([
       prisma.merchant.findMany({ orderBy: { createdAt: "asc" } }),
-      prisma.member.findMany(),
       prisma.event.findMany(),
     ]);
 
-    // Infer TS types directly from the returned arrays
-    type MerchantRow = (typeof merchants)[number];
-    type MemberRow = (typeof members)[number];
     type EventRow = (typeof events)[number];
 
-    const membersByMerchant: Record<string, number> = {};
+    // 1) Build a map of unique memberIds per merchant using events
+    const memberSetsByMerchant: Record<string, Set<string>> = {};
 
-    // FIX #1 (explicit type MemberRow)
-    members.forEach((m: MemberRow) => {
-      membersByMerchant[m.merchantId] =
-        (membersByMerchant[m.merchantId] ?? 0) + 1;
+    events.forEach((e: EventRow) => {
+      // If your Event model has nullable memberId, guard against it
+      if (!e.merchantId || !e.memberId) return;
+
+      if (!memberSetsByMerchant[e.merchantId]) {
+        memberSetsByMerchant[e.merchantId] = new Set<string>();
+      }
+
+      memberSetsByMerchant[e.merchantId].add(e.memberId);
     });
 
+    // 2) Convert the Set sizes into a simple { [merchantId]: count } object
+    const membersByMerchant: Record<string, number> = {};
+    Object.entries(memberSetsByMerchant).forEach(([merchantId, memberSet]) => {
+      membersByMerchant[merchantId] = memberSet.size;
+    });
+
+    // 3) Build eventsByMerchant summary as before
     const eventsByMerchant: Record<
       string,
       {
@@ -35,8 +45,9 @@ export async function GET() {
       }
     > = {};
 
-    // FIX #2 (explicit type EventRow)
     events.forEach((e: EventRow) => {
+      if (!e.merchantId) return;
+
       if (!eventsByMerchant[e.merchantId]) {
         eventsByMerchant[e.merchantId] = {
           total: 0,
@@ -49,7 +60,6 @@ export async function GET() {
       }
 
       const entry = eventsByMerchant[e.merchantId];
-
       entry.total += 1;
 
       const key = e.type as keyof typeof entry;

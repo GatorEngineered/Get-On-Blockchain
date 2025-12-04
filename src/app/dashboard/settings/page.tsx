@@ -50,9 +50,11 @@ export default function DashboardSettingsPage() {
         setVipThreshold(String(data.vipThreshold ?? 100));
         setPrimaryColor(data.primaryColor ?? "#244b7a");
         setAccentColor(data.accentColor ?? "#8bbcff");
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Failed to load settings", err);
-        setStatus("Could not load settings.");
+        const message =
+          err instanceof Error ? err.message : "Could not load settings.";
+        setStatus(message);
       }
     }
 
@@ -86,9 +88,11 @@ export default function DashboardSettingsPage() {
       const updated: MerchantSettings = await res.json();
       setSettings(updated);
       setStatus("Settings saved.");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Save failed", err);
-      setStatus(err?.message || "Failed to save settings.");
+      const message =
+        err instanceof Error ? err.message : "Failed to save settings.";
+      setStatus(message);
     } finally {
       setIsSaving(false);
     }
