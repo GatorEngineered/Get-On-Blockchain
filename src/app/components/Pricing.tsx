@@ -45,7 +45,7 @@ export default function Pricing() {
             <p className="pricing-pill">Growth · Most popular</p>
             <h3>For Growing Brands</h3>
             <p className="pricing-price">$249<span className="pricing-price-suffix">/mo</span></p>
-            <p className="pricing-setup">+ $249 one-time setup</p>
+            <p className="pricing-setup">+ $349 one-time setup</p>
             <ul className="pricing-list">
               <li>Up to 3 locations</li>
               <li>QR scan rewards for visits</li>
@@ -71,7 +71,7 @@ export default function Pricing() {
             <p className="pricing-pill">Pro / Brand</p>
             <h3>For Franchises & Launches</h3>
             <p className="pricing-price">From $349<span className="pricing-price-suffix">/mo</span></p>
-            <p className="pricing-setup">+ $249 setup (or custom quote if complex)</p>
+            <p className="pricing-setup">+ $449 setup (or custom quote if complex)</p>
             <ul className="pricing-list">
               <li>Everything in Growth</li>
               <li>White-label portal & API access</li>
