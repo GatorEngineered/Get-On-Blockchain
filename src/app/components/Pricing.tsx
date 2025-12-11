@@ -1,5 +1,8 @@
-const STARTER_CHECKOUT_URL =
+const BASIC_CHECKOUT_URL =
   "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled";
+
+const PREMIUM_CHECKOUT_URL =
+  "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled";
 
 const SALES_PHONE_NUMBER = "+18134651195";
 
@@ -17,30 +20,59 @@ export default function Pricing() {
         </div>
 
         <div className="pricing-grid">
-          {/* Starter */}
+          {/* Basic Tier - $99/month */}
           <div className="pricing-card">
-            <p className="pricing-pill">Starter</p>
+            <p className="pricing-pill">Basic</p>
             <h3>For Single-Location Shops</h3>
-            <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
-            <p className="pricing-setup">+ $249 one-time setup</p>
+            <p className="pricing-price">$99<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-setup">+ $199 one-time setup</p>
             <ul className="pricing-list">
-              <li>QR-based loyalty with points & simple perks</li>
+              <li>QR-based loyalty with points & rewards</li>
+              <li>Redeem for free products/discounts</li>
               <li>1 merchant claim page (yourbrand.getonblockchain.com)</li>
-              <li>Stablecoin payments (USDC) via one processor</li>
-              <li>Basic analytics for scans, claims, and repeats</li>
-              <li>Up to 1,500 active members</li>
+              <li>Basic dashboard & analytics</li>
+              <li>Simple POS receipt QR (just print the URL)</li>
+              <li>Up to 1,000 active members</li>
             </ul>
             <button
               className="btn btn-primary btn-full"
               onClick={() => {
-                window.open(STARTER_CHECKOUT_URL, "_blank");
+                window.open(BASIC_CHECKOUT_URL, "_blank");
               }}
             >
-              Get Started</button>
-            <p className="pricing-footnote">Perfect for cafés, salons, boutiques.</p>
+              Get Started
+            </button>
+            <p className="pricing-footnote">Perfect for businesses who don&apos;t want crypto complexity.</p>
           </div>
 
-          {/* Growth */}
+          {/* Premium Tier - $149-199/month */}
+          <div className="pricing-card highlight">
+            <p className="pricing-pill">Premium · Most popular</p>
+            <h3>Blockchain-Verified Rewards</h3>
+            <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-setup">+ $249 one-time setup</p>
+            <ul className="pricing-list">
+              <li>Everything in Basic</li>
+              <li>Stablecoin rewards (your unique angle)</li>
+              <li>&quot;Give your customers REAL money, not just points&quot;</li>
+              <li>Blockchain-verified rewards</li>
+              <li>Customer wallet setup (MetaMask, Trust Wallet, Coinbase Wallet, etc.)</li>
+              <li>Milestone-based payouts (100 points = $5 USDC)</li>
+              <li>Up to 5,000 active members & priority support</li>
+            </ul>
+            <button
+              className="btn btn-primary btn-full"
+              onClick={() => {
+                window.open(PREMIUM_CHECKOUT_URL, "_blank");
+              }}
+            >
+              Book A Demo
+            </button>
+            <p className="pricing-footnote">Best for forward-thinking businesses ready to stand out.</p>
+          </div>
+
+          {/* COMMENTED OUT - Will be added back later
+
           <div className="pricing-card highlight">
             <p className="pricing-pill">Growth · Most popular</p>
             <h3>For Growing Brands</h3>
@@ -66,7 +98,10 @@ export default function Pricing() {
             <p className="pricing-footnote">Best value for multi-location and online brands.</p>
           </div>
 
-          {/* Pro */}
+          */}
+
+          {/* COMMENTED OUT - Will be added back later
+
           <div className="pricing-card">
             <p className="pricing-pill">Pro / Brand</p>
             <h3>For Franchises & Launches</h3>
@@ -87,6 +122,8 @@ export default function Pricing() {
               Talk To Sales</button>
             <p className="pricing-footnote">Tailored scope, quoted after discovery.</p>
           </div>
+
+          */}
         </div>
 
         <div className="pricing-extra">

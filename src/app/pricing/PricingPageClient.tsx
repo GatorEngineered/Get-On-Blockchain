@@ -6,7 +6,7 @@ import Link from "next/link";
 import Reveal from "@/app/components/Reveal";
 import styles from "./pricing.module.css";
 
-type PlanId = "STARTER" | "GROWTH" | "PRO";
+type PlanId = "BASIC" | "PREMIUM"; // | "GROWTH" | "PRO"; // Commented out for launch
 type BillingPeriod = "monthly" | "annual";
 
 type Plan = {
@@ -23,27 +23,44 @@ type Plan = {
 
 const plans: Plan[] = [
   {
-    id: "STARTER",
-    name: "Starter",
-    priceMonthly: 149,
-    setupFee: 100,
+    id: "BASIC",
+    name: "Basic",
+    priceMonthly: 99,
+    setupFee: 199,
     description:
-      "Simple rewards for a single-location business getting started with Web3 loyalty.",
+      "Points & rewards only. Redeem for free products/discounts. Simple for businesses who don't want crypto complexity.",
     features: [
-      "1 location",
-      "Email login + wallet-based rewards (custodial wallet included)",
-      "You choose the stablecoin (for example USDC) and wallet flow we set up",
-      "Custodian account setup for rewards balance",
+      "QR-based loyalty with points & rewards",
+      "Redeem for free products/discounts",
       "1 merchant claim page (yourbrand.getonblockchain.com)",
-      "2 custom points rules for visits or simple campaigns",
-      "Basic analytics for scans, claims, and repeats",
-      "Up to 500 active members",
-      "Up to 1 staff login",
-      "Guided onboarding and rollout",
+      "Basic dashboard & analytics",
+      "Simple POS receipt QR (just print the URL)",
+      "Up to 1,000 active members",
       "Email support",
     ],
-    paypalLink: "https://www.paypal.com/ncp/payment/YOUR-STARTER-BUTTON-ID",
+    paypalLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled",
   },
+  {
+    id: "PREMIUM",
+    name: "Premium",
+    badge: "Most Popular",
+    priceMonthly: 149,
+    setupFee: 249,
+    description:
+      "Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.",
+    features: [
+      "Everything in Basic",
+      "Stablecoin rewards (your unique angle)",
+      "\"Give your customers REAL money, not just points\"",
+      "Blockchain-verified rewards",
+      "Customer wallet setup (MetaMask, Trust Wallet, Coinbase Wallet, etc.)",
+      "Milestone-based payouts (100 points = $5 USDC)",
+      "Up to 5,000 active members",
+      "Priority email support",
+    ],
+    paypalLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled",
+  },
+  /* COMMENTED OUT - Will be added back later
   {
     id: "GROWTH",
     name: "Growth",
@@ -95,6 +112,7 @@ const plans: Plan[] = [
     paypalLink:
       "https://www.paypal.com/ncp/payment/YOUR-ENTERPRISE-BUTTON-ID",
   },
+  */
 ];
 
 function getPriceLabels(plan: Plan, billing: BillingPeriod) {
@@ -265,60 +283,50 @@ export default function PricingPageClient() {
               <thead>
                 <tr>
                   <th></th>
-                  <th>Starter</th>
-                  <th>Growth</th>
-                  <th>Enterprise</th>
+                  <th>Basic</th>
+                  <th>Premium</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td>Locations</td>
-                  <td>1</td>
-                  <td>Up to 3</td>
-                  <td>Up to 15*</td>
-                </tr>
-                <tr>
                   <td>Active members</td>
-                  <td>Up to 500</td>
-                  <td>Up to 15,000</td>
-                  <td>Up to 35,000*</td>
+                  <td>Up to 1,000</td>
+                  <td>Up to 5,000</td>
                 </tr>
                 <tr>
-                  <td>Custom points rules</td>
-                  <td>2 rules</td>
-                  <td>5 rules</td>
-                  <td>Unlimited*</td>
+                  <td>QR-based loyalty</td>
+                  <td>✓</td>
+                  <td>✓</td>
                 </tr>
                 <tr>
-                  <td>Staff logins</td>
-                  <td>Up to 1</td>
-                  <td>Up to 2</td>
-                  <td>Up to 5*</td>
+                  <td>Points & rewards</td>
+                  <td>✓ (Products/discounts only)</td>
+                  <td>✓ (Products/discounts + stablecoins)</td>
                 </tr>
                 <tr>
-                  <td>Stablecoin choice</td>
-                  <td colSpan={3}>
-                    You choose supported stablecoins and wallet flows for your
-                    business.
-                  </td>
+                  <td>Stablecoin rewards</td>
+                  <td>–</td>
+                  <td>✓ (USDC, USDT, DAI)</td>
                 </tr>
                 <tr>
-                  <td>Custodial account setup</td>
-                  <td>Included</td>
-                  <td>Included</td>
-                  <td>Included</td>
+                  <td>Blockchain verification</td>
+                  <td>–</td>
+                  <td>✓</td>
                 </tr>
                 <tr>
-                  <td>Branded tokens</td>
-                  <td>Optional add-on later</td>
-                  <td>Included</td>
-                  <td>Included</td>
+                  <td>Wallet support</td>
+                  <td>Not needed</td>
+                  <td>MetaMask, Trust, Coinbase, WalletConnect, etc.</td>
                 </tr>
                 <tr>
-                  <td>NFT access / memberships</td>
-                  <td>Not included</td>
-                  <td>Optional add-on</td>
-                  <td>Available (custom pricing)*</td>
+                  <td>Milestone payouts</td>
+                  <td>–</td>
+                  <td>✓ (e.g., 100 pts = $5 USDC)</td>
+                </tr>
+                <tr>
+                  <td>Support</td>
+                  <td>Email support</td>
+                  <td>Priority email support</td>
                 </tr>
               </tbody>
             </table>
