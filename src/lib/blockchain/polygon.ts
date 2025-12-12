@@ -222,7 +222,7 @@ export async function checkTransaction(
     });
 
     return {
-      status: receipt.status,
+      status: receipt.status === 'success' ? 'success' : 'failed',
       blockNumber: receipt.blockNumber,
       gasUsed: receipt.gasUsed,
     };
