@@ -129,8 +129,8 @@ model Merchant {
  */
 model Member {
   id        String  @id @default(cuid())
-  firstName String
-  lastName  String
+  firstName String  @default("")
+  lastName  String  @default("")
   email     String  @unique
   phone     String? // optional
   address   String? // optional
@@ -138,13 +138,32 @@ model Member {
   // optional global wallet if you ever want it
   walletAddress String?
 
+  // Member tier (global across all businesses)
+  tier String @default("STARTER")
+
   events Event[]
+  loginTokens MemberLoginToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   businesses         BusinessMember[]
   rewardTransactions RewardTransaction[]
+}
+
+/**
+ * Magic link tokens for passwordless member login
+ */
+model MemberLoginToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  returnTo  String?  // URL to redirect to after login
+
+  createdAt DateTime @default(now())
 }
 
 /**
