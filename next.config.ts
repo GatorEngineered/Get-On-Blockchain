@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
-<<<<<<< Updated upstream
 
   // IMPORTANT: Don't enable turbopack config - it causes build failures with wagmi/RainbowKit
   // Turbopack tries to bundle test files from node_modules which breaks production builds
@@ -29,8 +28,6 @@ const nextConfig: NextConfig = {
 
   // Transpile packages that need it
   transpilePackages: ['@rainbow-me/rainbowkit', '@wagmi/connectors'],
-=======
->>>>>>> Stashed changes
 };
 
 export default nextConfig;
