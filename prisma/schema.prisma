@@ -9,9 +9,11 @@ datasource db {
 }
 
 enum Plan {
-  STARTER
-  GROWTH
-  PRO
+  STARTER  // Legacy - being phased out
+  BASIC    // $99/mo - Points only
+  PREMIUM  // $149/mo - Points + Stablecoin rewards
+  GROWTH   // $249/mo - Multi-location (Phase 2)
+  PRO      // $349/mo - Enterprise (Phase 2)
 }
 
 // Types for events and plans used in the app
@@ -21,6 +23,7 @@ enum EventType {
   CREATE_EMAIL
   REWARD_EARNED
   REWARD_REDEEMED
+  PAYOUT_CLAIMED
 }
 
 enum MerchantPlan {
@@ -40,6 +43,13 @@ enum RewardType {
   EARN
   REDEEM
   ADJUST
+  PAYOUT  // Stablecoin payout
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
 }
 
 model Business {
@@ -164,13 +174,24 @@ model RewardTransaction {
   member   Member @relation(fields: [memberId], references: [id])
   memberId String
 
-  type     RewardType
-  amount   Int
-  currency String     @default("POINTS")
+  type   RewardType
+  amount Int // Generic amount field (for backwards compatibility)
+
+  // Points tracking
+  pointsDeducted Int? // For PAYOUT type
+
+  // Stablecoin tracking
+  usdcAmount Float? // USDC amount sent (e.g., 5.0 for $5)
+
+  currency String @default("POINTS")
   reason   String?
 
-  txHash        String?
-  walletNetwork String?
+  // Blockchain transaction details
+  txHash         String?
+  walletAddress  String? // Recipient wallet
+  walletNetwork  String? // "polygon", "ethereum", "xrpl"
+  status         TransactionStatus @default(PENDING)
+  errorMessage   String? // If status is FAILED
 
   createdAt DateTime @default(now())
 }
