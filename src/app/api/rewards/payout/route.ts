@@ -2,12 +2,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { sendUSDC } from '@/lib/blockchain/polygon';
+import { decrypt } from '@/lib/crypto/encryption';
 
 const prisma = new PrismaClient();
-
-// Payout configuration
-const MILESTONE_POINTS = 100; // Points required for payout
-const PAYOUT_AMOUNT_USD = 5; // USDC amount to send
 
 // Simple in-memory rate limiting (upgrade to Redis in production)
 const payoutAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -94,6 +91,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 2. Verify merchant has payout wallet configured
+    if (!merchant.payoutEnabled || !merchant.payoutWalletEncrypted) {
+      return NextResponse.json(
+        {
+          error: 'Payout wallet not configured. Please set up your payout wallet in dashboard.',
+          action: 'SETUP_WALLET'
+        },
+        { status: 400 }
+      );
+    }
+
+    // Decrypt merchant's payout wallet private key
+    let payoutPrivateKey: string;
+    try {
+      payoutPrivateKey = decrypt(merchant.payoutWalletEncrypted);
+    } catch (error) {
+      console.error('[Payout] Failed to decrypt wallet:', error);
+      return NextResponse.json(
+        { error: 'Wallet decryption failed. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
+    // Get merchant's configurable payout settings
+    const MILESTONE_POINTS = merchant.payoutMilestonePoints;
+    const PAYOUT_AMOUNT_USD = merchant.payoutAmountUSD;
+    const PAYOUT_NETWORK = merchant.payoutNetwork as 'polygon' | 'mumbai';
+
     // 2. Get member's business relationship
     const businessMember = await prisma.businessMember.findUnique({
       where: {
@@ -168,10 +193,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 6. Send USDC to member's wallet
-    console.log(`[Payout] Sending ${PAYOUT_AMOUNT_USD} USDC to ${businessMember.walletAddress}`);
+    // 6. Send USDC to member's wallet using merchant's payout wallet
+    console.log(
+      `[Payout] Merchant ${merchant.slug} sending ${PAYOUT_AMOUNT_USD} USDC to ${businessMember.walletAddress} on ${PAYOUT_NETWORK}`
+    );
 
-    const result = await sendUSDC(businessMember.walletAddress, PAYOUT_AMOUNT_USD);
+    const result = await sendUSDC(
+      payoutPrivateKey,
+      businessMember.walletAddress,
+      PAYOUT_AMOUNT_USD,
+      PAYOUT_NETWORK
+    );
 
     if (!result.success) {
       // Log failed transaction
@@ -279,20 +311,33 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * GET /api/rewards/payout?memberId=xxx&businessId=xxx
+ * GET /api/rewards/payout?merchantSlug=xxx&memberId=xxx&businessId=xxx
  *
  * Check if member is eligible for payout
  */
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const merchantSlug = searchParams.get('merchantSlug');
     const memberId = searchParams.get('memberId');
     const businessId = searchParams.get('businessId');
 
-    if (!memberId || !businessId) {
+    if (!merchantSlug || !memberId || !businessId) {
       return NextResponse.json(
-        { error: 'Missing memberId or businessId' },
+        { error: 'Missing required parameters' },
         { status: 400 }
+      );
+    }
+
+    // Get merchant to check payout settings
+    const merchant = await prisma.merchant.findUnique({
+      where: { slug: merchantSlug },
+    });
+
+    if (!merchant) {
+      return NextResponse.json(
+        { error: 'Merchant not found' },
+        { status: 404 }
       );
     }
 
@@ -312,17 +357,26 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Use merchant's configurable settings
+    const MILESTONE_POINTS = merchant.payoutMilestonePoints;
+    const PAYOUT_AMOUNT_USD = merchant.payoutAmountUSD;
+
     const isEligible = businessMember.points >= MILESTONE_POINTS;
     const hasWallet = !!businessMember.walletAddress;
+    const payoutEnabled = merchant.payoutEnabled;
 
     return NextResponse.json({
-      eligible: isEligible && hasWallet,
+      eligible: isEligible && hasWallet && payoutEnabled,
       currentPoints: businessMember.points,
       pointsNeeded: Math.max(0, MILESTONE_POINTS - businessMember.points),
       milestonePoints: MILESTONE_POINTS,
       payoutAmount: PAYOUT_AMOUNT_USD,
       hasWallet,
       walletAddress: businessMember.walletAddress,
+      payoutEnabled,
+      message: !payoutEnabled
+        ? 'Merchant has not enabled payouts yet'
+        : undefined,
     });
 
   } catch (error: any) {

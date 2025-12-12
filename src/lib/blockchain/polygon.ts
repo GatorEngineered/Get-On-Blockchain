@@ -32,21 +32,32 @@ const USDC_ADDRESSES = {
   testnet: '0x9999f7Fea5938fD3b1E26A12c3f2fb024e194f97' as const,
 };
 
-// Choose network based on environment
-const isProduction = process.env.NODE_ENV === 'production';
-const chain = isProduction ? polygon : polygonMumbai;
-const usdcAddress = isProduction ? USDC_ADDRESSES.mainnet : USDC_ADDRESSES.testnet;
-
-// Create clients
-export function getPolygonClients() {
-  // Get private key from environment (KEEP THIS SECRET!)
-  const privateKey = process.env.PAYOUT_WALLET_PRIVATE_KEY as `0x${string}`;
-
+/**
+ * Get configured wallet and public clients for Polygon
+ *
+ * @param privateKey - Private key of the payout wallet (0x-prefixed)
+ * @param network - Network to use ("polygon" or "mumbai"). Defaults to NODE_ENV-based.
+ */
+export function getPolygonClients(
+  privateKey: string,
+  network?: 'polygon' | 'mumbai'
+) {
   if (!privateKey) {
-    throw new Error('PAYOUT_WALLET_PRIVATE_KEY not set in environment variables');
+    throw new Error('Private key is required for blockchain operations');
   }
 
-  const account = privateKeyToAccount(privateKey);
+  if (!privateKey.startsWith('0x')) {
+    throw new Error('Private key must start with 0x');
+  }
+
+  // Determine network
+  const isProduction = process.env.NODE_ENV === 'production';
+  const useMainnet = network === 'polygon' || (network === undefined && isProduction);
+
+  const chain = useMainnet ? polygon : polygonMumbai;
+  const usdcAddress = useMainnet ? USDC_ADDRESSES.mainnet : USDC_ADDRESSES.testnet;
+
+  const account = privateKeyToAccount(privateKey as `0x${string}`);
 
   // Wallet client (for sending transactions)
   const walletClient = createWalletClient({
@@ -61,22 +72,29 @@ export function getPolygonClients() {
     transport: http(),
   });
 
-  return { walletClient, publicClient, account };
+  return { walletClient, publicClient, account, usdcAddress };
 }
 
 /**
  * Send USDC to a customer wallet
  *
+ * @param privateKey - Business owner's payout wallet private key
  * @param recipientAddress - Customer's wallet address
  * @param amountUSD - Amount in USD (e.g., 5 for $5)
+ * @param network - Network to use ("polygon" or "mumbai")
  * @returns Transaction hash
  */
 export async function sendUSDC(
+  privateKey: string,
   recipientAddress: string,
-  amountUSD: number
+  amountUSD: number,
+  network?: 'polygon' | 'mumbai'
 ): Promise<{ success: true; txHash: string } | { success: false; error: string }> {
   try {
-    const { walletClient, publicClient, account } = getPolygonClients();
+    const { walletClient, publicClient, account, usdcAddress } = getPolygonClients(
+      privateKey,
+      network
+    );
 
     // USDC has 6 decimals (not 18 like most tokens!)
     // $5.00 = 5000000 (5 * 10^6)
@@ -139,13 +157,19 @@ export async function sendUSDC(
 
 /**
  * Get payout wallet balance (USDC and MATIC)
+ *
+ * @param privateKey - Business owner's payout wallet private key
+ * @param network - Network to use ("polygon" or "mumbai")
  */
-export async function getPayoutWalletBalance(): Promise<{
+export async function getPayoutWalletBalance(
+  privateKey: string,
+  network?: 'polygon' | 'mumbai'
+): Promise<{
   usdcBalance: number;
   maticBalance: number;
   address: string;
 }> {
-  const { publicClient, account } = getPolygonClients();
+  const { publicClient, account, usdcAddress } = getPolygonClients(privateKey, network);
 
   // Get USDC balance
   const usdcBalance = await publicClient.readContract({
@@ -169,13 +193,28 @@ export async function getPayoutWalletBalance(): Promise<{
 
 /**
  * Check if a transaction was successful
+ *
+ * @param txHash - Transaction hash to check
+ * @param network - Network to check on ("polygon" or "mumbai")
  */
-export async function checkTransaction(txHash: string): Promise<{
+export async function checkTransaction(
+  txHash: string,
+  network?: 'polygon' | 'mumbai'
+): Promise<{
   status: 'success' | 'failed' | 'pending';
   blockNumber?: bigint;
   gasUsed?: bigint;
 }> {
-  const { publicClient } = getPolygonClients();
+  // Determine network
+  const isProduction = process.env.NODE_ENV === 'production';
+  const useMainnet = network === 'polygon' || (network === undefined && isProduction);
+  const chain = useMainnet ? polygon : polygonMumbai;
+
+  // Only need public client for reading transaction data
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(),
+  });
 
   try {
     const receipt = await publicClient.getTransactionReceipt({

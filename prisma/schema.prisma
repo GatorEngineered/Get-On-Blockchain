@@ -87,6 +87,20 @@ model Merchant {
   primaryColor String?
   accentColor  String?
 
+  // 💰 Stablecoin Payout Configuration (Premium Plan Feature)
+  // Business owner funds their own custodial wallet for customer payouts
+  payoutEnabled         Boolean @default(false) // Enabled after wallet setup
+  payoutWalletAddress   String? // Business owner's payout wallet (NOT platform wallet)
+  payoutWalletEncrypted String? // Encrypted private key (or reference to KMS)
+  payoutMilestonePoints Int     @default(100) // Points needed for payout (configurable)
+  payoutAmountUSD       Float   @default(5.0) // USDC amount per payout (configurable)
+  payoutNetwork         String  @default("polygon") // "polygon", "ethereum", "xrpl"
+
+  // Wallet balance tracking (updated periodically)
+  lastBalanceCheck      DateTime?
+  usdcBalance           Float?
+  lowBalanceAlertSent   Boolean   @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
