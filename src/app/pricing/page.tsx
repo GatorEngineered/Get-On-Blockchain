@@ -29,6 +29,7 @@ const plans: Plan[] = [
         id: "BASIC",
         name: "Basic",
         priceMonthly: 99,
+<<<<<<< Updated upstream
         setupFee: 199,
         description:
             "Points & rewards only. Redeem for free products/discounts. Simple for businesses who don't want crypto complexity.",
@@ -40,9 +41,43 @@ const plans: Plan[] = [
             "Simple POS receipt QR (just print the URL)",
             "Up to 1,000 active members",
             "Email support",
+=======
+        setupFee: 100,
+        description:
+            "Points & rewards only. Redeem for free products/discounts. Simple for businesses who don't want crypto complexity.",
+        features: [
+            "QR-based loyalty with points & rewards",
+            "Redeem for free products/discounts",
+            "1 merchant claim page (yourbrand.getonblockchain.com)",
+            "Basic dashboard & analytics",
+            "Simple POS receipt QR (just print the URL)",
+            "Up to 1,000 active members",
+            "Email support",
+        ],
+        bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/yPu7yBfQtE2IJIoMETcTxQ2?ismsaljsauthenabled",
+    },
+    {
+        id: "PREMIUM",
+        name: "Premium",
+        badge: "Most Popular",
+        priceMonthly: 149,
+        setupFee: 100,
+        description:
+            "Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.",
+        features: [
+            "Everything in Basic",
+            "Stablecoin rewards (your unique angle)",
+            "\"Give your customers REAL money, not just points\"",
+            "Blockchain-verified rewards",
+            "Customer wallet setup (MetaMask, Trust Wallet, Coinbase Wallet, etc.)",
+            "Milestone-based payouts (100 points = $5 USDC)",
+            "Up to 5,000 active members",
+            "Priority email support",
+>>>>>>> Stashed changes
         ],
         bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled",
     },
+    /* COMMENTED OUT - Will be added back later
     {
         id: "PREMIUM",
         name: "Premium",

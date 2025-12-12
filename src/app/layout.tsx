@@ -72,12 +72,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+<<<<<<< Updated upstream
         <ClientProviders>
+=======
+         <ClientProviders>
+
+>>>>>>> Stashed changes
           <SmoothScroll>
+
             <Reveal selector=".reveal">
+
               <AppShell>{children}</AppShell>
+
             </Reveal>
+
           </SmoothScroll>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         </ClientProviders>
         <CookieBanner />
         <Footer/>

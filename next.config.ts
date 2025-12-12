@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+<<<<<<< Updated upstream
 
   // Empty turbopack config to silence Next.js 16 warning
   // We're using webpack config below for RainbowKit compatibility
@@ -24,6 +25,8 @@ const nextConfig: NextConfig = {
 
   // Transpile packages that need it
   transpilePackages: ['@rainbow-me/rainbowkit', '@wagmi/connectors'],
+=======
+>>>>>>> Stashed changes
 };
 
 export default nextConfig;

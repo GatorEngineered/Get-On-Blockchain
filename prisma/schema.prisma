@@ -27,9 +27,11 @@ enum EventType {
 }
 
 enum MerchantPlan {
-  STARTER
-  GROWTH
-  PRO
+  STARTER  // Legacy - being phased out
+  BASIC    // $99/mo - Points only
+  PREMIUM  // $149/mo - Points + Stablecoin rewards
+  GROWTH   // $249/mo - Multi-location (Phase 2)
+  PRO      // $349/mo - Enterprise (Phase 2)
 }
 
 // Optional: you can use this later if you want “Bronze / Silver / Gold”
@@ -103,6 +105,20 @@ model Merchant {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+ // 💰 Stablecoin Payout Configuration (Premium Plan Feature)
+  // Business owner funds their own custodial wallet for customer payouts
+  payoutEnabled         Boolean @default(false) // Enabled after wallet setup
+  payoutWalletAddress   String? // Business owner's payout wallet (NOT platform wallet)
+  payoutWalletEncrypted String? // Encrypted private key (or reference to KMS)
+  payoutMilestonePoints Int     @default(100) // Points needed for payout (configurable)
+  payoutAmountUSD       Float   @default(5.0) // USDC amount per payout (configurable)
+  payoutNetwork         String  @default("polygon") // "polygon", "ethereum", "xrpl"
+
+  // Wallet balance tracking (updated periodically)
+  lastBalanceCheck      DateTime?
+  usdcBalance           Float?
+  lowBalanceAlertSent   Boolean   @default(false)
 
   events Event[]
 }
