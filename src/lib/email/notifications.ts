@@ -39,7 +39,7 @@ function createTransporter() {
     return null;
   }
 
-  return nodemailer.createTransporter({
+  return nodemailer.createTransport({
     host: config.host,
     port: config.port,
     secure: config.port === 465, // true for 465, false for other ports
