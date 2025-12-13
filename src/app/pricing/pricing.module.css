@@ -194,15 +194,8 @@
     padding: 3rem 1.25rem 4rem;
   }
 
-<<<<<<< Updated upstream
   .grid {
     grid-template-columns: 1fr;
-=======
-.grid {
-
-    grid-template-columns: 1fr;
-
->>>>>>> Stashed changes
   }
 
   .card {

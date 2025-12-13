@@ -2,12 +2,8 @@
 import { prisma } from "@/app/lib/prisma";
 import { notFound } from "next/navigation";
 
-type RawParams =
-  | { merchant: string; memberId: string }
-  | Promise<{ merchant: string; memberId: string }>;
-
 type MemberPageProps = {
-  params: RawParams;
+  params: Promise<{ merchant: string; memberId: string }>;
 };
 
 export const dynamic = "force-dynamic";
@@ -28,12 +24,8 @@ function getPointsFromMetadata(metadata: unknown): number | undefined {
 }
 
 export default async function MemberPage(props: MemberPageProps) {
-  // ✅ Handle both plain-object and Promise params (Next 16 can pass either)
-  const resolvedParams =
-    props.params instanceof Promise ? await props.params : props.params;
-
-  const merchant = resolvedParams?.merchant;
-  const memberId = resolvedParams?.memberId;
+  // In Next.js 16, params is always a Promise
+  const { merchant, memberId } = await props.params;
 
   // If anything is missing, bail early instead of letting Prisma explode
   if (!merchant || !memberId) {

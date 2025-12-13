@@ -130,13 +130,6 @@ function getPriceLabels(plan: Plan, billing: BillingPeriod) {
   // Annual: 2 months free → 10x monthly price.
   const annualBase = baseMonthly * 10;
 
-  if (plan.id === "PRO") {
-    return {
-      amount: `From $${annualBase}+`,
-      term: "/year (2 months free)",
-    };
-  }
-
   return {
     amount: `$${annualBase}`,
     term: "/year (2 months free)",
