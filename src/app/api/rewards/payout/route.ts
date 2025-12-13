@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { sendUSDC } from '@/lib/blockchain/polygon';
 import { decrypt } from '@/lib/crypto/encryption';
+import { sendPayoutSuccessEmail } from '@/lib/email/notifications';
 
 const prisma = new PrismaClient();
 
@@ -282,6 +283,32 @@ export async function POST(req: NextRequest) {
     });
 
     console.log(`[Payout] Success! TxHash: ${result.txHash}`);
+
+    // Send payout success email to member
+    await sendPayoutSuccessEmail({
+      memberEmail: businessMember.member.email,
+      merchantName: merchant.name,
+      amount: PAYOUT_AMOUNT_USD,
+      points: MILESTONE_POINTS,
+      walletAddress: businessMember.walletAddress,
+      txHash: result.txHash,
+      network: PAYOUT_NETWORK,
+    });
+
+    // Log email event
+    await prisma.event.create({
+      data: {
+        merchantId: merchant.id,
+        memberId,
+        type: 'EMAIL_SENT',
+        source: 'payout-success',
+        metadata: {
+          emailType: 'payout-success',
+          amount: PAYOUT_AMOUNT_USD,
+          txHash: result.txHash,
+        },
+      },
+    });
 
     return NextResponse.json({
       success: true,
