@@ -83,3 +83,62 @@ export function decrypt(ciphertext: string): string {
 export function hash(value: string): string {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
+
+/**
+ * Validate that encryption key is properly formatted
+ *
+ * @returns true if encryption key is valid, false otherwise
+ */
+export function validateEncryptionKey(): boolean {
+  try {
+    const key = process.env.ENCRYPTION_KEY;
+    if (!key) return false;
+
+    // Key should be 64 hex characters (32 bytes)
+    if (key.length !== 64) return false;
+
+    // Test that it's valid hex
+    Buffer.from(key, 'hex');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Safely encrypt data with error handling
+ *
+ * @param plaintext - Text to encrypt
+ * @returns Encrypted string or null if encryption fails
+ */
+export function safeEncrypt(plaintext: string): string | null {
+  try {
+    if (!validateEncryptionKey()) {
+      console.error('Invalid encryption key');
+      return null;
+    }
+    return encrypt(plaintext);
+  } catch (error) {
+    console.error('Encryption failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Safely decrypt data with error handling
+ *
+ * @param ciphertext - Encrypted text
+ * @returns Decrypted string or null if decryption fails
+ */
+export function safeDecrypt(ciphertext: string): string | null {
+  try {
+    if (!validateEncryptionKey()) {
+      console.error('Invalid encryption key');
+      return null;
+    }
+    return decrypt(ciphertext);
+  } catch (error) {
+    console.error('Decryption failed:', error);
+    return null;
+  }
+}
