@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { sendMagicLinkEmail } from '@/lib/email/notifications';
 
 const prisma = new PrismaClient();
 
@@ -61,21 +62,23 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000';
     const magicLinkUrl = `${baseUrl}/api/member/auth/verify?token=${token}`;
 
-    // TODO: Send email with magic link
-    // For now, just log it (in production, use SendGrid, Resend, or similar)
-    console.log('[Auth] Magic link generated for:', member.email);
-    console.log('[Auth] Magic link URL:', magicLinkUrl);
-    console.log('[Auth] Expires at:', expiresAt.toISOString());
+    // Get merchant name if merchantSlug provided
+    let merchantName: string | undefined;
+    if (merchantSlug) {
+      const merchant = await prisma.merchant.findUnique({
+        where: { slug: merchantSlug },
+        select: { name: true },
+      });
+      merchantName = merchant?.name;
+    }
 
-    // TODO: Replace with actual email sending
-    // await sendMagicLinkEmail({
-    //   to: member.email,
-    //   magicLink: magicLinkUrl,
-    //   expiresIn: '15 minutes',
-    // });
+    // Send magic link email
+    await sendMagicLinkEmail(member.email, magicLinkUrl, merchantName);
+
+    console.log('[Auth] Magic link sent to:', member.email);
 
     // For development: Return the magic link in response
-    // IMPORTANT: Remove this in production!
+    // IMPORTANT: This is only for dev/testing
     const isDevelopment = process.env.NODE_ENV === 'development';
 
     return NextResponse.json({
