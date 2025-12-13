@@ -24,6 +24,9 @@ enum EventType {
   REWARD_EARNED
   REWARD_REDEEMED
   PAYOUT_CLAIMED
+  EMAIL_SENT              // Email notification sent
+  LOW_BALANCE_ALERT       // Low wallet balance alert
+  PAYOUT_SUCCESS_NOTIFY   // Payout success notification
 }
 
 enum MerchantPlan {
@@ -102,6 +105,8 @@ model Merchant {
   lastBalanceCheck      DateTime?
   usdcBalance           Float?
   lowBalanceAlertSent   Boolean   @default(false)
+  lowBalanceThreshold   Float     @default(50.0) // Alert when balance falls below this amount
+  notificationEmail     String?   // Email for alerts (defaults to loginEmail if not set)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

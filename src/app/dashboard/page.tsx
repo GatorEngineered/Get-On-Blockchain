@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import WalletBalanceWidget from "./components/WalletBalanceWidget";
 
 type Merchant = {
   id: string;
@@ -94,6 +95,11 @@ export default function DashboardPage() {
           Quick view of merchants, members, and events. This is your internal
           cockpit for v1.
         </p>
+
+        {/* Wallet Balance Widget */}
+        <div style={{ marginTop: "2rem", marginBottom: "2rem" }}>
+          <WalletBalanceWidget />
+        </div>
 
         <div style={{ marginTop: "2rem", overflowX: "auto" }}>
           <table className="dashboard-table">
