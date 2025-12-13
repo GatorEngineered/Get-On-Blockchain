@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import PayoutWalletSetup from "../components/PayoutWalletSetup";
 
 type MerchantSettings = {
   id: string;
@@ -236,6 +237,12 @@ export default function DashboardSettingsPage() {
               {isSaving ? "Saving…" : "Save changes"}
             </button>
           </form>
+
+          {/* Payout Wallet Setup (Premium Feature) */}
+          <PayoutWalletSetup
+            merchantSlug={settings.slug}
+            merchantPlan={settings.plan}
+          />
         </>
       )}
     </main>

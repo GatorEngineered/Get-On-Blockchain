@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import AppShell from "@/app/components/AppShell"; // 🔹 new
 import  SmoothScroll  from "@/app/components/SmoothScroll";
 import Reveal from "@/app/components/Reveal";
-import { WalletProvider } from "@/app/providers/WalletProviders";
+import ClientProviders from "@/app/providers/ClientProviders";
 import Footer from "@/app/components/Footer";
 import CookieBanner from "@/app/components/CookieBanner";
 import "./globals.css";
@@ -72,13 +72,26 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <WalletProvider>
+<<<<<<< Updated upstream
+        <ClientProviders>
+=======
+         <ClientProviders>
+
+>>>>>>> Stashed changes
           <SmoothScroll>
+
             <Reveal selector=".reveal">
+
               <AppShell>{children}</AppShell>
+
             </Reveal>
+
           </SmoothScroll>
-        </WalletProvider>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
+        </ClientProviders>
         <CookieBanner />
         <Footer/>
       </body>

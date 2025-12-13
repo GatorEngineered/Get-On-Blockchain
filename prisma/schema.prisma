@@ -9,9 +9,11 @@ datasource db {
 }
 
 enum Plan {
-  STARTER
-  GROWTH
-  PRO
+  STARTER  // Legacy - being phased out
+  BASIC    // $99/mo - Points only
+  PREMIUM  // $149/mo - Points + Stablecoin rewards
+  GROWTH   // $249/mo - Multi-location (Phase 2)
+  PRO      // $349/mo - Enterprise (Phase 2)
 }
 
 // Types for events and plans used in the app
@@ -21,12 +23,15 @@ enum EventType {
   CREATE_EMAIL
   REWARD_EARNED
   REWARD_REDEEMED
+  PAYOUT_CLAIMED
 }
 
 enum MerchantPlan {
-  STARTER
-  GROWTH
-  PRO
+  STARTER  // Legacy - being phased out
+  BASIC    // $99/mo - Points only
+  PREMIUM  // $149/mo - Points + Stablecoin rewards
+  GROWTH   // $249/mo - Multi-location (Phase 2)
+  PRO      // $349/mo - Enterprise (Phase 2)
 }
 
 // Optional: you can use this later if you want “Bronze / Silver / Gold”
@@ -40,6 +45,13 @@ enum RewardType {
   EARN
   REDEEM
   ADJUST
+  PAYOUT  // Stablecoin payout
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
 }
 
 model Business {
@@ -77,6 +89,20 @@ model Merchant {
   primaryColor String?
   accentColor  String?
 
+  // 💰 Stablecoin Payout Configuration (Premium Plan Feature)
+  // Business owner funds their own custodial wallet for customer payouts
+  payoutEnabled         Boolean @default(false) // Enabled after wallet setup
+  payoutWalletAddress   String? // Business owner's payout wallet (NOT platform wallet)
+  payoutWalletEncrypted String? // Encrypted private key (or reference to KMS)
+  payoutMilestonePoints Int     @default(100) // Points needed for payout (configurable)
+  payoutAmountUSD       Float   @default(5.0) // USDC amount per payout (configurable)
+  payoutNetwork         String  @default("polygon") // "polygon", "ethereum", "xrpl"
+
+  // Wallet balance tracking (updated periodically)
+  lastBalanceCheck      DateTime?
+  usdcBalance           Float?
+  lowBalanceAlertSent   Boolean   @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -89,8 +115,8 @@ model Merchant {
  */
 model Member {
   id        String  @id @default(cuid())
-  firstName String
-  lastName  String
+  firstName String  @default("")
+  lastName  String  @default("")
   email     String  @unique
   phone     String? // optional
   address   String? // optional
@@ -98,13 +124,32 @@ model Member {
   // optional global wallet if you ever want it
   walletAddress String?
 
+  // Member tier (global across all businesses)
+  tier String @default("STARTER")
+
   events Event[]
+  loginTokens MemberLoginToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   businesses         BusinessMember[]
   rewardTransactions RewardTransaction[]
+}
+
+/**
+ * Magic link tokens for passwordless member login
+ */
+model MemberLoginToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  returnTo  String?  // URL to redirect to after login
+
+  createdAt DateTime @default(now())
 }
 
 /**
@@ -164,13 +209,24 @@ model RewardTransaction {
   member   Member @relation(fields: [memberId], references: [id])
   memberId String
 
-  type     RewardType
-  amount   Int
-  currency String     @default("POINTS")
+  type   RewardType
+  amount Int // Generic amount field (for backwards compatibility)
+
+  // Points tracking
+  pointsDeducted Int? // For PAYOUT type
+
+  // Stablecoin tracking
+  usdcAmount Float? // USDC amount sent (e.g., 5.0 for $5)
+
+  currency String @default("POINTS")
   reason   String?
 
-  txHash        String?
-  walletNetwork String?
+  // Blockchain transaction details
+  txHash         String?
+  walletAddress  String? // Recipient wallet
+  walletNetwork  String? // "polygon", "ethereum", "xrpl"
+  status         TransactionStatus @default(PENDING)
+  errorMessage   String? // If status is FAILED
 
   createdAt DateTime @default(now())
 }

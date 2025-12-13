@@ -1,9 +1,9 @@
 // src/app/components/WalletConnectButton.tsx
 "use client";
 
-import { useState } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { useState, useEffect } from "react";
+import { useAccount, useSignMessage } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 type WalletConnectButtonProps = {
   merchantSlug: string;
@@ -15,22 +15,43 @@ export default function WalletConnectButton({
   memberId,
 }: WalletConnectButtonProps) {
   const { address, isConnected } = useAccount();
-  const { disconnect } = useDisconnect();
+  const { signMessageAsync } = useSignMessage();
 
-  const [status, setStatus] = useState<"idle" | "syncing" | "done" | "error">(
+  const [status, setStatus] = useState<"idle" | "verifying" | "syncing" | "done" | "error">(
     "idle"
   );
+  const [lastSyncedAddress, setLastSyncedAddress] = useState<string | null>(null);
 
-  // wagmi v2 style: use connectAsync for easier async/await flow
-  const { connectAsync, isPending } = useConnect();
-
-  // Helper to sync wallet address to backend
+  // Sync wallet to backend with signature verification
   async function syncWalletToBackend(addr: string) {
     if (!memberId) return;
+    if (lastSyncedAddress === addr) return; // Already synced
 
     try {
+      setStatus("verifying");
+
+      // Step 1: Request a nonce from backend
+      const nonceRes = await fetch("/api/wallet/nonce", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: addr }),
+      });
+
+      if (!nonceRes.ok) {
+        console.error("Failed to get nonce", await nonceRes.json());
+        setStatus("error");
+        return;
+      }
+
+      const { nonce } = await nonceRes.json();
+
+      // Step 2: Sign the nonce with user's wallet
+      const message = `Sign this message to verify your wallet ownership.\n\nNonce: ${nonce}`;
+      const signature = await signMessageAsync({ message });
+
       setStatus("syncing");
 
+      // Step 3: Send signature to backend for verification
       const res = await fetch("/api/connect-wallet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,6 +59,8 @@ export default function WalletConnectButton({
           merchantSlug,
           memberId,
           address: addr,
+          signature,
+          message,
         }),
       });
 
@@ -48,68 +71,132 @@ export default function WalletConnectButton({
       }
 
       setStatus("done");
+      setLastSyncedAddress(addr);
     } catch (err) {
-      console.error("Error calling /api/connect-wallet", err);
+      console.error("Error syncing wallet", err);
       setStatus("error");
     }
   }
 
-  const handleClick = async () => {
-    if (isConnected) {
-      // Disconnect wallet
-      setStatus("idle");
-      disconnect();
-      return;
+  // Auto-sync when wallet connects
+  useEffect(() => {
+    if (isConnected && address && memberId && lastSyncedAddress !== address) {
+      syncWalletToBackend(address);
     }
-
-    try {
-      setStatus("idle");
-
-      const connector = injected({ shimDisconnect: true });
-
-      // Connect wallet and get back connection data
-      const result = await connectAsync({ connector });
-
-      // Safely extract an address from the result, then fall back to useAccount
-      let addr: string | undefined;
-
-      if (result && typeof result === "object" && "account" in result) {
-        const maybeAccount = (result as { account?: unknown }).account;
-        if (typeof maybeAccount === "string") {
-          addr = maybeAccount;
-        }
-      }
-
-      if (!addr && typeof address === "string") {
-        addr = address;
-      }
-
-      if (!addr) {
-        console.error("No wallet address found after connect");
-        setStatus("error");
-        return;
-      }
-
-      await syncWalletToBackend(addr);
-    } catch (error) {
-      console.error("MetaMask connection error:", error);
-      setStatus("error");
-    }
-  };
-
-  let label = "Connect wallet";
-  if (isPending) label = "Connecting...";
-  if (status === "syncing") label = "Saving wallet…";
-  if (status === "done") label = "Wallet connected ✔";
+  }, [isConnected, address, memberId]);
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="btn btn-primary"
-      disabled={isPending || status === "syncing"}
-    >
-      {label}
-    </button>
+    <div className="wallet-connect-wrapper">
+      <ConnectButton.Custom>
+        {({
+          account,
+          chain,
+          openAccountModal,
+          openChainModal,
+          openConnectModal,
+          authenticationStatus,
+          mounted,
+        }) => {
+          const ready = mounted && authenticationStatus !== "loading";
+          const connected =
+            ready &&
+            account &&
+            chain &&
+            (!authenticationStatus || authenticationStatus === "authenticated");
+
+          return (
+            <div
+              {...(!ready && {
+                "aria-hidden": true,
+                style: {
+                  opacity: 0,
+                  pointerEvents: "none",
+                  userSelect: "none",
+                },
+              })}
+            >
+              {(() => {
+                if (!connected) {
+                  return (
+                    <button
+                      onClick={openConnectModal}
+                      type="button"
+                      className="btn btn-primary"
+                    >
+                      Connect Wallet
+                    </button>
+                  );
+                }
+
+                if (chain.unsupported) {
+                  return (
+                    <button
+                      onClick={openChainModal}
+                      type="button"
+                      className="btn btn-warning"
+                    >
+                      Wrong network
+                    </button>
+                  );
+                }
+
+                return (
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <button
+                      onClick={openChainModal}
+                      style={{ display: "flex", alignItems: "center" }}
+                      type="button"
+                      className="btn btn-secondary"
+                    >
+                      {chain.hasIcon && (
+                        <div
+                          style={{
+                            background: chain.iconBackground,
+                            width: 12,
+                            height: 12,
+                            borderRadius: 999,
+                            overflow: "hidden",
+                            marginRight: 4,
+                          }}
+                        >
+                          {chain.iconUrl && (
+                            <img
+                              alt={chain.name ?? "Chain icon"}
+                              src={chain.iconUrl}
+                              style={{ width: 12, height: 12 }}
+                            />
+                          )}
+                        </div>
+                      )}
+                      {chain.name}
+                    </button>
+
+                    <button
+                      onClick={openAccountModal}
+                      type="button"
+                      className="btn btn-primary"
+                    >
+                      {status === "verifying" && "Verifying..."}
+                      {status === "syncing" && "Saving..."}
+                      {status === "done" && "✓ "}
+                      {account.displayName}
+                      {account.displayBalance
+                        ? ` (${account.displayBalance})`
+                        : ""}
+                    </button>
+                  </div>
+                );
+              })()}
+            </div>
+          );
+        }}
+      </ConnectButton.Custom>
+
+      {status === "error" && (
+        <p style={{ color: "red", marginTop: 8, fontSize: 14 }}>
+          Failed to connect wallet. Please try again.
+        </p>
+      )}
+    </div>
   );
 }

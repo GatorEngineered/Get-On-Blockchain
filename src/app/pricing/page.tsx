@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import styles from "./pricing.module.css";
 
-type PlanId = "STARTER" | "GROWTH" | "PRO";
+type PlanId = "BASIC" | "PREMIUM"; // | "GROWTH" | "PRO"; // Commented out for Phase 1
 
 type Plan = {
     id: PlanId;
@@ -11,7 +11,7 @@ type Plan = {
     badge?: string;
     priceMonthly: number;
     priceLabel?: string;
-    setupFee: number;         // <-- ADD THIS
+    setupFee: number;
     description: string;
     features: string[];
     bookingLink: string;
@@ -26,29 +26,79 @@ export const metadata: Metadata = {
 
 const plans: Plan[] = [
     {
-        id: "STARTER",
-        name: "Starter",
+        id: "BASIC",
+        name: "Basic",
+        priceMonthly: 99,
+<<<<<<< Updated upstream
+        setupFee: 199,
+        description:
+            "Points & rewards only. Redeem for free products/discounts. Simple for businesses who don't want crypto complexity.",
+        features: [
+            "QR-based loyalty with points & rewards",
+            "Redeem for free products/discounts",
+            "1 merchant claim page (yourbrand.getonblockchain.com)",
+            "Basic dashboard & analytics",
+            "Simple POS receipt QR (just print the URL)",
+            "Up to 1,000 active members",
+            "Email support",
+=======
+        setupFee: 100,
+        description:
+            "Points & rewards only. Redeem for free products/discounts. Simple for businesses who don't want crypto complexity.",
+        features: [
+            "QR-based loyalty with points & rewards",
+            "Redeem for free products/discounts",
+            "1 merchant claim page (yourbrand.getonblockchain.com)",
+            "Basic dashboard & analytics",
+            "Simple POS receipt QR (just print the URL)",
+            "Up to 1,000 active members",
+            "Email support",
+        ],
+        bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/yPu7yBfQtE2IJIoMETcTxQ2?ismsaljsauthenabled",
+    },
+    {
+        id: "PREMIUM",
+        name: "Premium",
+        badge: "Most Popular",
         priceMonthly: 149,
         setupFee: 100,
         description:
-            "Simple rewards for a single-location business getting started with Web3 loyalty.",
+            "Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.",
         features: [
-            "1 location",
-            "QR scan rewards for visits",
-            "Email login + wallet-based rewards (custodial wallet included)",
-            "You choose the stablecoin (for example USDC) and wallet flow we set up",
-            "Custodian account setup for rewards balance",
-            "1 merchant claim page (yourbrand.getonblockchain.com)",
-            "2 custom points rules for visits or simple campaigns",
-            "Basic member ledger for earn / redeem history",
-            "Basic analytics for scans, claims, and repeats",
-            "Up to 500 active members",
-            "Up to 1 staff login",
-            "Guided onboarding and rollout",
-            "Email support",
+            "Everything in Basic",
+            "Stablecoin rewards (your unique angle)",
+            "\"Give your customers REAL money, not just points\"",
+            "Blockchain-verified rewards",
+            "Customer wallet setup (MetaMask, Trust Wallet, Coinbase Wallet, etc.)",
+            "Milestone-based payouts (100 points = $5 USDC)",
+            "Up to 5,000 active members",
+            "Priority email support",
+>>>>>>> Stashed changes
         ],
-       bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled",
+        bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled",
     },
+    /* COMMENTED OUT - Will be added back later
+    {
+        id: "PREMIUM",
+        name: "Premium",
+        badge: "Most Popular",
+        priceMonthly: 149,
+        setupFee: 249,
+        description:
+            "Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.",
+        features: [
+            "Everything in Basic",
+            "Stablecoin rewards (your unique angle)",
+            "\"Give your customers REAL money, not just points\"",
+            "Blockchain-verified rewards",
+            "Customer wallet setup (MetaMask, Trust Wallet, Coinbase Wallet, etc.)",
+            "Milestone-based payouts (100 points = $5 USDC)",
+            "Up to 5,000 active members",
+            "Priority email support",
+        ],
+        bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled",
+    },
+    /* COMMENTED OUT - Will be added back later
     {
         id: "GROWTH",
         name: "Growth",
@@ -102,8 +152,9 @@ const plans: Plan[] = [
             "Dedicated account manager",
             "Priority support with response-time agreements",
         ],
-       bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/5thNk3UlO0qkhZqxFRmZag2?ismsaljsauthenabled",
+        bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/5thNk3UlO0qkhZqxFRmZag2?ismsaljsauthenabled",
     },
+    */
 ];
 
 export default function PricingPage() {
