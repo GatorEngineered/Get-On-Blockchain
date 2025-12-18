@@ -38,9 +38,16 @@ export async function POST(req: Request) {
     const rawEmail = body.email;
     const email = rawEmail?.trim().toLowerCase();
 
-    if (!merchantSlug || !email) {
+    if (!merchantSlug) {
       return NextResponse.json(
-        { error: "Missing merchant or email" },
+        { error: "Merchant slug is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email is required" },
         { status: 400 }
       );
     }

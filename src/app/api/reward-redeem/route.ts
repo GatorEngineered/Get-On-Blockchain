@@ -40,9 +40,16 @@ export async function POST(req: Request) {
     const reason = body.reason ?? "Reward redemption";
     const extraMetadata = body.metadata ?? {};
 
-    if (!merchantSlug || !memberId) {
+    if (!merchantSlug) {
       return NextResponse.json(
-        { error: "Missing merchant or memberId" },
+        { error: "Merchant slug is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!memberId) {
+      return NextResponse.json(
+        { error: "Member ID is required" },
         { status: 400 }
       );
     }
@@ -128,6 +135,6 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("Reward redeem error:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

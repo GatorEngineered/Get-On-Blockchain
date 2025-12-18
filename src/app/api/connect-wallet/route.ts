@@ -16,9 +16,23 @@ export async function POST(req: NextRequest) {
     const { merchantSlug, memberId, address, signature, message } =
       (await req.json()) as ConnectWalletBody;
 
-    if (!merchantSlug || !memberId || !address) {
+    if (!merchantSlug) {
       return NextResponse.json(
-        { error: "Missing merchantSlug, memberId, or address" },
+        { error: "Merchant slug is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!memberId) {
+      return NextResponse.json(
+        { error: "Member ID is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!address) {
+      return NextResponse.json(
+        { error: "Wallet address is required" },
         { status: 400 }
       );
     }

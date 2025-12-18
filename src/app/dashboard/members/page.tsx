@@ -40,7 +40,7 @@ export default async function MembersPage() {
   });
 
   // ✅ Step 3 — map to your table shape
-  const members: MemberRow[] = businessMembers.map((bm) => ({
+  const members: MemberRow[] = businessMembers.map((bm: any) => ({
     id: bm.member.id,
     email: bm.member.email,
     walletAddress: bm.walletAddress ?? bm.member.walletAddress,
