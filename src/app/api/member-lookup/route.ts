@@ -82,7 +82,7 @@ export async function POST(req: Request) {
         error:
           process.env.NODE_ENV === "development"
             ? message
-            : "Server error",
+            : "Internal server error",
       },
       { status: 500 }
     );

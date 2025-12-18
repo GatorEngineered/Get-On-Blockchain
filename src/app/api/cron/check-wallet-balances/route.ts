@@ -151,7 +151,7 @@ export async function GET(req: NextRequest) {
       {
         success: false,
         error: 'Internal server error',
-        details: error.message,
+        ...(process.env.NODE_ENV === 'development' && { details: error.message }),
         timestamp: new Date().toISOString(),
       },
       { status: 500 }

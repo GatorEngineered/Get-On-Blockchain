@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: 'Failed to verify wallet. Please check your private key.',
-          details: error.message,
+          ...(process.env.NODE_ENV === 'development' && { details: error.message }),
         },
         { status: 400 }
       );
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'Internal server error',
-        details: error.message,
+        ...(process.env.NODE_ENV === 'development' && { details: error.message }),
       },
       { status: 500 }
     );
@@ -170,7 +170,7 @@ export async function GET(req: NextRequest) {
 
     if (!merchantSlug) {
       return NextResponse.json(
-        { error: 'Missing merchantSlug parameter' },
+        { error: 'Merchant slug is required' },
         { status: 400 }
       );
     }

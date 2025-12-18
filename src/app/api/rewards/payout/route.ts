@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: 'Payout failed. Please try again or contact support.',
-          details: result.error
+          ...(process.env.NODE_ENV === 'development' && { details: result.error })
         },
         { status: 500 }
       );
@@ -303,7 +303,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'Internal server error processing payout',
-        details: error.message
+        ...(process.env.NODE_ENV === 'development' && { details: error.message })
       },
       { status: 500 }
     );
