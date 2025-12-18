@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/check-wallet-balances",
+        "path": "/api/cron/check-balances",
       "schedule": "0 */6 * * *"
     }
   ]

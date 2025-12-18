@@ -1,0 +1,637 @@
+/* Member Dashboard Styles */
+
+ 
+
+.member-dashboard {
+
+  min-height: 100vh;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  padding: 40px 20px;
+
+}
+
+ 
+
+.member-dashboard-container {
+
+  max-width: 900px;
+
+  margin: 0 auto;
+
+}
+
+ 
+
+.member-dashboard-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+
+  margin-bottom: 40px;
+
+  flex-wrap: wrap;
+
+  gap: 20px;
+
+}
+
+ 
+
+.member-dashboard-header h1 {
+
+  margin: 0;
+
+  font-size: 2.5rem;
+
+  font-weight: 800;
+
+  color: white;
+
+}
+
+ 
+
+.member-email {
+
+  margin-top: 8px;
+
+  color: rgba(255, 255, 255, 0.9);
+
+  font-size: 1.1rem;
+
+}
+
+ 
+
+.member-total-points {
+
+  background: rgba(255, 255, 255, 0.2);
+
+  backdrop-filter: blur(10px);
+
+  border-radius: 20px;
+
+  padding: 20px 30px;
+
+  text-align: center;
+
+  border: 2px solid rgba(255, 255, 255, 0.3);
+
+}
+
+ 
+
+.member-points-value {
+
+  font-size: 3rem;
+
+  font-weight: 900;
+
+  color: white;
+
+  line-height: 1;
+
+}
+
+ 
+
+.member-points-label {
+
+  margin-top: 8px;
+
+  font-size: 0.9rem;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.1em;
+
+  color: rgba(255, 255, 255, 0.9);
+
+}
+
+ 
+
+.member-dashboard-loading {
+
+  text-align: center;
+
+  padding: 60px 20px;
+
+  color: white;
+
+  font-size: 1.2rem;
+
+}
+
+ 
+
+.member-dashboard-error {
+
+  background: #fee2e2;
+
+  border: 2px solid #fca5a5;
+
+  border-radius: 15px;
+
+  padding: 20px;
+
+  margin-bottom: 30px;
+
+  color: #b91c1c;
+
+}
+
+ 
+
+.member-dashboard-error button {
+
+  margin-top: 15px;
+
+}
+
+ 
+
+.member-empty-state {
+
+  background: white;
+
+  border-radius: 25px;
+
+  padding: 60px 40px;
+
+  text-align: center;
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+}
+
+ 
+
+.member-empty-state h2 {
+
+  margin: 0 0 20px 0;
+
+  font-size: 2rem;
+
+  color: #111827;
+
+}
+
+ 
+
+.member-empty-state p {
+
+  color: #6b7280;
+
+  font-size: 1.1rem;
+
+  line-height: 1.6;
+
+  margin: 10px 0;
+
+}
+
+ 
+
+.member-businesses {
+
+  display: grid;
+
+  gap: 25px;
+
+  margin-bottom: 40px;
+
+}
+
+ 
+
+.member-business-card {
+
+  background: white;
+
+  border-radius: 25px;
+
+  padding: 30px;
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+}
+
+ 
+
+.member-business-card:hover {
+
+  transform: translateY(-5px);
+
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+
+}
+
+ 
+
+.member-business-header {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 20px;
+
+}
+
+ 
+
+.member-business-header h3 {
+
+  margin: 0;
+
+  font-size: 1.6rem;
+
+  font-weight: 700;
+
+  color: #111827;
+
+}
+
+ 
+
+.member-business-points {
+
+  font-size: 1.8rem;
+
+  font-weight: 800;
+
+  color: #8b5cf6;
+
+  padding: 8px 20px;
+
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+
+  border-radius: 999px;
+
+}
+
+ 
+
+.member-progress {
+
+  margin: 25px 0;
+
+}
+
+ 
+
+.member-progress-bar {
+
+  height: 16px;
+
+  background: #e5e7eb;
+
+  border-radius: 999px;
+
+  overflow: hidden;
+
+  position: relative;
+
+}
+
+ 
+
+.member-progress-fill {
+
+  height: 100%;
+
+  background: linear-gradient(90deg, #8b5cf6, #ec4899);
+
+  border-radius: 999px;
+
+  transition: width 0.5s ease;
+
+}
+
+ 
+
+.member-progress-label {
+
+  margin-top: 10px;
+
+  font-size: 0.9rem;
+
+  color: #6b7280;
+
+  text-align: center;
+
+}
+
+ 
+
+.member-wallet-info {
+
+  background: #f9fafb;
+
+  padding: 15px;
+
+  border-radius: 12px;
+
+  margin: 20px 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+}
+
+ 
+
+.member-wallet-label {
+
+  font-size: 0.85rem;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.08em;
+
+  color: #6b7280;
+
+}
+
+ 
+
+.member-wallet-address {
+
+  font-family: "Courier New", monospace;
+
+  font-size: 0.95rem;
+
+  color: #111827;
+
+  background: white;
+
+  padding: 8px 12px;
+
+  border-radius: 8px;
+
+  display: inline-block;
+
+}
+
+ 
+
+.member-claim-button {
+
+  width: 100%;
+
+  padding: 18px;
+
+  background: linear-gradient(135deg, #10b981, #34d399);
+
+  color: white;
+
+  border: none;
+
+  border-radius: 15px;
+
+  font-size: 1.2rem;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  margin-top: 10px;
+
+}
+
+ 
+
+.member-claim-button:hover:not(:disabled) {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+
+}
+
+ 
+
+.member-claim-button:disabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+}
+
+ 
+
+.member-not-eligible {
+
+  background: #f3f4f6;
+
+  padding: 20px;
+
+  border-radius: 12px;
+
+  text-align: center;
+
+  margin-top: 10px;
+
+}
+
+ 
+
+.member-not-eligible p {
+
+  margin: 0 0 5px 0;
+
+  color: #6b7280;
+
+  font-weight: 600;
+
+}
+
+ 
+
+.member-not-eligible small {
+
+  color: #9ca3af;
+
+}
+
+ 
+
+.member-dashboard-footer {
+
+  background: rgba(255, 255, 255, 0.2);
+
+  backdrop-filter: blur(10px);
+
+  border: 2px solid rgba(255, 255, 255, 0.3);
+
+  border-radius: 20px;
+
+  padding: 25px 30px;
+
+  color: white;
+
+  text-align: center;
+
+}
+
+ 
+
+.member-dashboard-footer p {
+
+  margin: 0 0 20px 0;
+
+  line-height: 1.6;
+
+}
+
+ 
+
+.member-dashboard-footer strong {
+
+  color: #fbbf24;
+
+}
+
+ 
+
+.member-button {
+
+  padding: 12px 24px;
+
+  background: #244b7a;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 10px;
+
+  font-size: 1rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+}
+
+ 
+
+.member-button:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 20px rgba(36, 75, 122, 0.3);
+
+}
+
+ 
+
+.member-logout-button {
+
+  padding: 10px 20px;
+
+  background: rgba(255, 255, 255, 0.2);
+
+  color: white;
+
+  border: 2px solid rgba(255, 255, 255, 0.5);
+
+  border-radius: 10px;
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+}
+
+ 
+
+.member-logout-button:hover {
+
+  background: rgba(255, 255, 255, 0.3);
+
+  border-color: white;
+
+}
+
+ 
+
+/* Responsive */
+
+@media (max-width: 640px) {
+
+  .member-dashboard {
+
+    padding: 20px 15px;
+
+  }
+
+ 
+
+  .member-dashboard-header {
+
+    flex-direction: column;
+
+  }
+
+ 
+
+  .member-dashboard-header h1 {
+
+    font-size: 2rem;
+
+  }
+
+ 
+
+  .member-total-points {
+
+    width: 100%;
+
+  }
+
+ 
+
+  .member-business-header {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 15px;
+
+  }
+
+ 
+
+  .member-business-card {
+
+    padding: 20px;
+
+  }
+
+}
+
+ 

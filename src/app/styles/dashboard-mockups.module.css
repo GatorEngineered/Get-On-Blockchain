@@ -1,0 +1,1605 @@
+/* Dashboard Mockups CSS Module - Matches existing Get On Blockchain design system */
+
+ 
+
+/* Container */
+
+.mockupContainer {
+
+  max-width: 1280px;
+
+  margin: 0 auto;
+
+  padding: 2rem 1.5rem;
+
+}
+
+ 
+
+/* ========================================
+
+   CUSTOMER DASHBOARD STYLES
+
+   ======================================== */
+
+ 
+
+/* Customer Header */
+
+.customerHeader {
+
+  margin-bottom: 2rem;
+
+}
+
+ 
+
+.customerWelcome h1 {
+
+  font-size: clamp(1.8rem, 2.5vw, 2.4rem);
+
+  font-weight: 600;
+
+  color: #111827;
+
+  margin: 0 0 0.5rem 0;
+
+}
+
+ 
+
+.tierBadge {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 0.4rem;
+
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+
+  color: white;
+
+  padding: 0.4rem 1rem;
+
+  border-radius: 999px;
+
+  font-size: 0.85rem;
+
+  font-weight: 600;
+
+  margin: 0;
+
+}
+
+ 
+
+.tierIcon {
+
+  font-size: 1rem;
+
+}
+
+ 
+
+/* Points Card */
+
+.pointsCard {
+
+  background: linear-gradient(135deg, #244b7a 0%, #1e3a5f 100%);
+
+  border-radius: 1.5rem;
+
+  padding: 2.5rem;
+
+  margin-bottom: 2.5rem;
+
+  box-shadow: 0 12px 35px rgba(36, 75, 122, 0.25);
+
+  color: white;
+
+}
+
+ 
+
+.pointsCardContent {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2rem;
+
+}
+
+ 
+
+.pointsBalance {
+
+  text-align: center;
+
+}
+
+ 
+
+.pointsLabel {
+
+  font-size: 0.9rem;
+
+  font-weight: 500;
+
+  margin: 0 0 0.5rem 0;
+
+  opacity: 0.9;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.05em;
+
+}
+
+ 
+
+.pointsNumber {
+
+  font-size: clamp(3.5rem, 6vw, 5rem);
+
+  font-weight: 700;
+
+  margin: 0;
+
+  line-height: 1;
+
+}
+
+ 
+
+.progressSection {
+
+  background: rgba(255, 255, 255, 0.1);
+
+  border-radius: 1rem;
+
+  padding: 1.5rem;
+
+}
+
+ 
+
+.progressHeader {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 0.8rem;
+
+}
+
+ 
+
+.progressLabel {
+
+  font-size: 0.85rem;
+
+  font-weight: 500;
+
+  opacity: 0.9;
+
+}
+
+ 
+
+.progressPoints {
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+}
+
+ 
+
+.progressBar {
+
+  height: 12px;
+
+  background: rgba(255, 255, 255, 0.2);
+
+  border-radius: 999px;
+
+  overflow: hidden;
+
+  margin-bottom: 0.8rem;
+
+}
+
+ 
+
+.progressFill {
+
+  height: 100%;
+
+  background: linear-gradient(90deg, #8bbcff 0%, #60a5fa 100%);
+
+  border-radius: 999px;
+
+  transition: width 0.3s ease;
+
+}
+
+ 
+
+.pointsRemaining {
+
+  font-size: 0.85rem;
+
+  margin: 0;
+
+  opacity: 0.9;
+
+  text-align: center;
+
+}
+
+ 
+
+/* Sections */
+
+.section {
+
+  margin-bottom: 2.5rem;
+
+}
+
+ 
+
+.sectionTitle {
+
+  font-size: 1.4rem;
+
+  font-weight: 600;
+
+  color: #111827;
+
+  margin: 0 0 1.2rem 0;
+
+}
+
+ 
+
+/* Rewards Grid */
+
+.rewardsGrid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+
+  gap: 1.2rem;
+
+}
+
+ 
+
+.rewardCard {
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  border-radius: 1.2rem;
+
+  padding: 1.5rem;
+
+  transition: all 0.2s ease;
+
+}
+
+ 
+
+.rewardCardActive {
+
+  box-shadow: 0 4px 12px rgba(36, 75, 122, 0.08);
+
+}
+
+ 
+
+.rewardCardActive:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 20px rgba(36, 75, 122, 0.12);
+
+}
+
+ 
+
+.rewardCardInactive {
+
+  opacity: 0.6;
+
+  background: #f9fafb;
+
+}
+
+ 
+
+.rewardHeader {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+
+  margin-bottom: 0.8rem;
+
+}
+
+ 
+
+.rewardName {
+
+  font-size: 1.1rem;
+
+  font-weight: 600;
+
+  color: #111827;
+
+  margin: 0;
+
+}
+
+ 
+
+.rewardPoints {
+
+  background: #eef4ff;
+
+  color: #244b7a;
+
+  padding: 0.3rem 0.7rem;
+
+  border-radius: 999px;
+
+  font-size: 0.8rem;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+
+}
+
+ 
+
+.rewardDescription {
+
+  font-size: 0.9rem;
+
+  color: #6b7280;
+
+  margin: 0 0 1.2rem 0;
+
+  line-height: 1.5;
+
+}
+
+ 
+
+.redeemButton {
+
+  width: 100%;
+
+  background: #244b7a;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 999px;
+
+  padding: 0.7rem 1.2rem;
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+}
+
+ 
+
+.redeemButton:hover {
+
+  background: #1e3a5f;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 4px 12px rgba(36, 75, 122, 0.2);
+
+}
+
+ 
+
+.redeemButtonDisabled {
+
+  background: #d1d5db;
+
+  color: #9ca3af;
+
+  cursor: not-allowed;
+
+}
+
+ 
+
+.redeemButtonDisabled:hover {
+
+  transform: none;
+
+  box-shadow: none;
+
+  background: #d1d5db;
+
+}
+
+ 
+
+/* Transaction List */
+
+.transactionList {
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  border-radius: 1.2rem;
+
+  overflow: hidden;
+
+}
+
+ 
+
+.transactionItem {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 1rem;
+
+  padding: 1.2rem 1.5rem;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+
+  transition: background 0.15s ease;
+
+}
+
+ 
+
+.transactionItem:last-child {
+
+  border-bottom: none;
+
+}
+
+ 
+
+.transactionItem:hover {
+
+  background: #f9fafb;
+
+}
+
+ 
+
+.transactionIcon {
+
+  width: 40px;
+
+  height: 40px;
+
+  border-radius: 50%;
+
+  background: #eef4ff;
+
+  color: #244b7a;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+}
+
+ 
+
+.transactionDetails {
+
+  flex: 1;
+
+}
+
+ 
+
+.transactionDescription {
+
+  font-size: 0.95rem;
+
+  font-weight: 500;
+
+  color: #111827;
+
+  margin: 0 0 0.3rem 0;
+
+}
+
+ 
+
+.transactionMeta {
+
+  font-size: 0.82rem;
+
+  color: #9ca3af;
+
+  margin: 0;
+
+}
+
+ 
+
+.transactionPoints {
+
+  font-size: 1.1rem;
+
+  font-weight: 700;
+
+  flex-shrink: 0;
+
+}
+
+ 
+
+.pointsEarned {
+
+  color: #10b981;
+
+}
+
+ 
+
+.pointsRedeemed {
+
+  color: #ef4444;
+
+}
+
+ 
+
+/* QR Section */
+
+.qrSection {
+
+  margin-top: 2.5rem;
+
+}
+
+ 
+
+.qrCard {
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  border-radius: 1.2rem;
+
+  padding: 2rem;
+
+  text-align: center;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+}
+
+ 
+
+.qrTitle {
+
+  font-size: 1.2rem;
+
+  font-weight: 600;
+
+  color: #111827;
+
+  margin: 0 0 1.5rem 0;
+
+}
+
+ 
+
+.qrPlaceholder {
+
+  display: flex;
+
+  justify-content: center;
+
+  margin-bottom: 1.2rem;
+
+}
+
+ 
+
+.qrCodeMockup {
+
+  width: 200px;
+
+  height: 200px;
+
+  background: white;
+
+  border: 2px solid #e5e7eb;
+
+  border-radius: 0.8rem;
+
+  position: relative;
+
+  overflow: hidden;
+
+}
+
+ 
+
+.qrPattern {
+
+  width: 100%;
+
+  height: 100%;
+
+  background-image:
+
+    repeating-linear-gradient(0deg, #111827 0px, #111827 10px, transparent 10px, transparent 20px),
+
+    repeating-linear-gradient(90deg, #111827 0px, #111827 10px, transparent 10px, transparent 20px);
+
+  background-size: 20px 20px;
+
+  opacity: 0.8;
+
+}
+
+ 
+
+.qrInstructions {
+
+  font-size: 0.9rem;
+
+  color: #6b7280;
+
+  margin: 0;
+
+}
+
+ 
+
+/* ========================================
+
+   BUSINESS DASHBOARD STYLES
+
+   ======================================== */
+
+ 
+
+/* Business Header */
+
+.businessHeader {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 2rem;
+
+  flex-wrap: wrap;
+
+  gap: 1rem;
+
+}
+
+ 
+
+.businessHeader h1 {
+
+  font-size: clamp(1.8rem, 2.5vw, 2.4rem);
+
+  font-weight: 600;
+
+  color: #111827;
+
+  margin: 0;
+
+}
+
+ 
+
+.headerSubtext {
+
+  font-size: 0.95rem;
+
+  color: #6b7280;
+
+  margin: 0.3rem 0 0 0;
+
+}
+
+ 
+
+.headerActions {
+
+  display: flex;
+
+  gap: 0.8rem;
+
+}
+
+ 
+
+.exportButton {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.5rem;
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.3);
+
+  color: #244b7a;
+
+  border-radius: 999px;
+
+  padding: 0.7rem 1.4rem;
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+}
+
+ 
+
+.exportButton:hover {
+
+  background: #f9fafb;
+
+  border-color: #244b7a;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 4px 12px rgba(36, 75, 122, 0.1);
+
+}
+
+ 
+
+/* Metrics Grid */
+
+.metricsGrid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+
+  gap: 1.5rem;
+
+  margin-bottom: 2.5rem;
+
+}
+
+ 
+
+.metricCard {
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  border-radius: 1.2rem;
+
+  padding: 1.5rem;
+
+  display: flex;
+
+  gap: 1.2rem;
+
+  align-items: flex-start;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  transition: all 0.2s ease;
+
+}
+
+ 
+
+.metricCard:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+}
+
+ 
+
+.metricIcon {
+
+  width: 50px;
+
+  height: 50px;
+
+  border-radius: 12px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+}
+
+ 
+
+.metricContent {
+
+  flex: 1;
+
+}
+
+ 
+
+.metricLabel {
+
+  font-size: 0.85rem;
+
+  color: #6b7280;
+
+  margin: 0 0 0.5rem 0;
+
+  font-weight: 500;
+
+}
+
+ 
+
+.metricValue {
+
+  font-size: 2rem;
+
+  font-weight: 700;
+
+  color: #111827;
+
+  margin: 0 0 0.4rem 0;
+
+  line-height: 1;
+
+}
+
+ 
+
+.metricChange {
+
+  font-size: 0.82rem;
+
+  color: #10b981;
+
+  margin: 0;
+
+  font-weight: 500;
+
+}
+
+ 
+
+/* Two Column Grid */
+
+.twoColumnGrid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+
+  gap: 1.5rem;
+
+  margin-bottom: 2.5rem;
+
+}
+
+ 
+
+/* Chart Card */
+
+.chartCard {
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  border-radius: 1.2rem;
+
+  padding: 1.8rem;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+}
+
+ 
+
+.cardTitle {
+
+  font-size: 1.2rem;
+
+  font-weight: 600;
+
+  color: #111827;
+
+  margin: 0 0 1.5rem 0;
+
+}
+
+ 
+
+.chartContainer {
+
+  height: 280px;
+
+}
+
+ 
+
+.barChart {
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: space-around;
+
+  height: 100%;
+
+  gap: 0.5rem;
+
+  padding-top: 2rem;
+
+}
+
+ 
+
+.barWrapper {
+
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 0.5rem;
+
+  height: 100%;
+
+}
+
+ 
+
+.barColumn {
+
+  flex: 1;
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: center;
+
+}
+
+ 
+
+.bar {
+
+  width: 100%;
+
+  max-width: 50px;
+
+  background: linear-gradient(180deg, #8bbcff 0%, #244b7a 100%);
+
+  border-radius: 8px 8px 0 0;
+
+  position: relative;
+
+  transition: all 0.3s ease;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: center;
+
+  padding-top: 0.5rem;
+
+}
+
+ 
+
+.bar:hover {
+
+  opacity: 0.8;
+
+  transform: scaleY(1.02);
+
+}
+
+ 
+
+.barValue {
+
+  font-size: 0.75rem;
+
+  font-weight: 600;
+
+  color: white;
+
+}
+
+ 
+
+.barLabel {
+
+  font-size: 0.8rem;
+
+  font-weight: 500;
+
+  color: #6b7280;
+
+  text-align: center;
+
+}
+
+ 
+
+/* Activity Card */
+
+.activityCard {
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  border-radius: 1.2rem;
+
+  padding: 1.8rem;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+}
+
+ 
+
+.activityList {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0rem;
+
+  max-height: 280px;
+
+  overflow-y: auto;
+
+}
+
+ 
+
+.activityItem {
+
+  display: flex;
+
+  gap: 1rem;
+
+  padding: 1rem 0;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+
+}
+
+ 
+
+.activityItem:last-child {
+
+  border-bottom: none;
+
+}
+
+ 
+
+.activityDot {
+
+  width: 10px;
+
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: #8bbcff;
+
+  flex-shrink: 0;
+
+  margin-top: 0.3rem;
+
+}
+
+ 
+
+.activityContent {
+
+  flex: 1;
+
+}
+
+ 
+
+.activityText {
+
+  font-size: 0.9rem;
+
+  color: #111827;
+
+  margin: 0 0 0.3rem 0;
+
+  line-height: 1.4;
+
+}
+
+ 
+
+.activityText strong {
+
+  font-weight: 600;
+
+  color: #244b7a;
+
+}
+
+ 
+
+.activityMeta {
+
+  font-size: 0.78rem;
+
+  color: #9ca3af;
+
+  margin: 0;
+
+}
+
+ 
+
+/* Table Card */
+
+.tableCard {
+
+  background: white;
+
+  border: 1px solid rgba(148, 163, 184, 0.2);
+
+  border-radius: 1.2rem;
+
+  padding: 1.8rem;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  margin-bottom: 2rem;
+
+}
+
+ 
+
+.tableHeader {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 1.5rem;
+
+}
+
+ 
+
+.viewAllButton {
+
+  background: none;
+
+  border: none;
+
+  color: #244b7a;
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: color 0.2s ease;
+
+}
+
+ 
+
+.viewAllButton:hover {
+
+  color: #1e3a5f;
+
+}
+
+ 
+
+.tableWrapper {
+
+  overflow-x: auto;
+
+}
+
+ 
+
+.customersTable {
+
+  width: 100%;
+
+  border-collapse: collapse;
+
+}
+
+ 
+
+.customersTable thead {
+
+  background: #f9fafb;
+
+  border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+
+}
+
+ 
+
+.customersTable th {
+
+  text-align: left;
+
+  padding: 0.9rem 1rem;
+
+  font-size: 0.78rem;
+
+  font-weight: 600;
+
+  color: #6b7280;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.05em;
+
+}
+
+ 
+
+.customersTable td {
+
+  padding: 1rem;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+
+  font-size: 0.9rem;
+
+  color: #111827;
+
+}
+
+ 
+
+.customersTable tbody tr:hover {
+
+  background: #f9fafb;
+
+}
+
+ 
+
+.customersTable tbody tr:last-child td {
+
+  border-bottom: none;
+
+}
+
+ 
+
+.customerCell {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.8rem;
+
+}
+
+ 
+
+.customerAvatar {
+
+  width: 36px;
+
+  height: 36px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #8bbcff 0%, #244b7a 100%);
+
+  color: white;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 0.8rem;
+
+  font-weight: 600;
+
+  flex-shrink: 0;
+
+}
+
+ 
+
+.customerName {
+
+  font-weight: 500;
+
+}
+
+ 
+
+.visitCell,
+
+.pointsCell {
+
+  font-weight: 600;
+
+}
+
+ 
+
+.tierBadgeTable {
+
+  display: inline-block;
+
+  padding: 0.35rem 0.9rem;
+
+  border-radius: 999px;
+
+  font-size: 0.78rem;
+
+  font-weight: 600;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.03em;
+
+}
+
+ 
+
+.tierGold {
+
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+
+  color: #92400e;
+
+}
+
+ 
+
+.tierSilver {
+
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+
+  color: #374151;
+
+}
+
+ 
+
+.actionButton {
+
+  background: none;
+
+  border: 1px solid #d1d5db;
+
+  color: #244b7a;
+
+  padding: 0.4rem 1rem;
+
+  border-radius: 999px;
+
+  font-size: 0.82rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+}
+
+ 
+
+.actionButton:hover {
+
+  background: #eef4ff;
+
+  border-color: #244b7a;
+
+}
+
+ 
+
+/* ========================================
+
+   RESPONSIVE DESIGN
+
+   ======================================== */
+
+ 
+
+@media (max-width: 900px) {
+
+  .mockupContainer {
+
+    padding: 1.5rem 1rem;
+
+  }
+
+ 
+
+  .businessHeader {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+ 
+
+  .metricsGrid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+ 
+
+  .twoColumnGrid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+ 
+
+  .rewardsGrid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+ 
+
+  .pointsCard {
+
+    padding: 1.8rem;
+
+  }
+
+ 
+
+  .tableWrapper {
+
+    overflow-x: scroll;
+
+  }
+
+ 
+
+  .customersTable {
+
+    min-width: 600px;
+
+  }
+
+}
+
+ 
+
+@media (max-width: 600px) {
+
+  .pointsNumber {
+
+    font-size: 3.5rem;
+
+  }
+
+ 
+
+  .metricCard {
+
+    flex-direction: column;
+
+    text-align: center;
+
+  }
+
+ 
+
+  .metricIcon {
+
+    margin: 0 auto;
+
+  }
+
+ 
+
+  .qrCodeMockup {
+
+    width: 160px;
+
+    height: 160px;
+
+  }
+
+}
+
+ 

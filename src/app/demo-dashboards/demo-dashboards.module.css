@@ -1,0 +1,417 @@
+/* Demo Dashboards Page Styles */
+
+ 
+
+.demoPage {
+
+  min-height: 100vh;
+
+  background: linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
+
+}
+
+ 
+
+/* Demo Header */
+
+.demoHeader {
+
+  background: white;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+
+  padding: 2rem 1.5rem;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
+}
+
+ 
+
+.headerContent {
+
+  max-width: 1280px;
+
+  margin: 0 auto;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 2rem;
+
+  flex-wrap: wrap;
+
+}
+
+ 
+
+.headerText h1 {
+
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+
+  font-weight: 600;
+
+  color: #111827;
+
+  margin: 0 0 0.5rem 0;
+
+}
+
+ 
+
+.headerSubtext {
+
+  font-size: 0.95rem;
+
+  color: #6b7280;
+
+  margin: 0;
+
+}
+
+ 
+
+/* View Toggle */
+
+.viewToggle {
+
+  display: flex;
+
+  gap: 0.5rem;
+
+  background: #f3f4f6;
+
+  padding: 0.4rem;
+
+  border-radius: 999px;
+
+}
+
+ 
+
+.toggleButton {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.5rem;
+
+  background: transparent;
+
+  border: none;
+
+  color: #6b7280;
+
+  padding: 0.7rem 1.4rem;
+
+  border-radius: 999px;
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+
+}
+
+ 
+
+.toggleButton svg {
+
+  stroke-width: 2;
+
+}
+
+ 
+
+.toggleButton:hover {
+
+  color: #244b7a;
+
+}
+
+ 
+
+.toggleButtonActive {
+
+  background: white;
+
+  color: #244b7a;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+}
+
+ 
+
+/* Info Banner */
+
+.infoBanner {
+
+  max-width: 1280px;
+
+  margin: 2rem auto;
+
+  padding: 0 1.5rem;
+
+}
+
+ 
+
+.bannerContent {
+
+  background: linear-gradient(135deg, #eef4ff 0%, #e0f2fe 100%);
+
+  border: 1px solid #bae6fd;
+
+  border-radius: 1rem;
+
+  padding: 1.2rem 1.5rem;
+
+  display: flex;
+
+  gap: 1rem;
+
+  align-items: flex-start;
+
+  color: #0c4a6e;
+
+}
+
+ 
+
+.bannerContent svg {
+
+  flex-shrink: 0;
+
+  margin-top: 0.1rem;
+
+}
+
+ 
+
+.bannerContent strong {
+
+  font-weight: 600;
+
+}
+
+ 
+
+/* Dashboard Container */
+
+.dashboardContainer {
+
+  max-width: 1280px;
+
+  margin: 0 auto;
+
+  padding: 0 0 3rem 0;
+
+  animation: fadeIn 0.3s ease;
+
+}
+
+ 
+
+@keyframes fadeIn {
+
+  from {
+
+    opacity: 0;
+
+    transform: translateY(10px);
+
+  }
+
+  to {
+
+    opacity: 1;
+
+    transform: translateY(0);
+
+  }
+
+}
+
+ 
+
+/* Demo Footer */
+
+.demoFooter {
+
+  background: white;
+
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+
+  padding: 3rem 1.5rem;
+
+  margin-top: 3rem;
+
+}
+
+ 
+
+.footerContent {
+
+  max-width: 1280px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+
+  gap: 2.5rem;
+
+}
+
+ 
+
+.footerSection h3 {
+
+  font-size: 1.1rem;
+
+  font-weight: 600;
+
+  color: #244b7a;
+
+  margin: 0 0 1rem 0;
+
+}
+
+ 
+
+.footerSection ul {
+
+  list-style: none;
+
+  padding: 0;
+
+  margin: 0;
+
+}
+
+ 
+
+.footerSection li {
+
+  font-size: 0.9rem;
+
+  color: #4b5563;
+
+  padding: 0.5rem 0;
+
+  padding-left: 1.5rem;
+
+  position: relative;
+
+  line-height: 1.5;
+
+}
+
+ 
+
+.footerSection li::before {
+
+  content: "→";
+
+  position: absolute;
+
+  left: 0;
+
+  color: #8bbcff;
+
+  font-weight: bold;
+
+}
+
+ 
+
+/* Responsive Design */
+
+@media (max-width: 900px) {
+
+  .headerContent {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+ 
+
+  .viewToggle {
+
+    width: 100%;
+
+  }
+
+ 
+
+  .toggleButton {
+
+    flex: 1;
+
+    justify-content: center;
+
+  }
+
+ 
+
+  .footerContent {
+
+    grid-template-columns: 1fr;
+
+    gap: 2rem;
+
+  }
+
+}
+
+ 
+
+@media (max-width: 600px) {
+
+  .demoHeader {
+
+    padding: 1.5rem 1rem;
+
+  }
+
+ 
+
+  .infoBanner {
+
+    padding: 0 1rem;
+
+  }
+
+ 
+
+  .bannerContent {
+
+    flex-direction: column;
+
+    gap: 0.8rem;
+
+  }
+
+ 
+
+  .demoFooter {
+
+    padding: 2rem 1rem;
+
+  }
+
+}
+
+ 

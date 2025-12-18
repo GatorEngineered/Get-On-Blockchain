@@ -2,7 +2,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getPayoutWalletBalance } from '@/lib/blockchain/polygon';
+import { getUSDCBalance } from '@/lib/blockchain/polygon';
 import { decrypt } from '@/lib/crypto/encryption';
+import { sendEmail } from '@/lib/email/resend';
+import { sendLowBalanceEmail } from '@/lib/email/notifications';
+import { generateLowBalanceAlertEmail } from '@/lib/email/templates/low-balance-alert';
 
 const prisma = new PrismaClient();
 
@@ -70,8 +74,8 @@ export async function GET(req: NextRequest) {
           merchant.payoutNetwork as 'polygon' | 'mumbai'
         );
 
-        // Calculate low balance threshold (10 payouts worth)
-        const lowBalanceThreshold = merchant.payoutAmountUSD * 10;
+        // Use configured low balance threshold (default $50)
+        const lowBalanceThreshold = merchant.lowBalanceThreshold || 50.0;
         const isLowBalance = balance.usdcBalance < lowBalanceThreshold;
 
         // Update merchant record
@@ -88,7 +92,7 @@ export async function GET(req: NextRequest) {
 
         results.updated++;
 
-        // Log low balance warning
+        // Send low balance alert email
         if (isLowBalance && !merchant.lowBalanceAlertSent) {
           results.lowBalanceAlerts++;
           console.warn(
@@ -97,13 +101,32 @@ export async function GET(req: NextRequest) {
             `(threshold: $${lowBalanceThreshold.toFixed(2)})`
           );
 
-          // TODO: Send email notification to merchant
-          // await sendLowBalanceEmail(merchant.email, {
-          //   merchantName: merchant.name,
-          //   currentBalance: balance.usdcBalance,
-          //   threshold: lowBalanceThreshold,
-          //   walletAddress: balance.address,
-          // });
+          // Send email notification to merchant
+          const emailSent = await sendLowBalanceEmail({
+            merchantName: merchant.name,
+            merchantEmail: merchant.notificationEmail || merchant.loginEmail,
+            currentBalance: balance.usdcBalance,
+            threshold: lowBalanceThreshold,
+            walletAddress: balance.address,
+            network: merchant.payoutNetwork,
+          });
+
+          // Log email event
+          if (emailSent) {
+            await prisma.event.create({
+              data: {
+                merchantId: merchant.id,
+                type: 'LOW_BALANCE_ALERT',
+                source: 'cron',
+                metadata: {
+                  balance: balance.usdcBalance,
+                  threshold: lowBalanceThreshold,
+                  walletAddress: balance.address,
+                  emailSent: true,
+                },
+              },
+            });
+          }
         }
 
         results.details.push({

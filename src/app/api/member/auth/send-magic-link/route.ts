@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { sendEmail } from '@/lib/email/resend';
+import { generateMagicLinkEmail } from '@/lib/email/templates/magic-link';
 
 const prisma = new PrismaClient();
 
@@ -61,18 +63,55 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000';
     const magicLinkUrl = `${baseUrl}/api/member/auth/verify?token=${token}`;
 
-    // TODO: Send email with magic link
-    // For now, just log it (in production, use SendGrid, Resend, or similar)
-    console.log('[Auth] Magic link generated for:', member.email);
+ console.log('[Auth] Magic link generated for:', member.email);
+
     console.log('[Auth] Magic link URL:', magicLinkUrl);
+
     console.log('[Auth] Expires at:', expiresAt.toISOString());
 
-    // TODO: Replace with actual email sending
-    // await sendMagicLinkEmail({
-    //   to: member.email,
-    //   magicLink: magicLinkUrl,
-    //   expiresIn: '15 minutes',
-    // });
+ 
+
+    // Send email with magic link
+
+    try {
+
+      const emailHtml = generateMagicLinkEmail({
+
+        firstName: member.firstName || 'Member',
+
+        lastName: member.lastName || '',
+
+        magicLink: magicLinkUrl,
+
+        expiresInMinutes: 15,
+
+      });
+
+ 
+
+      await sendEmail({
+
+        to: member.email,
+
+        subject: '🔐 Your Login Link for Get On Blockchain',
+
+        html: emailHtml,
+
+      });
+
+ 
+
+      console.log('[Auth] Magic link email sent successfully to:', member.email);
+
+    } catch (emailError: any) {
+
+      console.error('[Auth] Failed to send email:', emailError);
+
+      // Don't fail the request if email fails - still return success
+
+      // This allows fallback to dev mode link display
+
+    }
 
     // For development: Return the magic link in response
     // IMPORTANT: Remove this in production!

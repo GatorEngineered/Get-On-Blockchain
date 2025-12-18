@@ -167,7 +167,7 @@ main {
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem; /* tighter vertical rhythm */
+  gap: 1rem;
 }
 
 .login-form label {
@@ -178,8 +178,8 @@ main {
 }
 
 .login-form input {
-  margin-top: 0.3rem;
-  width: 90%;
+  margin-top: 0.4rem;
+  width: 100%;
   border-radius: 999px;
   padding: 0.7rem 1rem;
   border: 1px solid #d1d5db;
@@ -255,6 +255,27 @@ main {
   border-bottom-color: rgba(36, 75, 122, 0.85);
 }
 
+/* Mobile optimizations */
+@media (max-width: 430px) {
+  .login-card {
+    padding: 1.75rem 1.5rem;
+    max-width: 95%;
+  }
+
+  .login-card h1 {
+    font-size: 1.85rem;
+  }
+
+  .login-form {
+    gap: 1.1rem;
+  }
+
+  .login-form label {
+    font-size: 0.88rem;
+    margin-bottom: 0.25rem;
+  }
+}
+
 /* Tiny tweak for very short screens so it still fits without awkward scroll */
 @media (max-height: 720px) {
   .login-page {
@@ -272,8 +293,8 @@ main {
 }
 
 .password-field input {
-  width: 75%;
-  padding-right: 6rem;
+  width: 100%;
+  padding-right: 4.5rem;
 }
 
 .password-toggle {

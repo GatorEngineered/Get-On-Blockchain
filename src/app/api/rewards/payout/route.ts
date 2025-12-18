@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { sendUSDC } from '@/lib/blockchain/polygon';
 import { decrypt } from '@/lib/crypto/encryption';
+import { sendPayoutSuccessEmail } from '@/app/lib/email/notifications';
+import { sendEmail } from '@/lib/email/resend';
+import { generatePayoutSuccessEmail } from '@/lib/email/templates/payout-success';
 
 const prisma = new PrismaClient();
 
@@ -283,17 +286,135 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Payout] Success! TxHash: ${result.txHash}`);
 
-    return NextResponse.json({
-      success: true,
-      message: `${PAYOUT_AMOUNT_USD} USDC sent successfully!`,
-      transaction: {
-        txHash: result.txHash,
+    // Send payout success email to member
+
+    await sendPayoutSuccessEmail({
+
+      memberEmail: businessMember.member.email,
+
+      merchantName: merchant.name,
+
+      amount: PAYOUT_AMOUNT_USD,
+
+      points: MILESTONE_POINTS,
+
+      walletAddress: businessMember.walletAddress,
+
+      txHash: result.txHash,
+
+      network: PAYOUT_NETWORK,
+
+    });
+
+ 
+
+    // Log email event
+
+    await prisma.event.create({
+
+      data: {
+
+        merchantId: merchant.id,
+
+        memberId,
+
+        type: 'EMAIL_SENT',
+
+        source: 'payout-success',
+
+        metadata: {
+
+          emailType: 'payout-success',
+
+          amount: PAYOUT_AMOUNT_USD,
+
+          txHash: result.txHash,
+
+        },
+
+      },
+
+    });
+
+ 
+
+      // Send payout success email to member
+
+    const explorerUrl = process.env.NODE_ENV === 'production'
+
+      ? `https://polygonscan.com/tx/${result.txHash}`
+
+      : `https://mumbai.polygonscan.com/tx/${result.txHash}`;
+
+ 
+
+    try {
+
+      const emailHtml = generatePayoutSuccessEmail({
+
+        firstName: businessMember.member.firstName || 'Member',
+
+        lastName: businessMember.member.lastName || '',
+
+        businessName: businessMember.business.name,
+
         amount: PAYOUT_AMOUNT_USD,
+
         pointsDeducted: MILESTONE_POINTS,
+
         newPointsBalance: updatedMember.points,
-        explorerUrl: process.env.NODE_ENV === 'production'
-          ? `https://polygonscan.com/tx/${result.txHash}`
-          : `https://mumbai.polygonscan.com/tx/${result.txHash}`,
+
+        txHash: result.txHash!,
+
+        explorerUrl,
+
+        walletAddress: businessMember.walletAddress,
+
+      });
+
+ 
+
+      await sendEmail({
+
+        to: businessMember.member.email,
+
+        subject: `✅ Your $${PAYOUT_AMOUNT_USD} USDC Payout is Complete!`,
+
+        html: emailHtml,
+
+      });
+
+ 
+
+      console.log('[Payout] Success email sent to:', businessMember.member.email);
+
+    } catch (emailError: any) {
+
+      console.error('[Payout] Failed to send success email:', emailError);
+
+      // Don't fail the payout if email fails
+
+    }
+
+ 
+
+    return NextResponse.json({
+
+      success: true,
+
+      message: `${PAYOUT_AMOUNT_USD} USDC sent successfully!`,
+
+      transaction: {
+
+        txHash: result.txHash,
+
+        amount: PAYOUT_AMOUNT_USD,
+
+        pointsDeducted: MILESTONE_POINTS,
+
+        newPointsBalance: updatedMember.points,
+
+        explorerUrl,
       },
     });
 
