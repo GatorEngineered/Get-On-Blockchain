@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
         if (!body.businessMemberId || !body.mode) {
             return NextResponse.json(
-                { error: "businessMemberId and mode are required" },
+                { error: "BusinessMemberId and mode are required" },
                 { status: 400 }
             );
         }
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(
                 {
                     error:
-                        "walletAddress and walletNetwork are required when mode is 'wallet'",
+                        "WalletAddress and walletNetwork are required when mode is 'wallet'",
                 },
                 { status: 400 }
             );

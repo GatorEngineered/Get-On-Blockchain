@@ -160,7 +160,7 @@ export default async function MemberPage(props: MemberPageProps) {
             </p>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, marginTop: "0.75rem" }}>
-              {events.map((ev) => {
+              {events.map((ev: any) => {
                 const pts = getPointsFromMetadata(ev.metadata);
                 const created = new Date(ev.createdAt).toLocaleString();
 

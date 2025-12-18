@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: 'Failed to send magic link',
-        details: error.message,
+        ...(process.env.NODE_ENV === 'development' && { details: error.message }),
       },
       { status: 500 }
     );
