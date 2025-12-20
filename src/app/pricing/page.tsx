@@ -11,7 +11,6 @@ type Plan = {
     badge?: string;
     priceMonthly: number;
     priceLabel?: string;
-    setupFee: number;
     description: string;
     features: string[];
     bookingLink: string;
@@ -29,7 +28,6 @@ const plans: Plan[] = [
         id: "BASIC",
         name: "Basic",
         priceMonthly: 99,
-        setupFee: 100,
         description:
             "Points & rewards only. Redeem for free products/discounts. Simple for businesses who don't want crypto complexity.",
         features: [
@@ -48,7 +46,6 @@ const plans: Plan[] = [
         name: "Premium",
         badge: "Most Popular",
         priceMonthly: 149,
-        setupFee: 100,
         description:
             "Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.",
         features: [
@@ -69,7 +66,6 @@ const plans: Plan[] = [
         name: "Premium",
         badge: "Most Popular",
         priceMonthly: 149,
-        setupFee: 249,
         description:
             "Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.",
         features: [
@@ -90,7 +86,6 @@ const plans: Plan[] = [
         name: "Growth",
         badge: "Most Popular",
         priceMonthly: 249,
-        setupFee: 100,
         description:
             "For growing brands that want more automation, more insight, and multi-location support with branded tokens.",
         features: [
@@ -117,7 +112,6 @@ const plans: Plan[] = [
         name: "Enterprise",
         badge: "High Volume",
         priceMonthly: 349,
-        setupFee: 100,
         priceLabel: "From $349+",
         description:
             "For high-volume or multi-location businesses that need custom workflows, NFT access, and hands-on rollout.",
@@ -183,9 +177,7 @@ export default function PricingPage() {
                   </span>
                   <span className={styles.cardPriceTerm}>/month</span>
                 </p>
-                <p className={styles.cardSetup}>
-                  + ${plan.setupFee} one-time setup &amp; onboarding
-                </p>
+              
 
                 <p className={styles.cardDescription}>{plan.description}</p>
               </div>

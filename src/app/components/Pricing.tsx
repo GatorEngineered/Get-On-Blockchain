@@ -25,7 +25,7 @@ export default function Pricing() {
             <p className="pricing-pill">Basic</p>
             <h3>For Single-Location Shops</h3>
             <p className="pricing-price">$99<span className="pricing-price-suffix">/mo</span></p>
-            <p className="pricing-setup">+ $199 one-time setup</p>
+            <p className="pricing-setup"></p>
             <ul className="pricing-list">
               <li>QR-based loyalty with points & rewards</li>
               <li>Redeem for free products/discounts</li>
@@ -50,7 +50,7 @@ export default function Pricing() {
             <p className="pricing-pill">Premium · Most popular</p>
             <h3>Blockchain-Verified Rewards</h3>
             <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
-            <p className="pricing-setup">+ $249 one-time setup</p>
+            <p className="pricing-setup"></p>
             <ul className="pricing-list">
               <li>Everything in Basic</li>
               <li>Stablecoin rewards (your unique angle)</li>
