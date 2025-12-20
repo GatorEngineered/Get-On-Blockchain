@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import BusinessDashboard from "@/app/dashboard/page";
+import BusinessDashboard from "@/app/components/BusinessDahboard";
 
 type Merchant = {
   id: string;
