@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getPayoutWalletBalance } from '@/lib/blockchain/polygon';
-import { getUSDCBalance } from '@/lib/blockchain/polygon';
 import { decrypt } from '@/lib/crypto/encryption';
 import { sendEmail } from '@/lib/email/resend';
 import { sendLowBalanceEmail } from '@/lib/email/notifications';
