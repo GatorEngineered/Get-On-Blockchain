@@ -2,7 +2,19 @@
 
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid errors during build time
+let resendInstance: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY environment variable is not set');
+    }
+    resendInstance = new Resend(apiKey);
+  }
+  return resendInstance;
+}
 
 export interface SendEmailOptions {
   to: string;
@@ -21,6 +33,7 @@ export async function sendEmail({
   from = process.env.FROM_EMAIL || 'noreply@getonblockchain.com',
 }: SendEmailOptions) {
   try {
+    const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from,
       to,
@@ -41,4 +54,10 @@ export async function sendEmail({
   }
 }
 
-export { resend };
+// Export getter for backward compatibility
+export const resend = new Proxy({} as Resend, {
+  get: (target, prop) => {
+    const client = getResendClient();
+    return (client as any)[prop];
+  }
+});
