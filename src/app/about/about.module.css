@@ -181,3 +181,121 @@
   border-color: rgba(37, 99, 235, 0.7);
   background: radial-gradient(circle at top left, #e0ebff 0, #ffffff 45%, #f9fafb 100%);
 }
+
+/* MOBILE RESPONSIVENESS */
+
+@media (max-width: 900px) {
+  .aboutHeroInner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .aboutHero {
+    padding: 3rem 0 3rem;
+  }
+
+  .aboutHeroCard {
+    margin: 0 auto;
+    max-width: 100%;
+  }
+
+  .aboutBody {
+    padding: 3rem 0 2rem;
+  }
+
+  .aboutBodyInner {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .aboutValues {
+    padding: 2.5rem 0 3.5rem;
+  }
+
+  .aboutValuesGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .aboutHero {
+    padding: 2rem 1rem 2.5rem;
+  }
+
+  .aboutHeroInner {
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .aboutHeroTitle {
+    font-size: 2rem;
+  }
+
+  .aboutHeroSubtitle {
+    font-size: 0.95rem;
+  }
+
+  .aboutHeroCard {
+    padding: 1.5rem 1.75rem;
+  }
+
+  .aboutBody {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  .aboutBodyInner {
+    padding: 0 1rem;
+  }
+
+  .aboutBodyBlock {
+    padding: 1.5rem 1.75rem;
+  }
+
+  .aboutBodyBlock h2 {
+    font-size: 1.2rem;
+  }
+
+  .aboutValues {
+    padding: 2rem 1rem 3rem;
+  }
+
+  .aboutValuesInner {
+    padding: 0 1rem;
+  }
+
+  .aboutValuesTitle {
+    font-size: 1.4rem;
+  }
+
+  .aboutValueCard {
+    padding: 1.5rem 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .aboutHeroTitle {
+    font-size: 1.75rem;
+  }
+
+  .aboutHeroCard {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .aboutHeroCard h3 {
+    font-size: 1rem;
+  }
+
+  .aboutBodyBlock {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .aboutValueCard {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .aboutValuesTitle {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+}
