@@ -28,7 +28,7 @@ Sentry.init({
   ],
 
   // Filter out known browser errors and third-party issues
-  beforeSend(event, hint) {
+  beforeSend(event: Sentry.ErrorEvent, hint: Sentry.EventHint) {
     // Ignore browser extension errors
     if (event.exception?.values?.[0]?.value?.includes('chrome-extension://')) {
       return null;
