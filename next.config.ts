@@ -30,20 +30,18 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@rainbow-me/rainbowkit", "@wagmi/connectors"],
 };
 
-// Sentry configuration options
-const sentryWebpackPluginOptions = {
-  // Suppresses source map uploading logs during build
-  silent: true,
-
+// Sentry configuration options (combined into single object for v8+)
+const sentryBuildOptions = {
   // Organization and project from Sentry
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
 
   // Auth token for uploading source maps
   authToken: process.env.SENTRY_AUTH_TOKEN,
-};
 
-const sentryOptions = {
+  // Suppresses source map uploading logs during build
+  silent: true,
+
   // Upload source maps to Sentry for better error tracking
   widenClientFileUpload: true,
 
@@ -62,7 +60,7 @@ const sentryOptions = {
 
 // Only wrap with Sentry in production or if DSN is configured
 const config = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions, sentryOptions)
+  ? withSentryConfig(nextConfig, sentryBuildOptions)
   : nextConfig;
 
 export default config;
