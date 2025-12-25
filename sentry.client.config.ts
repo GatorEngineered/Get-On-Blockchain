@@ -51,5 +51,9 @@ Sentry.init({
     // Wallet connection errors (expected user behavior)
     'User rejected',
     'User denied',
+    // Chrome extension errors (not our code)
+    'chrome.runtime.sendMessage',
+    'Extension ID',
+    /chrome-extension:\/\//,
   ],
 });

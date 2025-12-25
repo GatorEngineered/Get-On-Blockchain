@@ -1220,3 +1220,338 @@ main {
     white-space: nowrap;
   }
 }
+
+/* ========================================
+   CUSTOMER CLAIM PAGE STYLES
+   ======================================== */
+
+.claim-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f6f8fa 0%, #ffffff 50%, #f0f4ff 100%);
+  padding: 2rem 1rem;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Card */
+.modal-card {
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  max-width: 540px;
+  width: 100%;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-card h2 {
+  font-size: 1.8rem;
+  color: #111827;
+  margin: 0 0 0.75rem;
+}
+
+.modal-card > p {
+  color: #6b7280;
+  font-size: 0.98rem;
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+}
+
+/* Modal Form */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.modal-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #374151;
+  gap: 0.4rem;
+}
+
+.modal-form input {
+  padding: 0.8rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background: #f9fafb;
+}
+
+.modal-form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-form input::placeholder {
+  color: #9ca3af;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.modal-form button[type="submit"] {
+  margin-top: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+.modal-form button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+}
+
+.modal-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disclaimer {
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-top: 0.5rem;
+}
+
+/* Main Content After Registration */
+.mode-section {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+}
+
+.mode-section h2 {
+  font-size: 1.6rem;
+  color: #111827;
+  margin: 0 0 0.75rem;
+}
+
+.mode-section > p {
+  color: #6b7280;
+  font-size: 0.98rem;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.mode-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.mode-buttons button {
+  padding: 1rem 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #374151;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-buttons button:hover:not(:disabled) {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+}
+
+.mode-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Wallet Form */
+.wallet-form {
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+}
+
+.wallet-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #374151;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.wallet-form input,
+.wallet-form select {
+  padding: 0.8rem 1rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background: #ffffff;
+}
+
+.wallet-form input:focus,
+.wallet-form select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.wallet-form button[type="submit"] {
+  width: 100%;
+  padding: 0.9rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+  margin-top: 0.5rem;
+}
+
+.wallet-form button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+}
+
+.wallet-form button[type="submit"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error and Success Messages */
+.error-text {
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #fecaca;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.success-text {
+  color: #059669;
+  background: #ecfdf5;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #a7f3d0;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.reward-text {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);
+  color: #92400e;
+  border-color: #fcd34d;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 1rem 1.25rem;
+  animation: pulse 0.6s ease;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .modal-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .mode-section {
+    padding: 2rem 1.5rem;
+  }
+
+  .mode-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .claim-page {
+    padding: 1rem 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .mode-section h2 {
+    font-size: 1.4rem;
+  }
+
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+}
