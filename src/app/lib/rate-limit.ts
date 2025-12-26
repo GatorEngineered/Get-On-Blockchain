@@ -1,18 +1,18 @@
 // Rate limiting middleware
 import { NextResponse } from "next/server";
 import { CONFIG } from "./utils";
+import { checkRateLimit as checkRedisRateLimit, getRedis } from "@/lib/redis/upstash";
 
 type RateLimitStore = {
   count: number;
   resetTime: number;
 };
 
-// In-memory store for rate limiting
-// In production, use Redis or similar
+// In-memory store for rate limiting (fallback when Redis is not configured)
 const rateLimitStore = new Map<string, RateLimitStore>();
 
 /**
- * Clean up expired entries every 5 minutes
+ * Clean up expired entries every 5 minutes (only for in-memory fallback)
  */
 setInterval(() => {
   const now = Date.now();
@@ -24,18 +24,13 @@ setInterval(() => {
 }, 5 * 60 * 1000);
 
 /**
- * Rate limiting middleware
- * Returns null if request is allowed, or error response if rate limit exceeded
- *
- * @param identifier - Unique identifier for the client (IP, user ID, etc.)
- * @param maxRequests - Maximum requests allowed in the window
- * @param windowMs - Time window in milliseconds
+ * In-memory rate limiting (fallback when Redis is not available)
  */
-export function checkRateLimit(
+function checkInMemoryRateLimit(
   identifier: string,
-  maxRequests: number = CONFIG.RATE_LIMIT_MAX_REQUESTS,
-  windowMs: number = CONFIG.RATE_LIMIT_WINDOW
-): NextResponse | null {
+  maxRequests: number,
+  windowMs: number
+): { allowed: boolean; remaining: number; resetIn: number } {
   const now = Date.now();
   const key = `ratelimit:${identifier}`;
 
@@ -48,31 +43,75 @@ export function checkRateLimit(
       resetTime: now + windowMs,
     };
     rateLimitStore.set(key, store);
-    return null;
+    return {
+      allowed: true,
+      remaining: maxRequests - 1,
+      resetIn: Math.ceil(windowMs / 1000),
+    };
   }
 
   if (store.count >= maxRequests) {
-    const retryAfter = Math.ceil((store.resetTime - now) / 1000);
-    return NextResponse.json(
-      {
-        error: "Rate limit exceeded",
-        retryAfter: `${retryAfter} seconds`,
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": retryAfter.toString(),
-          "X-RateLimit-Limit": maxRequests.toString(),
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": store.resetTime.toString(),
-        },
-      }
-    );
+    return {
+      allowed: false,
+      remaining: 0,
+      resetIn: Math.ceil((store.resetTime - now) / 1000),
+    };
   }
 
   // Increment counter
   store.count++;
   rateLimitStore.set(key, store);
+
+  return {
+    allowed: true,
+    remaining: maxRequests - store.count,
+    resetIn: Math.ceil((store.resetTime - now) / 1000),
+  };
+}
+
+/**
+ * Rate limiting middleware
+ * Returns null if request is allowed, or error response if rate limit exceeded
+ * Uses Redis if configured, falls back to in-memory otherwise
+ *
+ * @param identifier - Unique identifier for the client (IP, user ID, etc.)
+ * @param maxRequests - Maximum requests allowed in the window
+ * @param windowMs - Time window in milliseconds
+ */
+export async function checkRateLimit(
+  identifier: string,
+  maxRequests: number = CONFIG.RATE_LIMIT_MAX_REQUESTS,
+  windowMs: number = CONFIG.RATE_LIMIT_WINDOW
+): Promise<NextResponse | null> {
+  const redis = getRedis();
+  const windowSeconds = Math.floor(windowMs / 1000);
+
+  let result: { allowed: boolean; remaining: number; resetIn: number };
+
+  // Use Redis if available, otherwise fall back to in-memory
+  if (redis) {
+    result = await checkRedisRateLimit(identifier, maxRequests, windowSeconds);
+  } else {
+    result = checkInMemoryRateLimit(identifier, maxRequests, windowMs);
+  }
+
+  if (!result.allowed) {
+    return NextResponse.json(
+      {
+        error: "Rate limit exceeded",
+        retryAfter: `${result.resetIn} seconds`,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": result.resetIn.toString(),
+          "X-RateLimit-Limit": maxRequests.toString(),
+          "X-RateLimit-Remaining": result.remaining.toString(),
+          "X-RateLimit-Reset": (Date.now() + result.resetIn * 1000).toString(),
+        },
+      }
+    );
+  }
 
   return null;
 }
@@ -94,11 +133,11 @@ export function getClientIdentifier(req: Request): string {
  * Apply rate limiting to a request
  * Returns error response if rate limit exceeded, otherwise null
  */
-export function applyRateLimit(
+export async function applyRateLimit(
   req: Request,
   maxRequests?: number,
   windowMs?: number
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const identifier = getClientIdentifier(req);
-  return checkRateLimit(identifier, maxRequests, windowMs);
+  return await checkRateLimit(identifier, maxRequests, windowMs);
 }

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
@@ -29,4 +30,37 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@rainbow-me/rainbowkit", "@wagmi/connectors"],
 };
 
-export default nextConfig;
+// Sentry configuration options (combined into single object for v8+)
+const sentryBuildOptions = {
+  // Organization and project from Sentry
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Auth token for uploading source maps
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Suppresses source map uploading logs during build
+  silent: true,
+
+  // Upload source maps to Sentry for better error tracking
+  widenClientFileUpload: true,
+
+  // Transpile SDK for compatibility
+  transpileClientSDK: true,
+
+  // Route for Sentry tunnel (bypasses ad blockers)
+  tunnelRoute: "/monitoring",
+
+  // Hide source maps from public
+  hideSourceMaps: true,
+
+  // Disable Sentry logger in production
+  disableLogger: true,
+};
+
+// Only wrap with Sentry in production or if DSN is configured
+const config = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, sentryBuildOptions)
+  : nextConfig;
+
+export default config;

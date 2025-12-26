@@ -63,12 +63,18 @@ enum TransactionStatus {
 }
 
 model Business {
-  id           String   @id @default(cuid())
-  slug         String   @unique // e.g. "tampa-fit", "latte-lab"
-  name         String
-  contactEmail String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(cuid())
+  slug             String   @unique // e.g. "tampa-fit-downtown", "latte-lab-airport"
+  name             String   // Business name (can be same across locations)
+  locationNickname String?  // e.g. "Downtown", "Airport", "Main Street"
+  address          String   // REQUIRED: Physical location address
+  contactEmail     String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Link to Merchant (owner of multiple locations)
+  merchantId String?
+  merchant   Merchant? @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
   members            BusinessMember[]
   rewardTransactions RewardTransaction[]
@@ -116,7 +122,8 @@ model Merchant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  events Event[]
+  businesses Business[] // Multiple locations owned by this merchant
+  events     Event[]
 }
 
 /**
