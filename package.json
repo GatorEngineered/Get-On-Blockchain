@@ -43,7 +43,11 @@
     "typescript": "^5.9.3"
   },
   "overrides": {
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "resolutions": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
   }
 }
