@@ -1289,6 +1289,25 @@ main {
   margin-bottom: 1.75rem;
 }
 
+/* Location Badge */
+.location-badge {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+.location-address {
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: #3b82f6;
+  margin-top: 0.5rem;
+}
+
 /* Modal Form */
 .modal-form {
   display: flex;

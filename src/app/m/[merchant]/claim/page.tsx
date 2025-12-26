@@ -29,6 +29,12 @@ export default function MerchantClaimPage() {
     phone: "",
   });
 
+  const [businessInfo, setBusinessInfo] = useState<{
+    name: string;
+    locationNickname: string | null;
+    address: string;
+  } | null>(null);
+
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [businessMemberId, setBusinessMemberId] = useState<string | null>(null);
@@ -50,6 +56,25 @@ export default function MerchantClaimPage() {
   const storageKey = merchantSlug
     ? `gob_businessMember_${merchantSlug}`
     : null;
+
+  // Fetch business/location info
+  useEffect(() => {
+    if (!merchantSlug) return;
+
+    const fetchBusinessInfo = async () => {
+      try {
+        const res = await fetch(`/api/business-info?slug=${merchantSlug}`);
+        if (res.ok) {
+          const data = await res.json();
+          setBusinessInfo(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch business info:', error);
+      }
+    };
+
+    fetchBusinessInfo();
+  }, [merchantSlug]);
 
   // Check if we already have a BusinessMember id stored for this business
   useEffect(() => {
@@ -245,8 +270,15 @@ export default function MerchantClaimPage() {
         <div className="modal-overlay">
           <div className="modal-card">
             <h2>Let&apos;s set up your rewards</h2>
+            {businessInfo && (
+              <div className="location-badge">
+                📍 {businessInfo.name}
+                {businessInfo.locationNickname && ` - ${businessInfo.locationNickname}`}
+                <div className="location-address">{businessInfo.address}</div>
+              </div>
+            )}
             <p>
-              We&apos;ll save your info for this business so you can keep
+              We&apos;ll save your info for this location so you can keep
               earning rewards on future visits.
             </p>
 
@@ -283,9 +315,11 @@ export default function MerchantClaimPage() {
               </label>
 
               <label>
-                Address (optional)
+                Address*
                 <input
                   type="text"
+                  required
+                  placeholder="123 Main St, City, State ZIP"
                   value={form.address}
                   onChange={(e) => handleChange("address", e.target.value)}
                 />

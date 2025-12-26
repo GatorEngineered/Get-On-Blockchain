@@ -37,20 +37,46 @@ async function main() {
   console.log(`   Password: password123`);
   console.log(`   Plan: ${merchant.plan}\n`);
 
-  // 2. Create a Business (actual business entity)
-  const business = await prisma.business.upsert({
-    where: { slug: 'test-coffee-shop' },
-    update: {},
-    create: {
-      slug: 'test-coffee-shop',
+  // 2. Create Business Locations (actual physical stores)
+  const locations = [
+    {
+      slug: 'test-coffee-shop-downtown',
       name: 'Test Coffee Shop',
-      contactEmail: 'hello@testcoffee.com',
+      locationNickname: 'Downtown',
+      address: '123 Main St, Tampa, FL 33602',
+      contactEmail: 'downtown@testcoffee.com',
     },
-  });
+    {
+      slug: 'test-coffee-shop-airport',
+      name: 'Test Coffee Shop',
+      locationNickname: 'Airport',
+      address: '4100 George J Bean Pkwy, Tampa, FL 33607',
+      contactEmail: 'airport@testcoffee.com',
+    },
+    {
+      slug: 'test-coffee-shop-beach',
+      name: 'Test Coffee Shop',
+      locationNickname: 'Beach',
+      address: '456 Beach Blvd, Clearwater, FL 33767',
+      contactEmail: 'beach@testcoffee.com',
+    },
+  ];
 
-  console.log('✅ Created Business:');
-  console.log(`   Name: ${business.name}`);
-  console.log(`   Slug: ${business.slug}\n`);
+  console.log('✅ Creating business locations...');
+  const businesses = [];
+  for (const locationData of locations) {
+    const business = await prisma.business.upsert({
+      where: { slug: locationData.slug },
+      update: {},
+      create: {
+        ...locationData,
+        merchantId: merchant.id,
+      },
+    });
+    businesses.push(business);
+    console.log(`   📍 ${business.name} - ${business.locationNickname} (${business.address})`);
+  }
+  console.log();
 
   // 3. Create a few test members (customers)
   const testMembers = [
@@ -74,8 +100,9 @@ async function main() {
     },
   ];
 
-  console.log('✅ Creating test members...');
-  for (const memberData of testMembers) {
+  console.log('✅ Creating test members and linking to locations...');
+  for (let i = 0; i < testMembers.length; i++) {
+    const memberData = testMembers[i];
     const member = await prisma.member.upsert({
       where: { email: memberData.email },
       update: {},
@@ -85,18 +112,20 @@ async function main() {
       },
     });
 
-    // Link member to business with some points
+    // Link member to one or more locations with different points
+    const locationToLink = businesses[i % businesses.length]; // Distribute members across locations
     const randomPoints = Math.floor(Math.random() * 100);
+
     await prisma.businessMember.upsert({
       where: {
         businessId_memberId: {
-          businessId: business.id,
+          businessId: locationToLink.id,
           memberId: member.id,
         },
       },
       update: {},
       create: {
-        businessId: business.id,
+        businessId: locationToLink.id,
         memberId: member.id,
         points: randomPoints,
         walletAddress: null,
@@ -104,7 +133,7 @@ async function main() {
       },
     });
 
-    console.log(`   - ${member.firstName} ${member.lastName} (${randomPoints} points)`);
+    console.log(`   - ${member.firstName} ${member.lastName} → ${locationToLink.locationNickname} (${randomPoints} points)`);
   }
 
   console.log('\n🎉 Test data seeded successfully!\n');
@@ -120,9 +149,11 @@ async function main() {
   console.log('    URL: http://localhost:3000/dashboard');
   console.log('    (View your business stats and QR code)\n');
 
-  console.log('3️⃣  CUSTOMER SCAN URL (QR Code):');
-  console.log(`    URL: http://localhost:3000/m/${merchant.slug}/claim`);
-  console.log('    📱 Share this URL or generate QR code for customers\n');
+  console.log('3️⃣  CUSTOMER SCAN URLS (QR Codes for each location):');
+  businesses.forEach((business) => {
+    console.log(`    📍 ${business.locationNickname}: http://localhost:3000/m/${business.slug}/claim`);
+  });
+  console.log('    📱 Each location gets a unique QR code!\n');
 
   console.log('4️⃣  TEST CUSTOMER JOURNEY:');
   console.log('    a) Visit customer scan URL');
