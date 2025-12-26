@@ -1,7 +1,7 @@
 // scripts/seed-test-data.ts
 // Run with: npx tsx scripts/seed-test-data.ts
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Business } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -63,7 +63,7 @@ async function main() {
   ];
 
   console.log('✅ Creating business locations...');
-  const businesses = [];
+  const businesses: Business[] = [];
   for (const locationData of locations) {
     const business = await prisma.business.upsert({
       where: { slug: locationData.slug },
