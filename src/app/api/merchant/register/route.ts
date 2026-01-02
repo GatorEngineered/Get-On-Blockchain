@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
         name,
         slug,
         loginEmail,
-        // Password will be set later via email verification flow
+        passwordHash: null, // Password will be set later via setup-password flow
         // subscriptionStatus will be updated by PayPal webhook
         subscriptionStatus,
         paymentVerified: false,
