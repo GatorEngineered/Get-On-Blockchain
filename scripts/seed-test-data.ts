@@ -100,7 +100,7 @@ async function main() {
     },
   ];
 
-  console.log('✅ Creating test members and linking to locations...');
+  console.log('✅ Creating test members and linking to merchant...');
   for (let i = 0; i < testMembers.length; i++) {
     const memberData = testMembers[i];
     const member = await prisma.member.upsert({
@@ -112,10 +112,26 @@ async function main() {
       },
     });
 
-    // Link member to one or more locations with different points
-    const locationToLink = businesses[i % businesses.length]; // Distribute members across locations
+    // Create MerchantMember record (merchant-level points aggregation)
     const randomPoints = Math.floor(Math.random() * 100);
+    await prisma.merchantMember.upsert({
+      where: {
+        merchantId_memberId: {
+          merchantId: merchant.id,
+          memberId: member.id,
+        },
+      },
+      update: {},
+      create: {
+        merchantId: merchant.id,
+        memberId: member.id,
+        points: randomPoints,
+        tier: randomPoints >= merchant.vipThreshold ? 'VIP' : 'BASE',
+      },
+    });
 
+    // Link member to a location for visit tracking (no points stored here)
+    const locationToLink = businesses[i % businesses.length]; // Distribute members across locations
     await prisma.businessMember.upsert({
       where: {
         businessId_memberId: {
@@ -127,13 +143,11 @@ async function main() {
       create: {
         businessId: locationToLink.id,
         memberId: member.id,
-        points: randomPoints,
-        walletAddress: null,
-        walletNetwork: null,
+        visitCount: Math.floor(Math.random() * 10) + 1,
       },
     });
 
-    console.log(`   - ${member.firstName} ${member.lastName} → ${locationToLink.locationNickname} (${randomPoints} points)`);
+    console.log(`   - ${member.firstName} ${member.lastName} → Merchant (${randomPoints} points)`);
   }
 
   console.log('\n🎉 Test data seeded successfully!\n');
