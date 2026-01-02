@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
           slug: merchantSlug,
           name: merchantSlug,
           contactEmail: "placeholder@getonblockchain.com",
+          address: "N/A", // Placeholder address - business should exist before member registration
+          merchant: {
+            connect: { slug: merchantSlug },
+          },
         },
       });
     }
@@ -65,11 +69,50 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 3. Link Member to this specific Business (per-business relationship).
-    let businessMember = await prisma.businessMember.findFirst({
+    // 3. Get merchant from business
+    const businessWithMerchant = await prisma.business.findUnique({
+      where: { id: business.id },
+      include: { merchant: true },
+    });
+
+    if (!businessWithMerchant?.merchant) {
+      return NextResponse.json(
+        { error: "Merchant not found for this business" },
+        { status: 404 }
+      );
+    }
+
+    const merchantId = businessWithMerchant.merchant.id;
+
+    // 4. Create MerchantMember for merchant-level points aggregation
+    let merchantMember = await prisma.merchantMember.findUnique({
       where: {
-        businessId: business.id,
-        memberId: member.id,
+        merchantId_memberId: {
+          merchantId,
+          memberId: member.id,
+        },
+      },
+    });
+
+    if (!merchantMember) {
+      merchantMember = await prisma.merchantMember.create({
+        data: {
+          merchantId,
+          memberId: member.id,
+          points: 0,
+          tier: "BASE",
+          // walletAddress / network / isCustodial stay null until they pick a wallet
+        },
+      });
+    }
+
+    // 5. Create BusinessMember for visit tracking (per-location analytics)
+    let businessMember = await prisma.businessMember.findUnique({
+      where: {
+        businessId_memberId: {
+          businessId: business.id,
+          memberId: member.id,
+        },
       },
     });
 
@@ -78,16 +121,18 @@ export async function POST(req: NextRequest) {
         data: {
           businessId: business.id,
           memberId: member.id,
-          // walletAddress / network / isCustodial stay null until they pick a wallet
+          visitCount: 0,
         },
       });
     }
 
     return NextResponse.json({
       success: true,
+      merchantMemberId: merchantMember.id,
       businessMemberId: businessMember.id,
       memberId: member.id,
       businessId: business.id,
+      merchantId,
     });
   } catch (error) {
     console.error("Error in register-for-business:", error);
