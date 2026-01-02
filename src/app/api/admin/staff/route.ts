@@ -118,10 +118,16 @@ export async function POST(req: NextRequest) {
     // Log the action
     await logAdminAction({
       adminId: currentAdmin.id,
-      action: "CREATE",
+      action: "CREATE_ADMIN",
       entityType: "Admin",
       entityId: newAdmin.id,
-      details: `Created admin user: ${newAdmin.email} (${newAdmin.role})`,
+      changes: {
+        after: {
+          email: newAdmin.email,
+          role: newAdmin.role,
+          fullName: newAdmin.fullName,
+        },
+      },
     });
 
     return NextResponse.json({ admin: newAdmin }, { status: 201 });
