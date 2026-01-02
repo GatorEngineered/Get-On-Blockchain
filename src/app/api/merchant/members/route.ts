@@ -32,25 +32,61 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Get merchant with businesses
+    // Get merchant with first business for display
     const merchant = await prisma.merchant.findUnique({
       where: { id: merchantId },
       include: {
         businesses: {
+          take: 1,
+        },
+      },
+    });
+
+    if (!merchant || !merchant.businesses[0]) {
+      return NextResponse.json(
+        { error: "Merchant or business not found" },
+        { status: 404 }
+      );
+    }
+
+    const business = merchant.businesses[0];
+
+    // Get all MerchantMembers for this merchant (merchant-level points aggregation)
+    const merchantMembers = await prisma.merchantMember.findMany({
+      where: { merchantId },
+      include: {
+        member: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            createdAt: true,
+          },
+        },
+      },
+      orderBy: {
+        points: "desc", // Sort by points descending
+      },
+    });
+
+    // For each merchant member, get their visit data from BusinessMember
+    const membersWithVisits = await Promise.all(
+      merchantMembers.map(async (mm) => {
+        // Get BusinessMember for visit tracking (per-location analytics)
+        const businessMember = await prisma.businessMember.findUnique({
+          where: {
+            businessId_memberId: {
+              businessId: business.id,
+              memberId: mm.member.id,
+            },
+          },
           include: {
-            members: {
-              include: {
-                member: {
-                  select: {
-                    id: true,
-                    email: true,
-                    firstName: true,
-                    lastName: true,
-                    phone: true,
-                    createdAt: true,
-                  },
-                },
+            business: {
+              select: {
                 scans: {
+                  where: { memberId: mm.member.id },
                   orderBy: {
                     scannedAt: "desc",
                   },
@@ -59,48 +95,32 @@ export async function GET(req: NextRequest) {
               },
             },
           },
-        },
-      },
-    });
+        });
 
-    if (!merchant) {
-      return NextResponse.json(
-        { error: "Merchant not found" },
-        { status: 404 }
-      );
-    }
+        const lastScan = businessMember?.business.scans[0];
 
-    const business = merchant.businesses[0];
-    if (!business) {
-      return NextResponse.json(
-        { error: "No business found" },
-        { status: 404 }
-      );
-    }
-
-    // Transform data for response
-    const members = business.members.map((bm) => ({
-      id: bm.member.id,
-      businessMemberId: bm.id,
-      email: bm.member.email,
-      firstName: bm.member.firstName,
-      lastName: bm.member.lastName,
-      fullName: `${bm.member.firstName} ${bm.member.lastName}`.trim() || "No name",
-      phone: bm.member.phone,
-      points: bm.points,
-      tier: bm.tier,
-      joinedAt: bm.createdAt,
-      memberSince: bm.member.createdAt,
-      lastVisit: bm.scans[0]?.scannedAt || null,
-      totalVisits: bm.scans.length,
-    }));
-
-    // Sort by points descending
-    members.sort((a, b) => b.points - a.points);
+        return {
+          id: mm.member.id,
+          merchantMemberId: mm.id,
+          businessMemberId: businessMember?.id || null,
+          email: mm.member.email,
+          firstName: mm.member.firstName,
+          lastName: mm.member.lastName,
+          fullName: `${mm.member.firstName} ${mm.member.lastName}`.trim() || "No name",
+          phone: mm.member.phone,
+          points: mm.points,
+          tier: mm.tier,
+          joinedAt: mm.createdAt,
+          memberSince: mm.member.createdAt,
+          lastVisit: lastScan?.scannedAt || null,
+          visitCount: businessMember?.visitCount || 0,
+        };
+      })
+    );
 
     return NextResponse.json({
-      members,
-      totalMembers: members.length,
+      members: membersWithVisits,
+      totalMembers: membersWithVisits.length,
       business: {
         id: business.id,
         name: business.name,
