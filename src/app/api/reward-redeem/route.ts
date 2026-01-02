@@ -16,6 +16,7 @@ type RewardRedeemBody = {
  * POST /api/reward-redeem
  *
  * Redeem points for rewards at a business
+ * Points are aggregated at merchant level via MerchantMember
  *
  * Body:
  * - businessSlug: string (required) - The business slug
@@ -53,14 +54,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find business
+    // Find business with merchant
     const business = await prisma.business.findUnique({
       where: { slug: businessSlug },
+      include: {
+        merchant: true,
+      },
     });
 
     if (!business) {
       return NextResponse.json(
         { error: "Business not found" },
+        { status: 404 }
+      );
+    }
+
+    if (!business.merchant) {
+      return NextResponse.json(
+        { error: "Merchant not found for this business" },
         { status: 404 }
       );
     }
@@ -77,38 +88,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find BusinessMember relationship
-    const businessMember = await prisma.businessMember.findUnique({
+    // Get MerchantMember for merchant-level points
+    const merchantMember = await prisma.merchantMember.findUnique({
       where: {
-        businessId_memberId: {
-          businessId: business.id,
+        merchantId_memberId: {
+          merchantId: business.merchant.id,
           memberId: member.id,
         },
       },
     });
 
-    if (!businessMember) {
+    if (!merchantMember) {
       return NextResponse.json(
-        { error: "Member is not registered at this business" },
+        { error: "Member is not registered with this merchant" },
         { status: 404 }
       );
     }
 
     // Check if member has enough points
-    if (businessMember.points < pointsToRedeem) {
+    if (merchantMember.points < pointsToRedeem) {
       return NextResponse.json(
         {
           error: "Not enough points",
-          currentPoints: businessMember.points,
+          currentPoints: merchantMember.points,
           requiredPoints: pointsToRedeem,
         },
         { status: 400 }
       );
     }
 
-    // Deduct points from BusinessMember
-    const updatedBusinessMember = await prisma.businessMember.update({
-      where: { id: businessMember.id },
+    // Deduct points from MerchantMember (merchant-level aggregation)
+    const updatedMerchantMember = await prisma.merchantMember.update({
+      where: { id: merchantMember.id },
       data: {
         points: {
           decrement: pointsToRedeem,
@@ -119,22 +130,20 @@ export async function POST(req: NextRequest) {
     // Create RewardTransaction record
     const transaction = await prisma.rewardTransaction.create({
       data: {
-        businessMemberId: businessMember.id,
+        merchantMemberId: merchantMember.id,
         businessId: business.id,
         memberId: member.id,
         type: "REDEEM",
         amount: pointsToRedeem,
-        currency: "POINTS",
         status: "SUCCESS",
-        walletAddress: businessMember.walletAddress,
-        walletNetwork: businessMember.walletNetwork,
+        reason: reason || "Reward redemption",
       },
     });
 
     // Log redemption event
     await prisma.event.create({
       data: {
-        merchantId: business.id, // Using business as merchant for now
+        merchantId: business.merchant.id,
         memberId: member.id,
         type: "REWARD_REDEEMED",
         source: "redemption",
@@ -143,14 +152,15 @@ export async function POST(req: NextRequest) {
           reason: reason || "Reward redemption",
           rewardName: rewardName || "Unknown reward",
           transactionId: transaction.id,
-          newBalance: updatedBusinessMember.points,
+          newBalance: updatedMerchantMember.points,
+          businessSlug,
           ...extraMetadata,
         },
       },
     });
 
     console.log(
-      `[Redeem] Member ${member.id} redeemed ${pointsToRedeem} points at ${business.name}. New balance: ${updatedBusinessMember.points}`
+      `[Redeem] Member ${member.id} redeemed ${pointsToRedeem} points at ${business.name}. New balance: ${updatedMerchantMember.points}`
     );
 
     return NextResponse.json(
@@ -160,11 +170,12 @@ export async function POST(req: NextRequest) {
           id: transaction.id,
           type: transaction.type,
           pointsRedeemed: pointsToRedeem,
-          newBalance: updatedBusinessMember.points,
+          newBalance: updatedMerchantMember.points,
         },
         member: {
           id: member.id,
-          points: updatedBusinessMember.points,
+          points: updatedMerchantMember.points,
+          tier: updatedMerchantMember.tier,
         },
       },
       { status: 200 }
