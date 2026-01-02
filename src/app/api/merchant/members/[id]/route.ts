@@ -4,7 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const cookieStore = await cookies();
@@ -35,7 +35,7 @@ export async function GET(
       );
     }
 
-    const { id: memberId } = params;
+    const { id: memberId } = await params;
 
     // Get merchant with business
     const merchant = await prisma.merchant.findUnique({
@@ -56,11 +56,11 @@ export async function GET(
 
     const businessId = merchant.businesses[0].id;
 
-    // Get BusinessMember relationship
-    const businessMember = await prisma.businessMember.findUnique({
+    // Get MerchantMember relationship (merchant-level points aggregation)
+    const merchantMember = await prisma.merchantMember.findUnique({
       where: {
-        businessId_memberId: {
-          businessId,
+        merchantId_memberId: {
+          merchantId,
           memberId,
         },
       },
@@ -75,18 +75,6 @@ export async function GET(
             createdAt: true,
           },
         },
-        scans: {
-          orderBy: {
-            scannedAt: "desc",
-          },
-          include: {
-            qrCode: {
-              select: {
-                createdAt: true,
-              },
-            },
-          },
-        },
         rewardTransactions: {
           orderBy: {
             createdAt: "desc",
@@ -95,20 +83,43 @@ export async function GET(
       },
     });
 
-    if (!businessMember) {
+    if (!merchantMember) {
       return NextResponse.json(
-        { error: "Member not found for this business" },
+        { error: "Member not found for this merchant" },
         { status: 404 }
       );
     }
 
+    // Get BusinessMember for visit tracking (per-location analytics)
+    const businessMember = await prisma.businessMember.findUnique({
+      where: {
+        businessId_memberId: {
+          businessId,
+          memberId,
+        },
+      },
+      include: {
+        business: {
+          select: {
+            scans: {
+              where: { memberId },
+              orderBy: {
+                scannedAt: "desc",
+              },
+            },
+          },
+        },
+      },
+    });
+
     // Calculate statistics
-    const totalVisits = businessMember.scans.length;
-    const lastVisit = businessMember.scans[0]?.scannedAt || null;
+    const scans = businessMember?.business.scans || [];
+    const totalVisits = scans.length;
+    const lastVisit = scans[0]?.scannedAt || null;
 
     // Calculate tier progress
-    const currentPoints = businessMember.points;
-    const currentTier = businessMember.tier;
+    const currentPoints = merchantMember.points;
+    const currentTier = merchantMember.tier;
 
     let nextTier = null;
     let nextTierThreshold = null;
@@ -128,14 +139,14 @@ export async function GET(
 
     return NextResponse.json({
       member: {
-        id: businessMember.member.id,
-        email: businessMember.member.email,
-        firstName: businessMember.member.firstName,
-        lastName: businessMember.member.lastName,
-        fullName: `${businessMember.member.firstName} ${businessMember.member.lastName}`.trim() || "No name",
-        phone: businessMember.member.phone,
-        memberSince: businessMember.member.createdAt,
-        joinedBusiness: businessMember.createdAt,
+        id: merchantMember.member.id,
+        email: merchantMember.member.email,
+        firstName: merchantMember.member.firstName,
+        lastName: merchantMember.member.lastName,
+        fullName: `${merchantMember.member.firstName} ${merchantMember.member.lastName}`.trim() || "No name",
+        phone: merchantMember.member.phone,
+        memberSince: merchantMember.member.createdAt,
+        joinedBusiness: merchantMember.createdAt,
       },
       loyalty: {
         points: currentPoints,
@@ -146,13 +157,13 @@ export async function GET(
         totalVisits,
         lastVisit,
       },
-      scans: businessMember.scans.map((scan) => ({
+      scans: scans.map((scan) => ({
         id: scan.id,
         scannedAt: scan.scannedAt,
         pointsAwarded: scan.pointsAwarded,
         status: scan.status,
       })),
-      transactions: businessMember.rewardTransactions.map((tx) => ({
+      transactions: merchantMember.rewardTransactions.map((tx) => ({
         id: tx.id,
         type: tx.type,
         amount: tx.amount,

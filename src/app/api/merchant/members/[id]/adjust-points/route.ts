@@ -4,7 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const cookieStore = await cookies();
@@ -35,7 +35,7 @@ export async function POST(
       );
     }
 
-    const { id: memberId } = params;
+    const { id: memberId } = await params;
     const { amount, reason } = await req.json();
 
     if (!amount || amount === 0) {
