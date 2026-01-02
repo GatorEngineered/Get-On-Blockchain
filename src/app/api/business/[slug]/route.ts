@@ -1,55 +1,43 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 
-export async function POST(
+export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { id } = await params; // MerchantMember.id
+    const { slug } = await params;
 
-    const body = await request.json();
-    const { pointsDelta, reason, businessId, memberId } = body as {
-      pointsDelta: number;
-      reason?: string;
-      businessId?: string;
-      memberId?: string;
-    };
-
-    if (typeof pointsDelta !== "number") {
-      return NextResponse.json(
-        { error: "pointsDelta must be a number" },
-        { status: 400 }
-      );
-    }
-
-    const updated = await prisma.merchantMember.update({
-      where: { id },
-      data: {
-        points: { increment: pointsDelta },
+    const business = await prisma.business.findUnique({
+      where: { slug },
+      include: {
+        merchant: {
+          select: {
+            id: true,
+            name: true,
+            welcomePoints: true,
+            earnPerVisit: true,
+            vipThreshold: true,
+            superThreshold: true,
+            primaryColor: true,
+            accentColor: true,
+          },
+        },
       },
     });
 
-    // Optional but strongly recommended: log adjustment
-    if (businessId && memberId) {
-      await prisma.rewardTransaction.create({
-        data: {
-          merchantMemberId: id,
-          businessId,
-          memberId,
-          type: "ADJUST",
-          amount: pointsDelta,
-          reason: reason ?? "Manual adjustment",
-          status: "SUCCESS",
-        },
-      });
+    if (!business) {
+      return NextResponse.json(
+        { error: "Business not found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({ success: true, merchantMember: updated });
+    return NextResponse.json(business);
   } catch (error: any) {
-    console.error("Adjust points error:", error);
+    console.error("Get business error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to adjust points" },
+      { error: error.message || "Failed to get business" },
       { status: 500 }
     );
   }
