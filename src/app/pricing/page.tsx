@@ -189,16 +189,16 @@ export default function PricingPage() {
               </ul>
 
               <div className={styles.cardActions}>
-                <a
+                <Link
                   href={plan.bookingLink}
+                  className={styles.primaryBtn}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={styles.primaryBtn}
                 >
                   Get Started
-                </a>
+                </Link>
 
-                <Link href="/contact" className={styles.secondaryBtn}>
+                <Link href="/support" className={styles.secondaryBtn}>
                   Talk to sales
                 </Link>
               </div>

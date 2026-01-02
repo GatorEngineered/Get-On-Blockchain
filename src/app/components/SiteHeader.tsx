@@ -8,6 +8,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/roi-calculator", label: "ROI Calculator" },
   { href: "/support", label: "Support" },
 ];
 
@@ -26,11 +27,12 @@ export default function SiteHeader() {
         <div className="site-header-brand">
           <Link href="/" className="site-header-logo">
            <Image
-  src="/getonblockchain-favicon.png"
+  src="/getonblockchain-favicon-resized.png"
   alt="Get On Blockchain logo"
   width={32}
   height={32}
   className="site-header-logo-icon"
+  priority
 />
 
 <span className="site-header-logo-text">Get On Blockchain</span>

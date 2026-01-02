@@ -3,25 +3,390 @@ generator client {
 }
 
 datasource db {
-   // Using SQLite for local dev: DATABASE_URL="file:./dev.db"
-
+  // Using SQLite for local dev: DATABASE_URL="file:./dev.db"
   // For production, switch to PostgreSQL: DATABASE_URL="postgresql://..."
-
   // Prisma will auto-detect the provider from the DATABASE_URL format
 
   provider = "sqlite" // Change to "postgresql" for production
   url      = env("DATABASE_URL")
 }
 
-enum Plan {
-  STARTER  // Legacy - being phased out
-  BASIC    // $99/mo - Points only
-  PREMIUM  // $149/mo - Points + Stablecoin rewards
-  GROWTH   // $249/mo - Multi-location (Phase 2)
-  PRO      // $349/mo - Enterprise (Phase 2)
+model Business {
+  id                 String              @id @default(cuid())
+  slug               String              @unique
+  name               String
+  locationNickname   String?
+  address            String
+  city               String?
+  state              String? // Two-letter state code for filtering
+  zipCode            String?
+  contactEmail       String
+  industry           String? // "restaurant", "gym", "salon", "retail"
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  merchantId         String?
+  merchant           Merchant?           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  members            BusinessMember[]
+  rewardTransactions RewardTransaction[]
+  qrCodes            QRCode[]
+  scans              Scan[]
+
+  @@index([state])
+  @@index([industry])
 }
 
-// Types for events and plans used in the app
+/// *
+///  * Merchant is your internal "plan" / configuration object for the SaaS.
+///  * You can keep using this for pricing plans, welcome points logic, etc.
+model Merchant {
+  id             String  @id @default(cuid())
+  slug           String  @unique
+  name           String
+  tagline        String?
+  plan           Plan    @default(STARTER)
+  loginEmail     String  @unique
+  passwordHash   String
+  welcomePoints  Int     @default(10)
+  earnPerVisit   Int     @default(10)
+  vipThreshold   Int     @default(100)
+  superThreshold Int     @default(200)
+  primaryColor   String?
+  accentColor    String?
+
+  // Payment & Subscription (PayPal)
+  paymentVerified      Boolean            @default(false)
+  paypalSubscriptionId String?            @unique
+  subscriptionStatus   SubscriptionStatus @default(TRIAL)
+  trialEndsAt          DateTime?
+  subscriptionEndsAt   DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+
+  // Payout Configuration
+  payoutEnabled         Boolean   @default(false)
+  payoutWalletAddress   String?
+  payoutWalletEncrypted String?
+  payoutMilestonePoints Int       @default(100)
+  payoutAmountUSD       Float     @default(5.0)
+  payoutNetwork         String    @default("polygon")
+  lastBalanceCheck      DateTime?
+  usdcBalance           Float?
+  lowBalanceAlertSent   Boolean   @default(false)
+  lowBalanceThreshold   Float     @default(50.0)
+  notificationEmail     String?
+
+  // POS Integration (Secure OAuth Storage)
+  squareAccessToken   String? // Encrypted Square OAuth token
+  squareRefreshToken  String? // Encrypted refresh token
+  squareLocationId    String?
+  toastAccessToken    String? // Encrypted Toast OAuth token
+  toastRefreshToken   String?
+  toastRestaurantGuid String?
+  cloverAccessToken   String? // Encrypted Clover OAuth token
+  cloverMerchantId    String?
+  shopifyAccessToken  String? // Encrypted Shopify OAuth token
+  shopifyShopDomain   String?
+  posPointsPerDollar  Float   @default(1.0) // Configurable points ratio
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  businesses      Business[]
+  events          Event[]
+  staff           Staff[]
+  merchantMembers MerchantMember[] // NEW: Merchant-level member relationships
+}
+
+/// *
+///  * Member = a real person (or account) in your system.
+///  * Not tied to a single business anymore.
+model Member {
+  id        String  @id @default(cuid())
+  firstName String  @default("")
+  lastName  String  @default("")
+  email     String  @unique
+  phone     String?
+  address   String?
+  city      String?
+  state     String? // Two-letter state code (CA, NY, etc.)
+  zipCode   String?
+
+  // Password authentication (optional - members can use magic link OR password OR wallet)
+  passwordHash String?
+
+  // Email preferences & verification
+  emailVerified         Boolean   @default(false)
+  emailVerifiedAt       DateTime?
+  emailMarketingConsent Boolean   @default(true)
+
+  walletAddress      String?
+  tier               String              @default("STARTER")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  businesses         BusinessMember[]
+  events             Event[]
+  loginTokens        MemberLoginToken[]
+  rewardTransactions RewardTransaction[]
+  scans              Scan[]
+  memberWallet       MemberWallet?
+  merchantMembers    MerchantMember[] // NEW: Merchant-level memberships
+}
+
+/// *
+///  * Magic link tokens for passwordless member login
+model MemberLoginToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  memberId  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  returnTo  String?
+  createdAt DateTime  @default(now())
+  member    Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+/// *
+///  * MERCHANT-LEVEL membership - points aggregated across all merchant locations
+///  * This is the PRIMARY points storage for multi-location merchants
+model MerchantMember {
+  id         String @id @default(cuid())
+  merchantId String
+  memberId   String
+
+  // Merchant-level points (shared across all locations)
+  points Int    @default(0)
+  tier   String @default("BASE")
+
+  // Wallet info (same across all merchant locations)
+  walletAddress String?
+  walletNetwork String?
+  isCustodial   Boolean?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member             Member              @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  merchant           Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  rewardTransactions RewardTransaction[]
+
+  @@unique([merchantId, memberId])
+  @@index([merchantId])
+  @@index([memberId])
+}
+
+/// *
+///  * LOCATION-LEVEL tracking - visit history per business location
+///  * Points are NOW tracked at MerchantMember level, not here
+model BusinessMember {
+  id         String @id @default(cuid())
+  businessId String
+  memberId   String
+
+  // Per-location visit tracking (analytics only, not for points)
+  visitCount   Int       @default(0)
+  lastVisitAt  DateTime?
+  firstVisitAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member   Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, memberId])
+  @@index([businessId])
+  @@index([memberId])
+}
+
+/// *
+///  * Event log for analytics / audit.
+///  * Still attached to Merchant and optionally Member.
+model Event {
+  id         String    @id @default(cuid())
+  merchantId String
+  memberId   String?
+  type       EventType
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  source     String?
+  member     Member?   @relation(fields: [memberId], references: [id])
+  merchant   Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+}
+
+model RewardTransaction {
+  id               String            @id @default(cuid())
+  merchantMemberId String // NEW: Links to MerchantMember instead
+  businessId       String // Which location the transaction occurred at
+  memberId         String
+  type             RewardType
+  amount           Int // Points earned/redeemed
+  pointsDeducted   Int?
+  usdcAmount       Float?
+  currency         String            @default("POINTS")
+  reason           String?
+  txHash           String?
+  walletAddress    String?
+  walletNetwork    String?
+  status           TransactionStatus @default(PENDING)
+  errorMessage     String?
+  createdAt        DateTime          @default(now())
+  member           Member            @relation(fields: [memberId], references: [id])
+  business         Business          @relation(fields: [businessId], references: [id])
+  merchantMember   MerchantMember    @relation(fields: [merchantMemberId], references: [id], onDelete: Cascade)
+
+  @@index([merchantMemberId])
+  @@index([businessId])
+  @@index([memberId])
+}
+
+/// *
+///  * Admin users - separate from merchants
+///  * Can manage merchants, blog posts, and system settings
+model Admin {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  passwordHash String
+  fullName     String
+  role         AdminRole       @default(ADMIN)
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  lastLoginAt  DateTime?
+  auditLogs    AdminAuditLog[]
+  blogPosts    BlogPost[]
+}
+
+/// *
+///  * Blog posts - database-backed CMS
+model BlogPost {
+  id              String     @id @default(cuid())
+  slug            String     @unique
+  title           String
+  description     String
+  content         String
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  ogImage         String?
+  status          BlogStatus @default(DRAFT)
+  publishedAt     DateTime?
+  category        String
+  readTimeMinutes Int        @default(5)
+  authorId        String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  author          Admin      @relation(fields: [authorId], references: [id])
+
+  @@index([status, publishedAt])
+}
+
+/// *
+///  * Staff members - per merchant employees
+///  * Can manage loyalty program for their merchant
+model Staff {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  fullName          String
+  merchantId        String
+  canManageMembers  Boolean   @default(true)
+  canViewReports    Boolean   @default(true)
+  canManageSettings Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  lastLoginAt       DateTime?
+  merchant          Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+}
+
+/// *
+///  * Password reset tokens - for merchants, staff, and admins
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  email     String
+  userType  UserType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+}
+
+/// *
+///  * Admin audit log - track all admin actions for compliance
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  action     String
+  entityType String
+  entityId   String?
+  changes    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+  admin      Admin    @relation(fields: [adminId], references: [id])
+
+  @@index([adminId, createdAt])
+}
+
+/// *
+///  * QR Codes - unique codes per business for member scanning
+///  * Static QR codes with backend validation
+model QRCode {
+  id         String    @id @default(cuid())
+  businessId String
+  code       String    @unique
+  signature  String
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  invalidAt  DateTime?
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  scans      Scan[]
+
+  @@index([businessId])
+}
+
+/// *
+///  * Scans - track member QR scans with same-day restriction
+///  * Status: pending (instant), confirmed (blockchain), failed
+model Scan {
+  id            String    @id @default(cuid())
+  memberId      String
+  businessId    String
+  qrCodeId      String
+  pointsAwarded Int
+  txHash        String?
+  status        String    @default("pending")
+  scannedAt     DateTime  @default(now())
+  confirmedAt   DateTime?
+  member        Member    @relation(fields: [memberId], references: [id])
+  business      Business  @relation(fields: [businessId], references: [id])
+  qrCode        QRCode    @relation(fields: [qrCodeId], references: [id])
+
+  @@index([memberId, scannedAt])
+  @@index([businessId, scannedAt])
+}
+
+/// *
+///  * Member custodial wallets - auto-generated for members
+///  * Polygon network, encrypted private keys
+model MemberWallet {
+  id            String   @id @default(cuid())
+  memberId      String   @unique
+  walletAddress String   @unique
+  privateKeyEnc String
+  balance       Float    @default(0)
+  network       String   @default("polygon")
+  createdAt     DateTime @default(now())
+  member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+enum Plan {
+  STARTER
+  BASIC
+  PREMIUM
+  GROWTH
+  PRO
+}
+
 enum EventType {
   SCAN
   CONNECT_WALLET
@@ -29,20 +394,19 @@ enum EventType {
   REWARD_EARNED
   REWARD_REDEEMED
   PAYOUT_CLAIMED
-  EMAIL_SENT              // Email notification sent
-  LOW_BALANCE_ALERT       // Low wallet balance alert
-  PAYOUT_SUCCESS_NOTIFY   // Payout success notification
+  EMAIL_SENT
+  LOW_BALANCE_ALERT
+  PAYOUT_SUCCESS_NOTIFY
 }
 
 enum MerchantPlan {
-  STARTER  // Legacy - being phased out
-  BASIC    // $99/mo - Points only
-  PREMIUM  // $149/mo - Points + Stablecoin rewards
-  GROWTH   // $249/mo - Multi-location (Phase 2)
-  PRO      // $349/mo - Enterprise (Phase 2)
+  STARTER
+  BASIC
+  PREMIUM
+  GROWTH
+  PRO
 }
 
-// Optional: you can use this later if you want “Bronze / Silver / Gold”
 enum MemberTier {
   BASE
   VIP
@@ -53,7 +417,7 @@ enum RewardType {
   EARN
   REDEEM
   ADJUST
-  PAYOUT  // Stablecoin payout
+  PAYOUT
 }
 
 enum TransactionStatus {
@@ -62,188 +426,30 @@ enum TransactionStatus {
   FAILED
 }
 
-model Business {
-  id               String   @id @default(cuid())
-  slug             String   @unique // e.g. "tampa-fit-downtown", "latte-lab-airport"
-  name             String   // Business name (can be same across locations)
-  locationNickname String?  // e.g. "Downtown", "Airport", "Main Street"
-  address          String   // REQUIRED: Physical location address
-  contactEmail     String
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  // Link to Merchant (owner of multiple locations)
-  merchantId String?
-  merchant   Merchant? @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-
-  members            BusinessMember[]
-  rewardTransactions RewardTransaction[]
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
 }
 
-/**
- * Merchant is your internal "plan" / configuration object for the SaaS.
- * You can keep using this for pricing plans, welcome points logic, etc.
- */
-model Merchant {
-  id      String  @id @default(cuid())
-  slug    String  @unique
-  name    String
-  tagline String?
-  plan    Plan    @default(STARTER)
-
-  // 🔐 Login fields for business portal
-  loginEmail   String @unique
-  passwordHash String
-
-  // Plan configuration
-  welcomePoints Int @default(10)
-  earnPerVisit  Int @default(10)
-  vipThreshold  Int @default(100)
-
-  primaryColor String?
-  accentColor  String?
-
-  // 💰 Stablecoin Payout Configuration (Premium Plan Feature)
-  // Business owner funds their own custodial wallet for customer payouts
-  payoutEnabled         Boolean @default(false) // Enabled after wallet setup
-  payoutWalletAddress   String? // Business owner's payout wallet (NOT platform wallet)
-  payoutWalletEncrypted String? // Encrypted private key (or reference to KMS)
-  payoutMilestonePoints Int     @default(100) // Points needed for payout (configurable)
-  payoutAmountUSD       Float   @default(5.0) // USDC amount per payout (configurable)
-  payoutNetwork         String  @default("polygon") // "polygon", "ethereum", "xrpl"
-
-  // Wallet balance tracking (updated periodically)
-  lastBalanceCheck      DateTime?
-  usdcBalance           Float?
-  lowBalanceAlertSent   Boolean   @default(false)
-  lowBalanceThreshold   Float     @default(50.0) // Alert when balance falls below this amount
-  notificationEmail     String?   // Email for alerts (defaults to loginEmail if not set)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  businesses Business[] // Multiple locations owned by this merchant
-  events     Event[]
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
-/**
- * Member = a real person (or account) in your system.
- * Not tied to a single business anymore.
- */
-model Member {
-  id        String  @id @default(cuid())
-  firstName String  @default("")
-  lastName  String  @default("")
-  email     String  @unique
-  phone     String? // optional
-  address   String? // optional
-
-  // optional global wallet if you ever want it
-  walletAddress String?
-
-  // Member tier (global across all businesses)
-  tier String @default("STARTER")
-
-  events Event[]
-  loginTokens MemberLoginToken[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  businesses         BusinessMember[]
-  rewardTransactions RewardTransaction[]
+enum UserType {
+  MERCHANT
+  STAFF
+  ADMIN
+  MEMBER
 }
 
-/**
- * Magic link tokens for passwordless member login
- */
-model MemberLoginToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  memberId  String
-  expiresAt DateTime
-  usedAt    DateTime?
-  returnTo  String?  // URL to redirect to after login
-
-  createdAt DateTime @default(now())
-}
-
-/**
- * Link table: a Member's relationship with a specific Business.
- * This is where per-business wallet, points, and tier live.
- */
-model BusinessMember {
-  id         String   @id @default(cuid())
-  business   Business @relation(fields: [businessId], references: [id])
-  businessId String
-
-  member   Member @relation(fields: [memberId], references: [id])
-  memberId String
-
-  // Wallet is per-business
-  walletAddress String?
-  walletNetwork String? // "ethereum", "xrpl", etc
-  isCustodial   Boolean? // true if email-based wallet, false if external
-
-  // Points + tier are per business
-  points Int    @default(0)
-  tier   String @default("BASE")
-
-  createdAt          DateTime            @default(now())
-  rewardTransactions RewardTransaction[]
-
-  @@unique([businessId, memberId]) // same member can’t be duplicated for same business
-}
-
-/**
- * Event log for analytics / audit.
- * Still attached to Merchant and optionally Member.
- */
-model Event {
-  id         String   @id @default(cuid())
-  merchantId String
-  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-
-  memberId String?
-  member   Member? @relation(fields: [memberId], references: [id])
-
-  type     EventType
-  source   String? // "wallet", "email", "staff", etc.
-  metadata Json? // stores points, reason, etc.
-
-  createdAt DateTime @default(now())
-}
-
-model RewardTransaction {
-  id               String         @id @default(cuid())
-  businessMember   BusinessMember @relation(fields: [businessMemberId], references: [id])
-  businessMemberId String
-
-  business   Business @relation(fields: [businessId], references: [id])
-  businessId String
-
-  member   Member @relation(fields: [memberId], references: [id])
-  memberId String
-
-  type   RewardType
-  amount Int // Generic amount field (for backwards compatibility)
-
-  // Points tracking
-  pointsDeducted Int? // For PAYOUT type
-
-  // Stablecoin tracking
-  usdcAmount Float? // USDC amount sent (e.g., 5.0 for $5)
-
-  currency String @default("POINTS")
-  reason   String?
-
-  // Blockchain transaction details
-  txHash         String?
-  walletAddress  String? // Recipient wallet
-  walletNetwork  String? // "polygon", "ethereum", "xrpl"
-  status         TransactionStatus @default(PENDING)
-  errorMessage   String? // If status is FAILED
-
-  createdAt DateTime @default(now())
+enum SubscriptionStatus {
+  TRIAL // 7-day free trial
+  ACTIVE // Paid and active
+  PAST_DUE // Payment failed, grace period
+  CANCELED // User canceled
+  EXPIRED // Trial expired without payment
+  PAUSED // Temporarily paused
 }

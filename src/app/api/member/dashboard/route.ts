@@ -84,124 +84,123 @@ export async function GET(req: NextRequest) {
 
  
 
-    // Get all businesses this member belongs to
-
-    const businessMembers = await prisma.businessMember.findMany({
-
+    // Get all merchants this member belongs to (with aggregated points)
+    const merchantMembers = await prisma.merchantMember.findMany({
       where: { memberId: member.id },
-
       include: {
-
-        business: {
-
+        merchant: {
           select: {
-
             id: true,
-
             slug: true,
-
             name: true,
-
-            contactEmail: true,
-
+            tagline: true,
+            payoutEnabled: true,
+            payoutMilestonePoints: true,
+            payoutAmountUSD: true,
+            businesses: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                locationNickname: true,
+                address: true,
+                city: true,
+                state: true,
+              },
+            },
           },
-
         },
-
       },
-
       orderBy: { createdAt: 'desc' },
-
     });
 
- 
+    // Get location-level visit tracking for analytics
+    const businessMembers = await prisma.businessMember.findMany({
+      where: { memberId: member.id },
+      select: {
+        businessId: true,
+        visitCount: true,
+        lastVisitAt: true,
+        firstVisitAt: true,
+      },
+    });
+
+    // Create a map for quick visit lookup
+    const visitMap = new Map(
+      businessMembers.map((bm) => [bm.businessId, bm])
+    );
 
     // Get recent reward transactions
-
     const transactions = await prisma.rewardTransaction.findMany({
-
       where: { memberId: member.id },
-
       include: {
-
         business: {
-
           select: {
-
             name: true,
-
           },
-
         },
-
+        merchantMember: {
+          select: {
+            merchant: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
-
       orderBy: { createdAt: 'desc' },
-
       take: 20,
-
     });
 
- 
-
     return NextResponse.json({
-
       member: {
-
         id: member.id,
-
         email: member.email,
-
         firstName: member.firstName,
-
         lastName: member.lastName,
-
         walletAddress: member.walletAddress,
-
         tier: member.tier,
-
-        businesses: businessMembers.map((bm) => ({
-
-          id: bm.id,
-
-          businessId: bm.businessId,
-
-          business: bm.business,
-
-          walletAddress: bm.walletAddress,
-
-          walletNetwork: bm.walletNetwork,
-
-          points: bm.points,
-
-          tier: bm.tier,
-
+        // Return merchant-level memberships with aggregated points
+        merchants: merchantMembers.map((mm) => ({
+          id: mm.id,
+          merchantId: mm.merchantId,
+          merchant: mm.merchant,
+          walletAddress: mm.walletAddress,
+          walletNetwork: mm.walletNetwork,
+          isCustodial: mm.isCustodial,
+          points: mm.points, // Aggregated across all locations
+          tier: mm.tier,
+          // Include location breakdown for analytics
+          locations: mm.merchant.businesses.map((business) => {
+            const visitData = visitMap.get(business.id);
+            return {
+              id: business.id,
+              slug: business.slug,
+              name: business.name,
+              locationNickname: business.locationNickname,
+              address: business.address,
+              city: business.city,
+              state: business.state,
+              visitCount: visitData?.visitCount || 0,
+              lastVisitAt: visitData?.lastVisitAt?.toISOString() || null,
+              firstVisitAt: visitData?.firstVisitAt?.toISOString() || null,
+            };
+          }),
         })),
-
       },
-
       transactions: transactions.map((tx) => ({
-
         id: tx.id,
-
         type: tx.type,
-
         amount: tx.amount,
-
         pointsDeducted: tx.pointsDeducted,
-
         usdcAmount: tx.usdcAmount,
-
         status: tx.status,
-
         txHash: tx.txHash,
-
         createdAt: tx.createdAt.toISOString(),
-
         business: tx.business,
-
+        merchant: tx.merchantMember?.merchant,
       })),
-
     });
 
   } catch (error: any) {

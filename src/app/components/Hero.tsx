@@ -1,32 +1,35 @@
+import Link from "next/link";
+
 export default function Hero() {
   return (
     <section className="section hero" id="top">
       <div className="container hero-inner">
         <div className="hero-content">
-          <p className="eyebrow">Loyalty & payments for the crypto era</p>
+          <p className="eyebrow">Loyalty rewards that drive real ROI</p>
 
           <h1>
-            Rewards Your Customers Actually Use.
+            Increase Customer Retention by 40%.
             <br />
-            <span className="hero-accent">Crypto-Simple.</span>
+            <span className="hero-accent">Boost Foot Traffic.</span>
           </h1>
 
           <p className="hero-sub">
-            Turn one-time buyers into loyal regulars with stablecoin payments, instant perks,
-            and VIP access. No crypto experience required.
+            Turn one-time customers into loyal regulars with our QR-based loyalty program.
+            Reward repeat visits, track customer data, and offer crypto payouts (USDC).
+            Proven ROI for restaurants, retail, fitness, and salons.
           </p>
 
           <div className="hero-cta-row">
-            <a href="https://outlook.office.com/book/GatorEngineeredConsults@gatorengineered.com/?ismsaljsauthenabled" className="btn btn-primary">
-              Book a Demo
-            </a>
+            <Link href="/roi-calculator" className="btn btn-primary">
+              Calculate Your ROI
+            </Link>
             <a href="#how-it-works" className="btn btn-secondary">
               See How It Works
             </a>
           </div>
 
           <p className="hero-meta">
-            Works with USDC • Privacy-first • No new hardware needed
+            QR-based setup • USDC crypto payouts • No new hardware • Starting at $99/month
           </p>
         </div>
 

@@ -1,1561 +1,669 @@
 "use client";
 
- 
-
 import { useEffect, useState } from "react";
-
 import { useRouter } from "next/navigation";
+import styles from "../../styles/dashboard-mockups.module.css";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-
-import { useAccount } from "wagmi";
-
-import PayoutButton from "@/app/components/PayoutButton";
-
- 
-
-type BusinessMember = {
-
+type MerchantMember = {
   id: string;
-
-  businessId: string;
-
-  business: {
-
+  merchantId: string;
+  merchant: {
     id: string;
-
     slug: string;
-
     name: string;
-
-    contactEmail: string;
-
+    tagline: string | null;
+    payoutEnabled: boolean;
+    payoutMilestonePoints: number;
+    payoutAmountUSD: number;
+    businesses: {
+      id: string;
+      slug: string;
+      name: string;
+      locationNickname: string | null;
+      address: string;
+      city: string | null;
+      state: string | null;
+    }[];
   };
-
   walletAddress: string | null;
-
   walletNetwork: string | null;
-
-  points: number;
-
+  isCustodial: boolean | null;
+  points: number; // Aggregated across all merchant locations
   tier: string;
-
+  locations: {
+    id: string;
+    slug: string;
+    name: string;
+    locationNickname: string | null;
+    address: string;
+    city: string | null;
+    state: string | null;
+    visitCount: number;
+    lastVisitAt: string | null;
+    firstVisitAt: string | null;
+  }[];
 };
-
- 
 
 type Member = {
-
   id: string;
-
   email: string;
-
   firstName: string;
-
   lastName: string;
-
   walletAddress: string | null;
-
   tier: string;
-
-  businesses: BusinessMember[];
-
+  merchants: MerchantMember[]; // Changed from businesses
 };
-
- 
 
 type RewardTransaction = {
-
   id: string;
-
   type: string;
-
   amount: number;
-
   pointsDeducted: number | null;
-
   usdcAmount: number | null;
-
   status: string;
-
   txHash: string | null;
-
   createdAt: string;
-
+  reason: string | null;
   business: {
-
     name: string;
-
   };
-
 };
 
- 
+// Available rewards catalog
+const REWARDS_CATALOG = [
+  { id: 1, name: "Free Coffee", points: 100, description: "Any size, any blend" },
+  { id: 2, name: "Free Pastry", points: 150, description: "Choose from daily selection" },
+  { id: 3, name: "10% Off Purchase", points: 200, description: "Valid on any purchase" },
+  { id: 4, name: "Free Bag of Beans", points: 500, description: "12oz of house blend" },
+];
 
 export default function MemberDashboardPage() {
-
   const router = useRouter();
 
-  const { address, isConnected } = useAccount();
-
   const [loading, setLoading] = useState(true);
-
   const [member, setMember] = useState<Member | null>(null);
-
   const [transactions, setTransactions] = useState<RewardTransaction[]>([]);
-
   const [error, setError] = useState<string | null>(null);
-
- 
+  const [claimingPayout, setClaimingPayout] = useState(false);
+  const [payoutSuccess, setPayoutSuccess] = useState<string | null>(null);
+  const [payoutError, setPayoutError] = useState<string | null>(null);
 
   useEffect(() => {
-
     loadMemberData();
-
   }, []);
 
- 
-
   async function loadMemberData() {
-
     try {
-
-      // Check if user is logged in (you'll implement proper auth later)
-
       const token = localStorage.getItem("member_token");
-
       if (!token) {
-
         router.push("/member/login?returnTo=/member/dashboard");
-
         return;
-
       }
-
- 
 
       const res = await fetch("/api/member/dashboard", {
-
         headers: {
-
           Authorization: `Bearer ${token}`,
-
         },
-
       });
 
- 
-
       if (!res.ok) {
-
         if (res.status === 401) {
-
           router.push("/member/login?returnTo=/member/dashboard");
-
           return;
-
         }
-
         throw new Error("Failed to load dashboard");
-
       }
 
- 
+      const data = await res.json();
+      setMember(data.member);
+      setTransactions(data.transactions || []);
+    } catch (err: any) {
+      console.error("Failed to load member data:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("member_token");
+    router.push("/member/login");
+  }
+
+  async function handleClaimPayout(merchantId: string) {
+    try {
+      setClaimingPayout(true);
+      setPayoutError(null);
+      setPayoutSuccess(null);
+
+      const res = await fetch("/api/member/claim-payout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ merchantId }),
+      });
 
       const data = await res.json();
 
-      setMember(data.member);
-
-      setTransactions(data.transactions || []);
-
-    } catch (err: any) {
-
-      console.error("Failed to load member data:", err);
-
-      setError(err.message);
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  }
-
- 
-
-  async function handleConnectWallet() {
-
-    if (!address || !member) return;
-
- 
-
-    try {
-
-      const token = localStorage.getItem("member_token");
-
-      const res = await fetch("/api/member/connect-wallet", {
-
-        method: "POST",
-
-        headers: {
-
-          "Content-Type": "application/json",
-
-          Authorization: `Bearer ${token}`,
-
-        },
-
-        body: JSON.stringify({
-
-          walletAddress: address,
-
-        }),
-
-      });
-
- 
-
       if (!res.ok) {
-
-        throw new Error("Failed to connect wallet");
-
+        throw new Error(data.error || "Failed to claim payout");
       }
 
- 
+      setPayoutSuccess(`Successfully claimed $${data.payout.amount} USDC! Transaction: ${data.payout.txHash?.slice(0, 10)}...`);
 
-      // Reload member data
-
+      // Reload member data to update points
       await loadMemberData();
-
     } catch (err: any) {
-
-      console.error("Failed to connect wallet:", err);
-
-      alert("Failed to connect wallet. Please try again.");
-
+      console.error("Payout claim error:", err);
+      setPayoutError(err.message);
+    } finally {
+      setClaimingPayout(false);
     }
-
   }
-
- 
 
   if (loading) {
-
     return (
-
-      <main className="section">
-
-        <div className="container" style={{ maxWidth: "1000px" }}>
-
-          <div className="member-dashboard-loading">
-
-            <h1>Loading your rewards...</h1>
-
-          </div>
-
+      <div className={styles.mockupContainer}>
+        <div style={{ textAlign: "center", padding: "4rem" }}>
+          <h1>Loading your rewards...</h1>
         </div>
-
-      </main>
-
+      </div>
     );
-
   }
-
- 
 
   if (error || !member) {
-
     return (
-
-      <main className="section">
-
-        <div className="container" style={{ maxWidth: "1000px" }}>
-
-          <div className="member-dashboard-error">
-
-            <h1>Unable to load dashboard</h1>
-
-            <p>{error || "Please try logging in again."}</p>
-
-            <a href="/member/login" className="btn btn-primary">
-
-              Go to Login
-
-            </a>
-
-          </div>
-
+      <div className={styles.mockupContainer}>
+        <div style={{ textAlign: "center", padding: "4rem" }}>
+          <h1>Unable to load dashboard</h1>
+          <p>{error || "Please try logging in again."}</p>
+          <button
+            onClick={() => router.push("/member/login")}
+            style={{
+              marginTop: "1rem",
+              padding: "0.75rem 1.5rem",
+              background: "linear-gradient(to right, #244b7a, #8bbcff)",
+              color: "white",
+              border: "none",
+              borderRadius: "999px",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            Go to Login
+          </button>
         </div>
-
-      </main>
-
+      </div>
     );
-
   }
 
- 
+  // Calculate total points across all merchants
+  const totalPoints = member.merchants.reduce((sum, mm) => sum + mm.points, 0);
 
-  const totalPoints = member.businesses.reduce(
+  // Find next reward milestone
+  const nextRewardMilestone = REWARDS_CATALOG.find((r) => r.points > totalPoints);
+  const nextReward = nextRewardMilestone || REWARDS_CATALOG[REWARDS_CATALOG.length - 1];
+  const progressPercentage = (totalPoints / nextReward.points) * 100;
 
-    (sum, bm) => sum + bm.points,
+  // Get tier level (using the highest tier across all merchants)
+  const tierLevel = member.merchants.reduce((highest, mm) => {
+    if (mm.tier === "SUPER") return "SUPER";
+    if (mm.tier === "VIP" && highest !== "SUPER") return "VIP";
+    return highest;
+  }, "BASE");
 
-    0
-
-  );
-
- 
+  // Format transactions for display
+  const formattedTransactions = transactions.slice(0, 6).map((t) => ({
+    id: t.id,
+    description: t.reason || `${t.type} Transaction`,
+    points: t.type === "EARN" ? t.amount : -t.amount,
+    date: new Date(t.createdAt).toLocaleDateString(),
+    location: t.business.name,
+  }));
 
   return (
-
-    <main className="member-dashboard-page">
-
-      <div className="member-dashboard-container">
-
-        {/* Header */}
-
-        <header className="member-dashboard-header">
-
-          <div>
-
-            <h1 className="member-dashboard-title">
-
-              Welcome back, {member.firstName || "Member"}!
-
-            </h1>
-
-            <p className="member-dashboard-subtitle">
-
-              Manage your rewards, view points, and claim payouts
-
-            </p>
-
-          </div>
-
-          <div className="member-dashboard-actions">
-
-            <button
-
-              onClick={() => {
-
-                localStorage.removeItem("member_token");
-
-                router.push("/member/login");
-
-              }}
-
-              className="member-dashboard-logout"
-
-            >
-
-              Logout
-
-            </button>
-
-          </div>
-
-        </header>
-
- 
-
-        {/* Summary Cards */}
-
-        <div className="member-dashboard-summary">
-
-          <div className="member-summary-card">
-
-            <div className="member-summary-icon">🎯</div>
-
-            <div className="member-summary-content">
-
-              <p className="member-summary-label">Total Points</p>
-
-              <p className="member-summary-value">{totalPoints}</p>
-
-              <p className="member-summary-sub">
-
-                Across {member.businesses.length} business
-
-                {member.businesses.length !== 1 ? "es" : ""}
-
-              </p>
-
-            </div>
-
-          </div>
-
- 
-
-          <div className="member-summary-card">
-
-            <div className="member-summary-icon">💰</div>
-
-            <div className="member-summary-content">
-
-              <p className="member-summary-label">Wallet Status</p>
-
-              <p className="member-summary-value">
-
-                {member.walletAddress ? "Connected" : "Not Connected"}
-
-              </p>
-
-              {member.walletAddress && (
-
-                <p className="member-summary-sub member-wallet-address">
-
-                  {member.walletAddress.slice(0, 8)}...
-
-                  {member.walletAddress.slice(-6)}
-
-                </p>
-
-              )}
-
-            </div>
-
-          </div>
-
- 
-
-          <div className="member-summary-card">
-
-            <div className="member-summary-icon">🏆</div>
-
-            <div className="member-summary-content">
-
-              <p className="member-summary-label">Member Tier</p>
-
-              <p className="member-summary-value">{member.tier}</p>
-
-              <p className="member-summary-sub">Keep earning to level up!</p>
-
-            </div>
-
-          </div>
-
+    <div className={styles.mockupContainer}>
+      {/* Header with Logout */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+        <div className={styles.customerWelcome}>
+          <h1>Welcome back, {member.firstName}!</h1>
+          <p className={styles.tierBadge}>
+            <span className={styles.tierIcon}>★</span> {tierLevel} Member
+          </p>
         </div>
-
- 
-
-        {/* Wallet Connection */}
-
-        {!member.walletAddress && (
-
-          <div className="member-wallet-connect-notice">
-
-            <h3>Connect Your Wallet</h3>
-
-            <p>
-
-              Connect your crypto wallet to claim stablecoin rewards when you
-
-              reach milestones.
-
-            </p>
-
-            <div className="member-wallet-connect-wrapper">
-
-              <ConnectButton showBalance={false} />
-
-              {isConnected && address && (
-
-                <button
-
-                  onClick={handleConnectWallet}
-
-                  className="btn btn-primary"
-
-                  style={{ marginTop: "1rem" }}
-
-                >
-
-                  Save Wallet to Account
-
-                </button>
-
-              )}
-
-            </div>
-
-          </div>
-
-        )}
-
- 
-
-        {/* Business Memberships */}
-
-        <div className="member-businesses-section">
-
-          <h2 className="member-section-title">Your Business Rewards</h2>
-
- 
-
-          {member.businesses.length === 0 ? (
-
-            <div className="member-empty-state">
-
-              <p>You haven't joined any businesses yet.</p>
-
-              <p className="member-empty-sub">
-
-                Visit a participating business and scan their QR code to start
-
-                earning rewards!
-
-              </p>
-
-            </div>
-
-          ) : (
-
-            <div className="member-businesses-grid">
-
-              {member.businesses.map((bm) => (
-
-                <div key={bm.id} className="member-business-card">
-
-                  <div className="member-business-header">
-
-                    <h3 className="member-business-name">{bm.business.name}</h3>
-
-                  </div>
-
- 
-
-                  <div className="member-business-stats">
-
-                    <div className="member-business-stat">
-
-                      <span className="member-stat-label">Points</span>
-
-                      <span className="member-stat-value">{bm.points}</span>
-
-                    </div>
-
-                    <div className="member-business-stat">
-
-                      <span className="member-stat-label">Tier</span>
-
-                      <span className="member-stat-value">{bm.tier}</span>
-
-                    </div>
-
-                  </div>
-
- 
-
-                  {/* Payout Button */}
-
-                  <div className="member-payout-section">
-
-                    <PayoutButton
-
-                      merchantSlug={bm.business.slug}
-
-                      memberId={member.id}
-
-                      businessId={bm.businessId}
-
-                      currentPoints={bm.points}
-
-                      walletAddress = {bm.walletAddress || member.walletAddress || undefined}
-
-                    />
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          )}
-
-        </div>
-
- 
-
-        {/* Transaction History */}
-
-        {transactions.length > 0 && (
-
-          <div className="member-transactions-section">
-
-            <h2 className="member-section-title">Recent Transactions</h2>
-
- 
-
-            <div className="member-transactions-list">
-
-              {transactions.map((tx) => (
-
-                <div key={tx.id} className="member-transaction-item">
-
-                  <div className="member-transaction-icon">
-
-                    {tx.type === "PAYOUT" ? "💸" :
-
-                     tx.type === "EARN" ? "✅" : "🎁"}
-
-                  </div>
-
-                  <div className="member-transaction-details">
-
-                    <p className="member-transaction-type">
-
-                      {tx.type === "PAYOUT"
-
-                        ? "Stablecoin Payout"
-
-                        : tx.type === "EARN"
-
-                        ? "Points Earned"
-
-                        : tx.type === "REDEEM"
-
-                        ? "Points Redeemed"
-
-                        : tx.type}
-
-                    </p>
-
-                    <p className="member-transaction-business">
-
-                      {tx.business.name}
-
-                    </p>
-
-                  </div>
-
-                  <div className="member-transaction-amount">
-
-                    {tx.usdcAmount ? (
-
-                      <>
-
-                        <p className="member-transaction-usdc">
-
-                          ${tx.usdcAmount.toFixed(2)} USDC
-
-                        </p>
-
-                        {tx.pointsDeducted && (
-
-                          <p className="member-transaction-points">
-
-                            -{tx.pointsDeducted} pts
-
-                          </p>
-
-                        )}
-
-                      </>
-
-                    ) : (
-
-                      <p className="member-transaction-points">
-
-                        {tx.type === "REDEEM" ? "-" : "+"}
-
-                        {tx.amount} pts
-
-                      </p>
-
-                    )}
-
-                  </div>
-
-                  <div className="member-transaction-meta">
-
-                    <span
-
-                      className={`member-transaction-status status-${tx.status.toLowerCase()}`}
-
-                    >
-
-                      {tx.status}
-
-                    </span>
-
-                    {tx.txHash && (
-
-                      <a
-
-                        href={`https://polygonscan.com/tx/${tx.txHash}`}
-
-                        target="_blank"
-
-                        rel="noopener noreferrer"
-
-                        className="member-transaction-link"
-
-                      >
-
-                        View on Polygonscan
-
-                      </a>
-
-                    )}
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-        )}
-
+        <button
+          onClick={handleLogout}
+          style={{
+            padding: "0.5rem 1rem",
+            background: "transparent",
+            border: "1px solid #d1d5db",
+            borderRadius: "6px",
+            color: "#6b7280",
+            cursor: "pointer",
+            fontSize: "0.875rem",
+            fontWeight: "500",
+          }}
+        >
+          Logout
+        </button>
       </div>
 
- 
-
-      <style jsx>{`
-
-        .member-dashboard-page {
-
-          min-height: 100vh;
-
-          background: radial-gradient(
-
-            circle at top left,
-
-            #f4f7ff 0,
-
-            #f7f9fc 40%,
-
-            #ffffff 100%
-
-          );
-
-          padding: 2rem 1.5rem 4rem;
-
-        }
-
- 
-
-        .member-dashboard-container {
-
-          max-width: 1100px;
-
-          margin: 0 auto;
-
-        }
-
- 
-
-        .member-dashboard-header {
-
-          display: flex;
-
-          justify-content: space-between;
-
-          align-items: flex-start;
-
-          margin-bottom: 2.5rem;
-
-          flex-wrap: wrap;
-
-          gap: 1.5rem;
-
-        }
-
- 
-
-        .member-dashboard-title {
-
-          font-size: 2rem;
-
-          font-weight: 700;
-
-          color: #111827;
-
-          margin: 0 0 0.5rem 0;
-
-        }
-
- 
-
-        .member-dashboard-subtitle {
-
-          font-size: 1rem;
-
-          color: #6b7280;
-
-          margin: 0;
-
-        }
-
- 
-
-        .member-dashboard-logout {
-
-          padding: 0.6rem 1.5rem;
-
-          border-radius: 999px;
-
-          border: 1px solid #d1d5db;
-
-          background: white;
-
-          color: #374151;
-
-          font-weight: 500;
-
-          font-size: 0.9rem;
-
-          cursor: pointer;
-
-          transition: all 0.2s ease;
-
-        }
-
- 
-
-        .member-dashboard-logout:hover {
-
-          background: #f9fafb;
-
-          border-color: #244b7a;
-
-        }
-
- 
-
-        .member-dashboard-summary {
-
-          display: grid;
-
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-
-          gap: 1.5rem;
-
-          margin-bottom: 2.5rem;
-
-        }
-
- 
-
-        .member-summary-card {
-
-          background: white;
-
-          border-radius: 20px;
-
-          padding: 1.75rem;
-
-          box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
-
-          border: 1px solid rgba(15, 23, 42, 0.05);
-
-          display: flex;
-
-          gap: 1.25rem;
-
-          align-items: flex-start;
-
-        }
-
- 
-
-        .member-summary-icon {
-
-          font-size: 2.5rem;
-
-          flex-shrink: 0;
-
-        }
-
- 
-
-        .member-summary-content {
-
-          flex: 1;
-
-        }
-
- 
-
-        .member-summary-label {
-
-          font-size: 0.8rem;
-
-          text-transform: uppercase;
-
-          letter-spacing: 0.08em;
-
-          color: #6b7280;
-
-          margin: 0 0 0.35rem 0;
-
-        }
-
- 
-
-        .member-summary-value {
-
-          font-size: 1.8rem;
-
-          font-weight: 700;
-
-          color: #111827;
-
-          margin: 0 0 0.25rem 0;
-
-        }
-
- 
-
-        .member-summary-sub {
-
-          font-size: 0.85rem;
-
-          color: #9ca3af;
-
-          margin: 0;
-
-        }
-
- 
-
-        .member-wallet-address {
-
-          font-family: "Courier New", monospace;
-
-          font-size: 0.8rem;
-
-        }
-
- 
-
-        .member-wallet-connect-notice {
-
-          background: linear-gradient(135deg, #eef5ff, #f9fbff);
-
-          border-radius: 18px;
-
-          padding: 2rem;
-
-          margin-bottom: 2.5rem;
-
-          border: 2px dashed #244b7a;
-
-          text-align: center;
-
-        }
-
- 
-
-        .member-wallet-connect-notice h3 {
-
-          margin: 0 0 0.75rem 0;
-
-          color: #111827;
-
-          font-size: 1.3rem;
-
-        }
-
- 
-
-        .member-wallet-connect-notice p {
-
-          margin: 0 0 1.5rem 0;
-
-          color: #4b5563;
-
-        }
-
- 
-
-        .member-wallet-connect-wrapper {
-
-          display: flex;
-
-          flex-direction: column;
-
-          align-items: center;
-
-          gap: 1rem;
-
-        }
-
- 
-
-        .member-section-title {
-
-          font-size: 1.4rem;
-
-          font-weight: 700;
-
-          color: #111827;
-
-          margin: 0 0 1.5rem 0;
-
-        }
-
- 
-
-        .member-businesses-section {
-
-          margin-bottom: 3rem;
-
-        }
-
- 
-
-        .member-businesses-grid {
-
-          display: grid;
-
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-
-          gap: 1.5rem;
-
-        }
-
- 
-
-        .member-business-card {
-
-          background: white;
-
-          border-radius: 20px;
-
-          padding: 1.75rem;
-
-          box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
-
-          border: 1px solid rgba(15, 23, 42, 0.05);
-
-        }
-
- 
-
-        .member-business-header {
-
-          margin-bottom: 1.25rem;
-
-          padding-bottom: 1.25rem;
-
-          border-bottom: 1px solid #f3f4f6;
-
-        }
-
- 
-
-        .member-business-name {
-
-          margin: 0 0 0.35rem 0;
-
-          font-size: 1.2rem;
-
-          font-weight: 600;
-
-          color: #111827;
-
-        }
-
- 
-
-        .member-business-tagline {
-
-          margin: 0;
-
-          font-size: 0.9rem;
-
-          color: #6b7280;
-
-        }
-
- 
-
-        .member-business-stats {
-
-          display: flex;
-
-          gap: 2rem;
-
-          margin-bottom: 1.5rem;
-
-        }
-
- 
-
-        .member-business-stat {
-
-          display: flex;
-
-          flex-direction: column;
-
-          gap: 0.25rem;
-
-        }
-
- 
-
-        .member-stat-label {
-
-          font-size: 0.75rem;
-
-          text-transform: uppercase;
-
-          letter-spacing: 0.08em;
-
-          color: #9ca3af;
-
-        }
-
- 
-
-        .member-stat-value {
-
-          font-size: 1.4rem;
-
-          font-weight: 700;
-
-          color: #244b7a;
-
-        }
-
- 
-
-        .member-payout-section {
-
-          margin-top: 1.5rem;
-
-          padding-top: 1.5rem;
-
-          border-top: 1px solid #f3f4f6;
-
-        }
-
- 
-
-        .member-empty-state {
-
-          background: white;
-
-          border-radius: 18px;
-
-          padding: 3rem 2rem;
-
-          text-align: center;
-
-        }
-
- 
-
-        .member-empty-state p {
-
-          margin: 0 0 0.5rem 0;
-
-          color: #4b5563;
-
-          font-size: 1rem;
-
-        }
-
- 
-
-        .member-empty-sub {
-
-          color: #9ca3af !important;
-
-          font-size: 0.9rem !important;
-
-        }
-
- 
-
-        .member-transactions-section {
-
-          margin-bottom: 2rem;
-
-        }
-
- 
-
-        .member-transactions-list {
-
-          background: white;
-
-          border-radius: 20px;
-
-          overflow: hidden;
-
-          box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
-
-          border: 1px solid rgba(15, 23, 42, 0.05);
-
-        }
-
- 
-
-        .member-transaction-item {
-
-          display: grid;
-
-          grid-template-columns: auto 1fr auto auto;
-
-          gap: 1.25rem;
-
-          padding: 1.25rem 1.5rem;
-
-          border-bottom: 1px solid #f3f4f6;
-
-          align-items: center;
-
-        }
-
- 
-
-        .member-transaction-item:last-child {
-
-          border-bottom: none;
-
-        }
-
- 
-
-        .member-transaction-icon {
-
-          font-size: 2rem;
-
-        }
-
- 
-
-        .member-transaction-details {
-
-          display: flex;
-
-          flex-direction: column;
-
-          gap: 0.25rem;
-
-        }
-
- 
-
-        .member-transaction-type {
-
-          margin: 0;
-
-          font-weight: 600;
-
-          color: #111827;
-
-          font-size: 0.95rem;
-
-        }
-
- 
-
-        .member-transaction-business {
-
-          margin: 0;
-
-          font-size: 0.85rem;
-
-          color: #6b7280;
-
-        }
-
- 
-
-        .member-transaction-amount {
-
-          text-align: right;
-
-        }
-
- 
-
-        .member-transaction-usdc {
-
-          margin: 0;
-
-          font-size: 1.1rem;
-
-          font-weight: 700;
-
-          color: #16a34a;
-
-        }
-
- 
-
-        .member-transaction-points {
-
-          margin: 0;
-
-          font-size: 0.85rem;
-
-          color: #6b7280;
-
-        }
-
- 
-
-        .member-transaction-meta {
-
-          display: flex;
-
-          flex-direction: column;
-
-          gap: 0.5rem;
-
-          align-items: flex-end;
-
-        }
-
- 
-
-        .member-transaction-status {
-
-          padding: 0.25rem 0.75rem;
-
-          border-radius: 999px;
-
-          font-size: 0.75rem;
-
-          font-weight: 600;
-
-          text-transform: uppercase;
-
-          letter-spacing: 0.05em;
-
-        }
-
- 
-
-        .status-success {
-
-          background: #e0fbea;
-
-          color: #166534;
-
-        }
-
- 
-
-        .status-pending {
-
-          background: #fef3c7;
-
-          color: #92400e;
-
-        }
-
- 
-
-        .status-failed {
-
-          background: #fee2e2;
-
-          color: #b91c1c;
-
-        }
-
- 
-
-        .member-transaction-link {
-
-          font-size: 0.75rem;
-
-          color: #244b7a;
-
-          text-decoration: none;
-
-          border-bottom: 1px solid transparent;
-
-        }
-
- 
-
-        .member-transaction-link:hover {
-
-          border-bottom-color: #244b7a;
-
-        }
-
- 
-
-        .member-dashboard-loading,
-
-        .member-dashboard-error {
-
-          text-align: center;
-
-          padding: 4rem 2rem;
-
-        }
-
- 
-
-        .member-dashboard-error h1 {
-
-          color: #b91c1c;
-
-          margin-bottom: 1rem;
-
-        }
-
- 
-
-        /* Mobile responsiveness */
-
-        @media (max-width: 900px) {
-
-          .member-dashboard-header {
-
-            flex-direction: column;
-
-            align-items: flex-start;
-
-          }
-
- 
-
-          .member-businesses-grid {
-
-            grid-template-columns: 1fr;
-
-          }
-
- 
-
-          .member-transaction-item {
-
-            grid-template-columns: auto 1fr;
-
-            gap: 1rem;
-
-          }
-
- 
-
-          .member-transaction-amount {
-
-            grid-column: 1 / -1;
-
-            text-align: left;
-
-            padding-left: 3.5rem;
-
-          }
-
- 
-
-          .member-transaction-meta {
-
-            grid-column: 1 / -1;
-
-            align-items: flex-start;
-
-            padding-left: 3.5rem;
-
-          }
-
-        }
-
- 
-
-        @media (max-width: 640px) {
-
-          .member-dashboard-page {
-
-            padding: 1.5rem 1rem 3rem;
-
-          }
-
- 
-
-          .member-dashboard-title {
-
-            font-size: 1.6rem;
-
-          }
-
- 
-
-          .member-dashboard-summary {
-
-            grid-template-columns: 1fr;
-
-          }
-
- 
-
-          .member-summary-card {
-
-            padding: 1.5rem;
-
-          }
-
- 
-
-          .member-summary-icon {
-
-            font-size: 2rem;
-
-          }
-
- 
-
-          .member-wallet-connect-notice {
-
-            padding: 1.5rem;
-
-          }
-
- 
-
-          .member-business-card {
-
-            padding: 1.5rem;
-
-          }
-
- 
-
-          .member-transaction-item {
-
-            padding: 1rem;
-
-          }
-
- 
-
-          .member-transaction-icon {
-
-            font-size: 1.5rem;
-
-          }
-
- 
-
-          .member-transaction-amount,
-
-          .member-transaction-meta {
-
-            padding-left: 2.5rem;
-
-          }
-
-        }
-
-      `}</style>
-
-    </main>
-
+      {/* Points Balance Card */}
+      <div className={styles.pointsCard}>
+        <div className={styles.pointsCardContent}>
+          <div className={styles.pointsBalance}>
+            <p className={styles.pointsLabel}>Your Total Points</p>
+            <h2 className={styles.pointsNumber}>{totalPoints}</h2>
+          </div>
+
+          <div className={styles.progressSection}>
+            <div className={styles.progressHeader}>
+              <span className={styles.progressLabel}>Progress to next reward</span>
+              <span className={styles.progressPoints}>
+                {totalPoints} / {nextReward.points}
+              </span>
+            </div>
+            <div className={styles.progressBar}>
+              <div
+                className={styles.progressFill}
+                style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+              />
+            </div>
+            <p className={styles.pointsRemaining}>
+              {totalPoints >= nextReward.points
+                ? "You've reached the highest reward!"
+                : `${nextReward.points - totalPoints} points until ${nextReward.name}`}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Payout Success Message */}
+      {payoutSuccess && (
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1rem',
+          background: '#d1fae5',
+          border: '1px solid #6ee7b7',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.75rem'
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#047857" style={{ flexShrink: 0, marginTop: '0.125rem' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.95rem', fontWeight: '600', color: '#065f46', marginBottom: '0.25rem' }}>
+              Payout Successful!
+            </p>
+            <p style={{ fontSize: '0.875rem', color: '#047857' }}>
+              {payoutSuccess}
+            </p>
+          </div>
+          <button
+            onClick={() => setPayoutSuccess(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#047857',
+              cursor: 'pointer',
+              padding: '0.25rem'
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Payout Error Message */}
+      {payoutError && (
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1rem',
+          background: '#fee2e2',
+          border: '1px solid #fecaca',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '0.75rem'
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" style={{ flexShrink: 0, marginTop: '0.125rem' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.95rem', fontWeight: '600', color: '#991b1b', marginBottom: '0.25rem' }}>
+              Payout Failed
+            </p>
+            <p style={{ fontSize: '0.875rem', color: '#7f1d1d' }}>
+              {payoutError}
+            </p>
+          </div>
+          <button
+            onClick={() => setPayoutError(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#991b1b',
+              cursor: 'pointer',
+              padding: '0.25rem'
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* USDC Payout Section */}
+      {member.merchants.some((mm) => mm.merchant.payoutEnabled) && (
+        <div style={{
+          marginTop: '1.5rem',
+          background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+          padding: '1.5rem',
+          borderRadius: '16px',
+          border: '2px solid #bfdbfe'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e40af', margin: 0 }}>
+                Earn Real Money
+              </h3>
+              <p style={{ fontSize: '0.875rem', color: '#3b82f6', margin: 0 }}>
+                Convert your points to USDC cryptocurrency
+              </p>
+            </div>
+          </div>
+
+          {member.walletAddress && (
+            <div style={{
+              padding: '0.875rem',
+              background: 'rgba(255,255,255,0.7)',
+              borderRadius: '8px',
+              marginBottom: '1.25rem'
+            }}>
+              <p style={{ fontSize: '0.75rem', color: '#1e40af', marginBottom: '0.25rem', fontWeight: '600', textTransform: 'uppercase' }}>
+                Your Wallet Address
+              </p>
+              <code style={{ fontSize: '0.85rem', color: '#1e3a8a', wordBreak: 'break-all' }}>
+                {member.walletAddress}
+              </code>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            {member.merchants
+              .filter((mm) => mm.merchant.payoutEnabled)
+              .map((mm) => {
+                const canClaim = mm.points >= mm.merchant.payoutMilestonePoints;
+                const pointsNeeded = mm.merchant.payoutMilestonePoints - mm.points;
+                const locationCount = mm.merchant.businesses.length;
+
+                return (
+                  <div
+                    key={mm.id}
+                    style={{
+                      background: 'white',
+                      padding: '1.25rem',
+                      borderRadius: '12px',
+                      border: canClaim ? '2px solid #10b981' : '1px solid #e5e7eb'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <div>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', margin: '0 0 0.5rem 0' }}>
+                          {mm.merchant.name}
+                        </h4>
+                        <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+                          {mm.points} / {mm.merchant.payoutMilestonePoints} points • {locationCount} location{locationCount > 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#3b82f6' }}>
+                          ${mm.merchant.payoutAmountUSD}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>USDC</div>
+                      </div>
+                    </div>
+
+                    {canClaim ? (
+                      <button
+                        onClick={() => handleClaimPayout(mm.merchantId)}
+                        disabled={claimingPayout}
+                        style={{
+                          width: '100%',
+                          padding: '0.875rem',
+                          background: claimingPayout
+                            ? '#9ca3af'
+                            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '1rem',
+                          fontWeight: '700',
+                          cursor: claimingPayout ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        {claimingPayout ? (
+                          <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ animation: 'spin 1s linear infinite' }}>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Claim ${mm.merchant.payoutAmountUSD} USDC Now
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div style={{
+                        padding: '0.875rem',
+                        background: '#f3f4f6',
+                        borderRadius: '8px',
+                        textAlign: 'center'
+                      }}>
+                        <p style={{ fontSize: '0.95rem', color: '#6b7280', margin: 0 }}>
+                          <strong>{pointsNeeded}</strong> more points needed to claim
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+
+          <style jsx>{`
+            @keyframes spin {
+              from {
+                transform: rotate(0deg);
+              }
+              to {
+                transform: rotate(360deg);
+              }
+            }
+          `}</style>
+        </div>
+      )}
+
+      {/* Available Rewards */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Available Rewards</h3>
+        <div className={styles.rewardsGrid}>
+          {REWARDS_CATALOG.map((reward) => {
+            const canRedeem = totalPoints >= reward.points;
+            return (
+              <div
+                key={reward.id}
+                className={`${styles.rewardCard} ${
+                  canRedeem ? styles.rewardCardActive : styles.rewardCardInactive
+                }`}
+              >
+                <div className={styles.rewardHeader}>
+                  <h4 className={styles.rewardName}>{reward.name}</h4>
+                  <span className={styles.rewardPoints}>{reward.points} pts</span>
+                </div>
+                <p className={styles.rewardDescription}>{reward.description}</p>
+                <button
+                  className={`${styles.redeemButton} ${
+                    canRedeem ? "" : styles.redeemButtonDisabled
+                  }`}
+                  disabled={!canRedeem}
+                  onClick={() => {
+                    if (canRedeem) {
+                      alert("Redeem feature coming soon! Show this at checkout.");
+                    }
+                  }}
+                >
+                  {canRedeem ? "Redeem Now" : "Not Enough Points"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Recent Activity</h3>
+        <div className={styles.transactionList}>
+          {formattedTransactions.length === 0 ? (
+            <p style={{ textAlign: "center", color: "#6b7280", padding: "2rem" }}>
+              No transactions yet. Visit a participating business to start earning points!
+            </p>
+          ) : (
+            formattedTransactions.map((transaction) => (
+              <div key={transaction.id} className={styles.transactionItem}>
+                <div className={styles.transactionIcon}>
+                  {transaction.points > 0 ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  )}
+                </div>
+                <div className={styles.transactionDetails}>
+                  <p className={styles.transactionDescription}>{transaction.description}</p>
+                  <p className={styles.transactionMeta}>
+                    {transaction.date} • {transaction.location}
+                  </p>
+                </div>
+                <div
+                  className={`${styles.transactionPoints} ${
+                    transaction.points > 0 ? styles.pointsEarned : styles.pointsRedeemed
+                  }`}
+                >
+                  {transaction.points > 0 ? "+" : ""}
+                  {transaction.points}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Merchant Breakdown */}
+      {member.merchants.length > 0 && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Your Merchants</h3>
+          <div style={{ display: "grid", gap: "1.5rem" }}>
+            {member.merchants.map((mm) => (
+              <div
+                key={mm.id}
+                style={{
+                  background: "white",
+                  padding: "1.5rem",
+                  borderRadius: "12px",
+                  border: "1px solid #e5e7eb",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                  <div>
+                    <h4 style={{ margin: 0, marginBottom: "0.5rem", color: "#1f2937", fontSize: "1.25rem" }}>
+                      {mm.merchant.name}
+                    </h4>
+                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
+                      Tier: {mm.tier} • {mm.merchant.businesses.length} location{mm.merchant.businesses.length > 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <p style={{ margin: 0, fontSize: "2rem", fontWeight: "700", color: "#244b7a" }}>
+                      {mm.points}
+                    </p>
+                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>total points</p>
+                  </div>
+                </div>
+
+                {/* Location breakdown */}
+                {mm.locations.length > 0 && (
+                  <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: "1rem", marginTop: "0.5rem" }}>
+                    <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem", fontWeight: "600", textTransform: "uppercase" }}>
+                      Visit History by Location
+                    </p>
+                    <div style={{ display: "grid", gap: "0.75rem" }}>
+                      {mm.locations.map((location) => (
+                        <div
+                          key={location.id}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "0.75rem",
+                            background: "#f9fafb",
+                            borderRadius: "8px",
+                          }}
+                        >
+                          <div>
+                            <p style={{ margin: 0, fontSize: "0.9rem", color: "#1f2937", fontWeight: "500" }}>
+                              {location.name}
+                              {location.locationNickname && <span style={{ color: "#6b7280" }}> ({location.locationNickname})</span>}
+                            </p>
+                            {location.lastVisitAt && (
+                              <p style={{ margin: 0, fontSize: "0.75rem", color: "#6b7280", marginTop: "0.25rem" }}>
+                                Last visit: {new Date(location.lastVisitAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <p style={{ margin: 0, fontSize: "1.1rem", fontWeight: "600", color: "#244b7a" }}>
+                              {location.visitCount}
+                            </p>
+                            <p style={{ margin: 0, fontSize: "0.7rem", color: "#6b7280" }}>visits</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
-
 }

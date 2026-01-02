@@ -92,22 +92,40 @@
 .siteHeaderCta {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .siteHeaderLoginBtn {
+  background: white;
+  border: 1px solid #244b7a;
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
+  color: #244b7a;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.siteHeaderLoginBtn:hover {
   background: #244b7a;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.siteHeaderBusinessBtn {
+  background: linear-gradient(135deg, #244b7a 0%, #8bbcff 100%);
   padding: 0.55rem 1.4rem;
   border-radius: 999px;
   color: white;
   font-weight: 600;
   text-decoration: none;
   box-shadow: 0 4px 14px rgba(36, 75, 122, 0.25);
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.siteHeaderLoginBtn:hover {
-  background: #1f3f67;
+.siteHeaderBusinessBtn:hover {
   transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(36, 75, 122, 0.35);
 }
 
 /* ------------------------- */
@@ -143,18 +161,21 @@
     padding: 0.3rem 0;
   }
 
-  /* Put Login button full-width on mobile */
+  /* Put Login buttons full-width on mobile */
   .siteHeaderCta {
     width: 100%;
     margin-top: 0.75rem;
     display: flex;
+    gap: 0.5rem;
     justify-content: center;
   }
 
-  .siteHeaderLoginBtn {
-    width: 100%;
+  .siteHeaderLoginBtn,
+  .siteHeaderBusinessBtn {
+    flex: 1;
     text-align: center;
     padding: 0.75rem 1rem;
+    font-size: 0.9rem;
   }
 }
 

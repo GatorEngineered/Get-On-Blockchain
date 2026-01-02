@@ -1,0 +1,220 @@
+/* Tiptap Editor Styles */
+
+.tiptap-wrapper {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+}
+
+.tiptap-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #f9f9f9;
+  flex-wrap: wrap;
+}
+
+.tiptap-toolbar button {
+  padding: 6px 12px;
+  border: 1px solid #d4d4d4;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.tiptap-toolbar button:hover {
+  background: #f0f0f0;
+}
+
+.tiptap-toolbar button.is-active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.tiptap-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tiptap-toolbar .separator {
+  width: 1px;
+  background: #d4d4d4;
+  margin: 0 4px;
+}
+
+/* Editor Content Area */
+.tiptap-editor {
+  padding: 16px;
+  min-height: 400px;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #1a1a1a;
+}
+
+/* Placeholder */
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Typography Styles */
+.tiptap-editor h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin: 1.5em 0 0.5em;
+  line-height: 1.2;
+  color: #244b7a;
+}
+
+.tiptap-editor h2 {
+  font-size: 1.65em;
+  font-weight: 700;
+  margin: 1.5em 0 0.5em;
+  line-height: 1.3;
+  color: #244b7a;
+}
+
+.tiptap-editor h3 {
+  font-size: 1.35em;
+  font-weight: 700;
+  margin: 1.25em 0 0.5em;
+  line-height: 1.4;
+  color: #244b7a;
+}
+
+.tiptap-editor h4 {
+  font-size: 1.15em;
+  font-weight: 700;
+  margin: 1em 0 0.5em;
+  color: #1e293b;
+}
+
+.tiptap-editor p {
+  margin: 0.75em 0;
+  line-height: 1.7;
+}
+
+.tiptap-editor p:first-child {
+  font-size: 1.15em;
+  font-weight: 500;
+  color: #475569;
+}
+
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 1.75em;
+  margin: 1em 0;
+  line-height: 1.7;
+}
+
+.tiptap-editor li {
+  margin: 0.5em 0;
+}
+
+.tiptap-editor li::marker {
+  color: #7dd3fc;
+  font-weight: 700;
+}
+
+.tiptap-editor ul ul,
+.tiptap-editor ol ol,
+.tiptap-editor ul ol,
+.tiptap-editor ol ul {
+  margin: 0.5em 0;
+}
+
+.tiptap-editor blockquote {
+  background: #f0f9ff;
+  border-left: 4px solid #7dd3fc;
+  padding: 1em 1.5em;
+  margin: 1.5em 0;
+  border-radius: 8px;
+  font-style: italic;
+  color: #1e293b;
+}
+
+.tiptap-editor blockquote p {
+  margin: 0.5em 0;
+}
+
+.tiptap-editor blockquote p:first-child {
+  font-size: 1em;
+  font-weight: normal;
+}
+
+.tiptap-editor strong {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.tiptap-editor em {
+  font-style: italic;
+  color: #475569;
+}
+
+.tiptap-editor code {
+  background: #f1f5f9;
+  color: #e11d48;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+.tiptap-editor pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: 1.5em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1.5em 0;
+  line-height: 1.6;
+}
+
+.tiptap-editor pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  font-size: 0.95em;
+}
+
+.tiptap-editor a {
+  color: #244b7a;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.tiptap-editor a:hover {
+  color: #7dd3fc;
+}
+
+.tiptap-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin: 1.5em 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.tiptap-editor hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+  margin: 2em 0;
+}
+
+/* Selection */
+.tiptap-editor ::selection {
+  background: #c7d2fe;
+}

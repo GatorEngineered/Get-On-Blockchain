@@ -8,6 +8,24 @@ const nextConfig: NextConfig = {
   // Turbopack tries to bundle test files from node_modules which breaks production builds
   // We use webpack with proper externals configuration instead
 
+  // Image optimization for performance
+  images: {
+    formats: ["image/webp", "image/avif"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+
+  // Compression for better performance
+  compress: true,
+
+  // Production optimizations
+  productionBrowserSourceMaps: false,
+  poweredByHeader: false,
+
   // Fix for wagmi/RainbowKit - these packages need node module polyfills
   webpack: (config, { isServer }) => {
     if (!isServer) {

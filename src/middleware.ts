@@ -1,0 +1,94 @@
+// src/middleware.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const hostname = request.headers.get('host') || '';
+
+  // Get subdomain from hostname
+  // Format: subdomain.getonblockchain.com or subdomain.localhost:3000
+  const hostParts = hostname.split('.');
+
+  // For localhost:3000 or development environments without subdomain
+  const isLocalhost = hostname.includes('localhost');
+  const subdomain = isLocalhost
+    ? (hostParts.length > 1 ? hostParts[0] : null)
+    : (hostParts.length >= 3 ? hostParts[0] : null);
+
+  console.log(`[Middleware] hostname: ${hostname}, subdomain: ${subdomain}, pathname: ${pathname}`);
+
+  // Handle rewards subdomain (Member Portal)
+  if (subdomain === 'rewards') {
+    // Already on rewards subdomain, allow through
+    // Member routes like /login, /register, /dashboard should work
+    console.log(`[Middleware] Rewards subdomain detected, allowing ${pathname}`);
+    return NextResponse.next();
+  }
+
+  // Handle dashboard subdomain (Business Portal)
+  if (subdomain === 'dashboard') {
+    // Already on dashboard subdomain, allow through
+    // Dashboard routes like /login, /register should work
+    console.log(`[Middleware] Dashboard subdomain detected, allowing ${pathname}`);
+    return NextResponse.next();
+  }
+
+  // Root domain (no subdomain) - Marketing site
+  // Block member and dashboard routes on root domain
+  if (!subdomain || subdomain === 'www') {
+    // If trying to access member routes on root domain, redirect to rewards subdomain
+    if (pathname.startsWith('/member')) {
+      const rewardsUrl = new URL(pathname, request.url);
+
+      if (isLocalhost) {
+        // For localhost, just change the hostname
+        rewardsUrl.host = `rewards.${hostname}`;
+      } else {
+        // For production, replace subdomain
+        const domain = hostParts.slice(1).join('.');
+        rewardsUrl.host = `rewards.${domain}`;
+      }
+
+      console.log(`[Middleware] Redirecting member route to: ${rewardsUrl.href}`);
+      return NextResponse.redirect(rewardsUrl);
+    }
+
+    // If trying to access dashboard routes on root domain, redirect to dashboard subdomain
+    if (pathname.startsWith('/dashboard') && pathname !== '/') {
+      const dashboardUrl = new URL(pathname, request.url);
+
+      if (isLocalhost) {
+        dashboardUrl.host = `dashboard.${hostname}`;
+      } else {
+        const domain = hostParts.slice(1).join('.');
+        dashboardUrl.host = `dashboard.${domain}`;
+      }
+
+      console.log(`[Middleware] Redirecting dashboard route to: ${dashboardUrl.href}`);
+      return NextResponse.redirect(dashboardUrl);
+    }
+
+    // Allow marketing site routes on root domain
+    console.log(`[Middleware] Root domain, allowing marketing site ${pathname}`);
+    return NextResponse.next();
+  }
+
+  // Allow all other requests
+  return NextResponse.next();
+}
+
+// Configure which routes the middleware should run on
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
+  ],
+};

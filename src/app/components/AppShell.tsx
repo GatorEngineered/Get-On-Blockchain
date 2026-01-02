@@ -25,11 +25,12 @@ export function SiteHeader() {
         <div className={styles.siteHeaderBrand}>
           <Link href="/" className={styles.siteHeaderLogo}>
             <Image
-              src="/getonblockchain-favicon.png"
+              src="/getonblockchain-favicon-resized.png"
               alt="Get On Blockchain logo"
               width={36}
               height={36}
               className={styles.siteHeaderLogoIcon}
+              priority
             />
 
             <span className={styles.siteHeaderLogoText}>
@@ -57,8 +58,17 @@ export function SiteHeader() {
 
         {/* RIGHT CTA */}
         <div className={styles.siteHeaderCta}>
-          <Link href="/login" className={styles.siteHeaderLoginBtn}>
-            Login
+          <Link
+            href="/member/login"
+            className={styles.siteHeaderLoginBtn}
+          >
+            Member Login
+          </Link>
+          <Link
+            href="/dashboard/login"
+            className={styles.siteHeaderBusinessBtn}
+          >
+            For Businesses →
           </Link>
         </div>
       </div>

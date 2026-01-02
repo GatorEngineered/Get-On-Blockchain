@@ -1,0 +1,415 @@
+/* src/app/industries/industry.module.css */
+
+.industryPage {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f9fbff 0%, #ffffff 100%);
+}
+
+/* Hero Section */
+.hero {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1a3555 100%);
+  color: white;
+  padding: 8rem 2rem 6rem;
+  text-align: center;
+}
+
+.heroInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.heroTitle {
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 1.5rem;
+}
+
+.highlight {
+  color: var(--color-accent);
+  display: block;
+  font-weight: 700;
+}
+
+.heroSubtitle {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  opacity: 0.9;  
+  margin-bottom: 2.5rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.heroCta {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.ctaPrimary {
+  background: var(--color-accent);
+  color: #1a3555;
+  padding: 0.875rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(36, 75, 122, 0.08);
+}
+
+.ctaPrimary:hover {
+  background: #70c9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(36, 75, 122, 0.12);
+}
+
+.ctaSecondary {
+  background: transparent;
+  color: white;
+  padding: 0.875rem 2rem;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.ctaSecondary:hover {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.heroCaption {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Benefits Section */
+.benefits {
+  padding: 6rem 2rem;
+}
+
+.benefitsInner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.benefitCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(36, 75, 122, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  transition: all 0.3s ease;
+}
+
+.benefitCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(36, 75, 122, 0.15);
+}
+
+.benefitIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.benefitTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+}
+
+.benefitDescription {
+  color: #475569;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+/* Use Cases Section */
+.useCases {
+  padding: 6rem 2rem;
+  background: #f8fafc;
+}
+
+.useCasesInner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.useCasesList {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.useCaseCard {
+  background: white;
+  padding: 1.75rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--color-accent);
+  box-shadow: 0 2px 8px rgba(36, 75, 122, 0.06);
+}
+
+.useCaseTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.useCaseExample {
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* How It Works */
+.howItWorks {
+  padding: 6rem 2rem;
+}
+
+.howItWorksInner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 3rem;
+  margin-top: 3rem;
+}
+
+.step {
+  text-align: center;
+}
+
+.stepNumber {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 2px 8px rgba(36, 75, 122, 0.12);
+}
+
+.step h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+}
+
+.step p {
+  color: #475569;
+  line-height: 1.7;
+}
+
+/* ROI Section */
+.roiSection {
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, #e8f4ff 0%, #f0f9ff 100%);
+}
+
+.roiInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.roiCard {
+  background: white;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(36, 75, 122, 0.12);
+  margin-top: 2rem;
+}
+
+.roiStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.roiStat {
+  display: flex;
+  flex-direction: column;
+}
+
+.roiNumber {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.roiLabel {
+  font-size: 1rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.roiCalculation {
+  padding: 2rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border-left: 4px solid var(--color-accent);
+}
+
+.roiCalculation p {
+  margin-bottom: 0.75rem;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.roiHighlight {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-top: 1.5rem !important;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+/* Calculator CTA */
+.calculatorCta {
+  text-align: center;
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+.calculatorButton {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(36, 75, 122, 0.12);
+}
+
+.calculatorButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(36, 75, 122, 0.15);
+}
+
+.calculatorCaption {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Final CTA */
+.finalCta {
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, #1a3555 100%);
+  color: white;
+  text-align: center;
+}
+
+.finalCtaInner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.finalCta h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.finalCta p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+
+.ctaCaption {
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.ctaCaption a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.ctaCaption a:hover {
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.05rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.75rem;
+  }
+
+  .benefitsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .roiStats {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .roiCard {
+    padding: 2rem 1.5rem;
+  }
+
+  .heroCta {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary {
+    width: 100%;
+    text-align: center;
+  }
+}

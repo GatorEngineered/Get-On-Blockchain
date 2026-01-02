@@ -839,7 +839,7 @@ main {
 
 .site-footer {
   border-top: 1px solid #e5e7eb;
-  padding: 2.25rem 1.5rem 2.5rem;
+  padding: 4rem 1.5rem 2rem;
   background: #ffffff;
   color: #6b7280;
   font-size: 0.9rem;
@@ -848,11 +848,36 @@ main {
 .site-footer-inner {
   max-width: 1120px;
   margin: 0 auto;
+}
+
+.site-footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.site-footer-column {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+}
+
+.site-footer-column-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.site-footer-link-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .site-footer-left {
@@ -868,21 +893,16 @@ main {
 }
 
 .site-footer-brand-name {
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--color-primary);
+  margin-bottom: 0.25rem;
 }
 
 .site-footer-brand-sub {
-  font-size: 0.8rem;
-  color: #9ca3af;
-}
-
-.site-footer-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.1rem;
-  align-items: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
 }
 
 .site-footer-link {
@@ -891,6 +911,7 @@ main {
   color: #4b5563;
   position: relative;
   padding-bottom: 1px;
+  transition: color 0.18s ease;
 }
 
 .site-footer-link::after {
@@ -912,16 +933,34 @@ main {
   width: 100%;
 }
 
+.site-footer-bottom {
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
 .site-footer-copy {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #9ca3af;
+  margin: 0;
 }
 
 /* Stack on small screens */
-@media (max-width: 700px) {
-  .site-footer-inner {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 900px) {
+  .site-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-footer {
+    padding: 3rem 1.5rem 1.5rem;
+  }
+
+  .site-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
   }
 }
 
@@ -1572,5 +1611,229 @@ main {
 
   .modal-overlay {
     padding: 0.5rem;
+  }
+}
+
+/* ========================================
+   RESULTS SECTION (Homepage)
+   ======================================== */
+
+.results-section {
+  background: var(--color-bg);
+}
+
+.results-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.results-stat-card {
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e0f2ff 100%);
+  border-radius: 1.2rem;
+  border: 2px solid rgba(139, 188, 255, 0.3);
+}
+
+.results-stat-number {
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+
+.results-stat-label {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.results-stat-description {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+.results-testimonials {
+  margin-bottom: 3rem;
+}
+
+.results-testimonials-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.results-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.results-testimonial-card {
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 1.2rem;
+  border-left: 4px solid var(--color-accent);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.results-testimonial-quote {
+  font-size: 1.05rem;
+  color: #1e293b;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.results-testimonial-attribution {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.results-testimonial-business {
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.25rem;
+}
+
+.results-testimonial-location {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.results-cta {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: radial-gradient(circle at top left, #e5f0ff, #f6f8fa);
+  border-radius: 1.5rem;
+  margin-top: 2rem;
+}
+
+.results-cta h3 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+}
+
+.results-cta p {
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 2rem;
+}
+
+/* ========================================
+   INDUSTRIES SECTION (Homepage)
+   ======================================== */
+
+.industries-section {
+  background: var(--color-bg-alt);
+}
+
+.industries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.industries-card {
+  background: #ffffff;
+  padding: 2.5rem 2rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.industries-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15);
+  border-color: var(--color-accent);
+}
+
+.industries-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.industries-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+}
+
+.industries-description {
+  font-size: 0.98rem;
+  color: #4b5563;
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.industries-benefits {
+  font-size: 0.9rem;
+  color: #16a34a;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  background: #f0fdf4;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.industries-link {
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.industries-card:hover .industries-link {
+  color: var(--color-accent);
+  transform: translateX(4px);
+}
+
+.industries-cta {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: radial-gradient(circle at top left, #e5f0ff, #f6f8fa);
+  border-radius: 1.5rem;
+}
+
+.industries-cta-text {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive: Results & Industries */
+@media (max-width: 768px) {
+  .results-stats-grid,
+  .results-testimonials-grid,
+  .industries-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .results-stat-number {
+    font-size: 2.5rem;
+  }
+
+  .results-cta,
+  .industries-cta {
+    padding: 2rem 1.5rem;
   }
 }

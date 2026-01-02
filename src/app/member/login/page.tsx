@@ -12,12 +12,13 @@ export default function MemberLoginPage() {
   const { address, isConnected } = useAccount();
 
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
-  const [loginMethod, setLoginMethod] = useState<"email" | "wallet">("email");
+  const [loginMethod, setLoginMethod] = useState<"email" | "password" | "wallet">("password");
 
   // Get return URL from query params (where to redirect after login)
   const returnTo = searchParams.get("returnTo") || "/member/dashboard";
@@ -29,6 +30,49 @@ export default function MemberLoginPage() {
       handleWalletLogin();
     }
   }, [isConnected, address, loginMethod]);
+
+  async function handlePasswordLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const res = await fetch("/api/member/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          merchantSlug,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
+      }
+
+      // Store session token
+      localStorage.setItem("member_token", data.token);
+
+      setMessage({
+        type: "success",
+        text: "Login successful! Redirecting...",
+      });
+
+      // Redirect to dashboard or return URL
+      setTimeout(() => {
+        router.push(returnTo);
+      }, 500);
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text: err.message || "Login failed. Please try again.",
+      });
+      setLoading(false);
+    }
+  }
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -118,10 +162,16 @@ export default function MemberLoginPage() {
           {/* Login Method Tabs */}
           <div className="login-tabs">
             <button
+              className={`login-tab ${loginMethod === "password" ? "active" : ""}`}
+              onClick={() => setLoginMethod("password")}
+            >
+              Password
+            </button>
+            <button
               className={`login-tab ${loginMethod === "email" ? "active" : ""}`}
               onClick={() => setLoginMethod("email")}
             >
-              Email
+              Magic Link
             </button>
             <button
               className={`login-tab ${loginMethod === "wallet" ? "active" : ""}`}
@@ -135,6 +185,59 @@ export default function MemberLoginPage() {
             <div className={`login-message login-message-${message.type}`}>
               {message.text}
             </div>
+          )}
+
+          {/* Password Login */}
+          {loginMethod === "password" && (
+            <form onSubmit={handlePasswordLogin} className="login-form">
+              <div className="login-field">
+                <label htmlFor="email-password">Email Address</label>
+                <input
+                  id="email-password"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="login-field">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  disabled={loading}
+                />
+                <p className="login-hint">
+                  <a href="/member/forgot-password" className="forgot-link">
+                    Forgot password?
+                  </a>
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="login-button"
+                disabled={loading || !email || !password}
+              >
+                {loading ? "Logging in..." : "Log In"}
+              </button>
+
+              <div className="register-prompt">
+                <p>
+                  Don't have an account?{" "}
+                  <a href={`/member/register${merchantSlug ? `?merchant=${merchantSlug}` : ""}`}>
+                    Sign up
+                  </a>
+                </p>
+              </div>
+            </form>
           )}
 
           {/* Email Login */}
@@ -400,6 +503,39 @@ export default function MemberLoginPage() {
 
         .login-help strong {
           color: #374151;
+        }
+
+        .forgot-link {
+          color: #244b7a;
+          text-decoration: none;
+          font-weight: 500;
+        }
+
+        .forgot-link:hover {
+          text-decoration: underline;
+        }
+
+        .register-prompt {
+          text-align: center;
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .register-prompt p {
+          color: #6b7280;
+          font-size: 0.9rem;
+          margin: 0;
+        }
+
+        .register-prompt a {
+          color: #244b7a;
+          text-decoration: none;
+          font-weight: 600;
+        }
+
+        .register-prompt a:hover {
+          text-decoration: underline;
         }
 
         @media (max-width: 640px) {

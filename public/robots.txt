@@ -1,0 +1,22 @@
+# Get On Blockchain - robots.txt
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Disallow private/auth pages
+Disallow: /dashboard/
+Disallow: /member/dashboard/
+Disallow: /staff/
+Disallow: /api/
+Disallow: /login
+Disallow: /m/*/member/
+
+# Allow important marketing pages
+Allow: /pricing
+Allow: /about
+Allow: /support
+Allow: /faq
+
+# Sitemap location
+Sitemap: https://getonblockchain.com/sitemap.xml

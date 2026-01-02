@@ -13,6 +13,7 @@ type DashboardLayoutProps = {
 const navLinks = [
   { href: "/dashboard", label: "Overview" },
   { href: "/dashboard/members", label: "Members" },
+  { href: "/dashboard/qr-codes", label: "QR Codes" },
   { href: "/dashboard/settings", label: "Settings" },
 ];
 
@@ -27,7 +28,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [merchant, setMerchant] = useState<CurrentMerchant | null>(null);
 
- useEffect(() => {
+  // Skip layout for main dashboard, login, auth, and settings pages (they have their own layouts)
+  const isDashboardHome = pathname === "/dashboard" || pathname === "/dashboard/";
+  const isLoginPage = pathname === "/dashboard/login";
+  const isRegisterPage = pathname === "/dashboard/register";
+  const isSettingsPage = pathname?.startsWith("/dashboard/settings");
+  const skipLayout = isDashboardHome || isLoginPage || isRegisterPage || isSettingsPage;
+
+  useEffect(() => {
+    if (skipLayout) return; // Don't load merchant data on these pages
+
     const loadMerchant = async () => {
       try {
         const res = await fetch("/api/merchant/me");
@@ -40,7 +50,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     };
 
     loadMerchant();
-  }, []);
+  }, [skipLayout]);
+
+  // Render pages without dashboard chrome (they have their own full layouts)
+  if (skipLayout) {
+    return <>{children}</>;
+  }
 
   const merchantName = merchant?.name ?? "Your business";
   const merchantSubtitle = merchant?.plan
@@ -50,7 +65,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="dashboard-card">
       <div className="dashboard-shell">
-        
+
         {/* LEFT SIDEBAR */}
         <aside className="dashboard-sidebar">
           <div className="dashboard-brand">
@@ -93,7 +108,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* RIGHT MAIN CONTENT */}
         <main className="dashboard-main">
           <header className="dashboard-header">
-            <h1 className="dashboard-page-title">Merchant dashboard</h1>
+            <h1 className="dashboard-page-title">Merchant Dashboard</h1>
           </header>
 
           <section className="dashboard-content">

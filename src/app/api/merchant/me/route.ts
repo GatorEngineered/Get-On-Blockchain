@@ -14,13 +14,58 @@ export async function GET() {
         );
     }
 
-    const merchant = await prisma.merchant.findUnique({
-        where: { id: session.value },
+    // Parse session data from JSON
+    let sessionData;
+    try {
+        sessionData = JSON.parse(session.value);
+    } catch (e) {
+        return NextResponse.json(
+            { error: "Invalid session" },
+            { status: 401 }
+        );
+    }
+
+    const merchantId = sessionData.merchantId;
+    if (!merchantId) {
+        return NextResponse.json(
+            { error: "Invalid session" },
+            { status: 401 }
+        );
+    }
+
+    let merchant = await prisma.merchant.findUnique({
+        where: { id: merchantId },
         select: {
             id: true,
             name: true,
             slug: true,
             plan: true,
+            loginEmail: true,
+            // Payout settings
+            payoutEnabled: true,
+            payoutWalletAddress: true,
+            payoutMilestonePoints: true,
+            payoutAmountUSD: true,
+            payoutNetwork: true,
+            usdcBalance: true,
+            lastBalanceCheck: true,
+            lowBalanceThreshold: true,
+            // Loyalty program settings
+            welcomePoints: true,
+            earnPerVisit: true,
+            vipThreshold: true,
+            primaryColor: true,
+            accentColor: true,
+            // Include business for location data
+            businesses: {
+                select: {
+                    id: true,
+                    name: true,
+                    locationNickname: true,
+                    address: true,
+                },
+                take: 1,
+            },
         },
     });
 
@@ -29,6 +74,55 @@ export async function GET() {
             { error: "Merchant not found" },
             { status: 404 }
         );
+    }
+
+    // Auto-create business if it doesn't exist
+    if (!merchant.businesses || merchant.businesses.length === 0) {
+        console.log(`[Merchant ME] Creating default business for merchant ${merchant.id}`);
+        await prisma.business.create({
+            data: {
+                slug: `${merchant.slug}-main`,
+                name: merchant.name,
+                locationNickname: 'Main Location',
+                address: 'Not set',
+                contactEmail: merchant.loginEmail,
+                merchantId: merchant.id,
+            },
+        });
+
+        // Refetch merchant with new business
+        merchant = await prisma.merchant.findUnique({
+            where: { id: merchantId },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                plan: true,
+                loginEmail: true,
+                payoutEnabled: true,
+                payoutWalletAddress: true,
+                payoutMilestonePoints: true,
+                payoutAmountUSD: true,
+                payoutNetwork: true,
+                usdcBalance: true,
+                lastBalanceCheck: true,
+                lowBalanceThreshold: true,
+                welcomePoints: true,
+                earnPerVisit: true,
+                vipThreshold: true,
+                primaryColor: true,
+                accentColor: true,
+                businesses: {
+                    select: {
+                        id: true,
+                        name: true,
+                        locationNickname: true,
+                        address: true,
+                    },
+                    take: 1,
+                },
+            },
+        });
     }
 
     return NextResponse.json(merchant);
