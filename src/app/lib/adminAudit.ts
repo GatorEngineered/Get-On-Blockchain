@@ -5,6 +5,9 @@ import { headers } from "next/headers";
 export type AuditAction =
   | "LOGIN"
   | "LOGOUT"
+  | "CREATE_ADMIN"
+  | "EDIT_ADMIN"
+  | "DELETE_ADMIN"
   | "CREATE_MERCHANT"
   | "EDIT_MERCHANT"
   | "DELETE_MERCHANT"

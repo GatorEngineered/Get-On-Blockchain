@@ -69,11 +69,19 @@ export async function PUT(req: NextRequest, { params }: Props) {
 
     await logAdminAction({
       adminId: currentAdmin.id,
-      action: "UPDATE",
+      action: "EDIT_ADMIN",
       entityType: "Admin",
       entityId: updatedAdmin.id,
-      details:
-        "Updated admin user " + updatedAdmin.email + ": " + changes.join(", "),
+      changes: {
+        before: {
+          role: existingAdmin.role,
+          isActive: existingAdmin.isActive,
+        },
+        after: {
+          role: role ?? existingAdmin.role,
+          isActive: isActive ?? existingAdmin.isActive,
+        },
+      },
     });
 
     return NextResponse.json({ admin: updatedAdmin });
