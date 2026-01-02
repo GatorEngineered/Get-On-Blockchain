@@ -9,15 +9,18 @@ export async function POST(
     const { id } = await params; // MerchantMember.id
 
     const body = await request.json();
-    const {
-      pointsDelta,   // number (positive or negative)
-      reason,        // optional string
-      businessId,    // string (location where adjustment happened)
-      memberId       // string (Member.id)
-    } = body;
+    const { pointsDelta, reason, businessId, memberId } = body as {
+      pointsDelta: number;
+      reason?: string;
+      businessId?: string;
+      memberId?: string;
+    };
 
     if (typeof pointsDelta !== "number") {
-      return NextResponse.json({ error: "pointsDelta must be a number" }, { status: 400 });
+      return NextResponse.json(
+        { error: "pointsDelta must be a number" },
+        { status: 400 }
+      );
     }
 
     const updated = await prisma.merchantMember.update({
