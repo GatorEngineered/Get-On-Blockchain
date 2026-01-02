@@ -7,18 +7,18 @@ import { adminUploadLimiter, checkRateLimit } from "@/app/lib/ratelimit";
 export async function POST(req: NextRequest) {
   try {
     // Verify admin authentication
-    const authResult = await getCurrentAdmin(req);
-    if (!authResult.isValid || !authResult.admin) {
+    const admin = await getCurrentAdmin();
+    if (!admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Only SUPER_ADMIN, ADMIN, and EDITOR can upload images
-    if (!["SUPER_ADMIN", "ADMIN", "EDITOR"].includes(authResult.admin.role)) {
+    if (!["SUPER_ADMIN", "ADMIN", "EDITOR"].includes(admin.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Check rate limit (per user ID)
-    const rateLimitResult = await checkRateLimit(authResult.admin.id, adminUploadLimiter);
+    const rateLimitResult = await checkRateLimit(admin.id, adminUploadLimiter);
     if (!rateLimitResult.success) {
       return NextResponse.json(
         {
