@@ -1,225 +1,107 @@
 // src/app/api/member/me/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
-
 import { PrismaClient } from '@prisma/client';
-
 import { cookies } from 'next/headers';
-
- 
 
 const prisma = new PrismaClient();
 
- 
-
 /**
-
  * GET /api/member/me
-
  *
-
  * Get current logged-in member's data including points and payout eligibility
-
+ * Points are aggregated at merchant level via MerchantMember
  */
-
 export async function GET(req: NextRequest) {
-
   try {
-
     // Get session cookie
-
     const cookieStore = await cookies();
-
     const sessionCookie = cookieStore.get('gob_member_session');
 
- 
-
     if (!sessionCookie) {
-
       return NextResponse.json(
-
         { error: 'Not authenticated' },
-
         { status: 401 }
-
       );
-
     }
-
- 
 
     // Parse session data
-
     let session;
-
     try {
-
       session = JSON.parse(sessionCookie.value);
-
     } catch {
-
       return NextResponse.json(
-
         { error: 'Invalid session' },
-
         { status: 401 }
-
       );
-
     }
 
- 
-
-    // Get member with all business memberships
-
+    // Get member with merchant memberships (merchant-level points aggregation)
     const member = await prisma.member.findUnique({
-
       where: { id: session.memberId },
-
       include: {
-
-        businesses: {
-
+        merchantMembers: {
           include: {
-
-            business: {
-
+            merchant: {
               select: {
-
                 id: true,
-
                 name: true,
-
                 slug: true,
-
+                payoutEnabled: true,
+                payoutMilestonePoints: true,
+                payoutAmountUSD: true,
+                payoutNetwork: true,
               },
-
             },
-
           },
-
         },
-
       },
-
     });
-
- 
 
     if (!member) {
-
       return NextResponse.json(
-
         { error: 'Member not found' },
-
         { status: 404 }
-
       );
-
     }
 
- 
+    // Map merchant memberships to payout info (merchant-level, not per-business)
+    const merchantsWithPayoutInfo = member.merchantMembers.map((mm) => {
+      const milestonePoints = mm.merchant.payoutMilestonePoints || 100;
+      const payoutAmount = mm.merchant.payoutAmountUSD || 5.0;
+      const payoutEnabled = mm.merchant.payoutEnabled || false;
 
-    // Get merchant/payout settings for each business
-
-    const businessesWithPayoutInfo = await Promise.all(
-
-      member.businesses.map(async (bm) => {
-
-        // Find merchant for this business
-
-        const merchant = await prisma.merchant.findUnique({
-
-          where: { slug: bm.business.slug },
-
-          select: {
-
-            payoutEnabled: true,
-
-            payoutMilestonePoints: true,
-
-            payoutAmountUSD: true,
-
-            payoutNetwork: true,
-
-          },
-
-        });
-
- 
-
-        const milestonePoints = merchant?.payoutMilestonePoints || 100;
-
-        const payoutAmount = merchant?.payoutAmountUSD || 5.0;
-
-        const payoutEnabled = merchant?.payoutEnabled || false;
-
- 
-
-        return {
-
-          businessId: bm.business.id,
-
-          businessName: bm.business.name,
-
-          points: bm.points,
-
-          walletAddress: bm.walletAddress,
-
-          milestonePoints,
-
-          payoutAmount,
-
-          payoutEligible:
-
-            payoutEnabled &&
-
-            bm.walletAddress !== null &&
-
-            bm.points >= milestonePoints,
-
-        };
-
-      })
-
-    );
-
- 
-
-    return NextResponse.json({
-
-      id: member.id,
-
-      email: member.email,
-
-      tier: member.tier,
-
-      businesses: businessesWithPayoutInfo,
-
+      return {
+        merchantId: mm.merchant.id,
+        merchantName: mm.merchant.name,
+        merchantSlug: mm.merchant.slug,
+        points: mm.points,
+        tier: mm.tier,
+        walletAddress: mm.walletAddress,
+        milestonePoints,
+        payoutAmount,
+        payoutEligible:
+          payoutEnabled &&
+          mm.walletAddress !== null &&
+          mm.points >= milestonePoints,
+      };
     });
 
- 
+    return NextResponse.json({
+      id: member.id,
+      email: member.email,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      merchants: merchantsWithPayoutInfo,
+    });
 
   } catch (error: any) {
-
     console.error('[API] Error getting member data:', error);
-
     return NextResponse.json(
-
       {
-
         error: 'Internal server error',
-
         details: error.message,
-
       },
-
       { status: 500 }
-
     );
-
   }
-
 }
-
- 
