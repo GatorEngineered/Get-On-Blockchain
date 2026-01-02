@@ -29,18 +29,21 @@ export async function GET(
       );
     }
 
-    // Get all members associated with this merchant's businesses
+    // Get all members associated with this merchant
     const members = await prisma.member.findMany({
       where: {
-        businesses: {
+        merchantMembers: {
           some: {
-            business: {
-              merchantId: merchantId,
-            },
+            merchantId: merchantId,
           },
         },
       },
       include: {
+        merchantMembers: {
+          where: {
+            merchantId: merchantId,
+          },
+        },
         businesses: {
           where: {
             business: {
@@ -106,8 +109,10 @@ export async function GET(
           _count: { id: true },
         });
 
-        // Calculate current points across all businesses for this merchant
-        const currentPoints = member.businesses.reduce((sum, bm) => sum + bm.points, 0);
+        // Get points from MerchantMember (merchant-level aggregation)
+        const merchantMember = member.merchantMembers[0]; // Should only be one per merchant
+        const currentPoints = merchantMember?.points || 0;
+        const tier = merchantMember?.tier || 'BASE';
 
         return {
           id: member.id,
@@ -116,19 +121,17 @@ export async function GET(
           email: member.email,
           phone: member.phone,
           address: member.address,
-          walletAddress: member.walletAddress,
-          tier: member.tier,
+          walletAddress: merchantMember?.walletAddress || member.walletAddress,
+          tier: tier,
           createdAt: member.createdAt,
           updatedAt: member.updatedAt,
           businesses: member.businesses.map((bm) => ({
             businessId: bm.businessId,
             businessName: bm.business.name,
             locationNickname: bm.business.locationNickname,
-            points: bm.points,
-            tier: bm.tier,
-            walletAddress: bm.walletAddress,
-            walletNetwork: bm.walletNetwork,
-            isCustodial: bm.isCustodial,
+            visitCount: bm.visitCount,
+            lastVisitAt: bm.lastVisitAt,
+            firstVisitAt: bm.firstVisitAt,
           })),
           stats: {
             currentPoints,
