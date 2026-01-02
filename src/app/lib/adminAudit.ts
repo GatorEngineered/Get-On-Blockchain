@@ -37,8 +37,8 @@ interface LogAdminActionParams {
   entityType: AuditEntityType;
   entityId?: string;
   changes?: {
-    before?: Record<string, unknown>;
-    after?: Record<string, unknown>;
+    before?: Record<string, any>;
+    after?: Record<string, any>;
   };
 }
 
