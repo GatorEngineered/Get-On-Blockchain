@@ -73,12 +73,13 @@ export async function POST(req: NextRequest) {
     const subscriptionStatus = "TRIAL";
 
     // Create merchant and first business location
+    // Password will be set later via setup-password flow
     const merchant = await prisma.merchant.create({
       data: {
         name,
         slug,
         loginEmail,
-        passwordHash: null, // Password will be set later via setup-password flow
+        // passwordHash omitted - will be set later via setup-password flow
         // subscriptionStatus will be updated by PayPal webhook
         subscriptionStatus,
         paymentVerified: false,
