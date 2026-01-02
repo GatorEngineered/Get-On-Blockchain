@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
-import { getCurrentAdmin } from "@/lib/admin-auth";
+import { getCurrentAdmin } from "@/app/lib/adminAuth";
 import { adminUploadLimiter, checkRateLimit } from "@/app/lib/ratelimit";
 
 export async function POST(req: NextRequest) {

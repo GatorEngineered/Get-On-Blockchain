@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export async function PUT(req: NextRequest) {
   try {
@@ -53,7 +53,7 @@ export async function PUT(req: NextRequest) {
     // Get merchant with password
     const merchant = await prisma.merchant.findUnique({
       where: { id: merchantId },
-      select: { id: true, password: true },
+      select: { id: true, passwordHash: true },
     });
 
     if (!merchant) {
@@ -63,8 +63,15 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    if (!merchant.passwordHash) {
+      return NextResponse.json(
+        { error: "Password not set. Please complete account setup." },
+        { status: 400 }
+      );
+    }
+
     // Verify current password
-    const isValidPassword = await bcrypt.compare(currentPassword, merchant.password);
+    const isValidPassword = await bcrypt.compare(currentPassword, merchant.passwordHash);
     if (!isValidPassword) {
       return NextResponse.json(
         { error: "Current password is incorrect" },
@@ -78,7 +85,7 @@ export async function PUT(req: NextRequest) {
     // Update password
     await prisma.merchant.update({
       where: { id: merchantId },
-      data: { password: hashedPassword },
+      data: { passwordHash: hashedPassword },
     });
 
     return NextResponse.json({
