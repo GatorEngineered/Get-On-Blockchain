@@ -1,35 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma"; // adjust path if your prisma helper is elsewhere
+import { prisma } from "@/app/lib/prisma";
 
 const DEFAULT_POINTS_PER_VISIT = 10;
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const businessMemberId = body.businessMemberId as string | undefined;
+    const merchantMemberId = body.merchantMemberId as string | undefined;
+    const businessId = body.businessId as string | undefined;
     const amountFromBody = body.amount as number | undefined;
 
-    if (!businessMemberId) {
+    if (!merchantMemberId) {
       return NextResponse.json(
-        { error: "businessMemberId is required" },
+        { error: "merchantMemberId is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!businessId) {
+      return NextResponse.json(
+        { error: "businessId is required" },
         { status: 400 }
       );
     }
 
     const amount = amountFromBody ?? DEFAULT_POINTS_PER_VISIT;
 
-    // Load the BusinessMember with related entities
-    const bm = await prisma.businessMember.findUnique({
-      where: { id: businessMemberId },
+    // Load the MerchantMember with related entities (merchant-level points)
+    const merchantMember = await prisma.merchantMember.findUnique({
+      where: { id: merchantMemberId },
       include: {
-        business: true,
+        merchant: true,
         member: true,
       },
     });
 
-    if (!bm || !bm.business || !bm.member) {
+    if (!merchantMember || !merchantMember.merchant || !merchantMember.member) {
       return NextResponse.json(
-        { error: "BusinessMember / Business / Member not found" },
+        { error: "MerchantMember / Merchant / Member not found" },
         { status: 404 }
       );
     }
@@ -37,29 +45,52 @@ export async function POST(req: NextRequest) {
     // 1. Create reward transaction
     const tx = await prisma.rewardTransaction.create({
       data: {
-        businessMemberId: bm.id,
-        businessId: bm.businessId,
-        memberId: bm.memberId,
+        merchantMemberId: merchantMember.id,
+        businessId,
+        memberId: merchantMember.memberId,
         type: "EARN",
         amount,
-        currency: "POINTS",
         reason: "visit",
-        walletNetwork: bm.walletNetwork ?? null,
+        status: "SUCCESS",
       },
     });
 
-    // 2. Update the member's points for this business
-    const updatedBm = await prisma.businessMember.update({
-      where: { id: bm.id },
+    // 2. Update the member's points at merchant level (aggregated across all locations)
+    const updatedMerchantMember = await prisma.merchantMember.update({
+      where: { id: merchantMember.id },
       data: {
-        points: bm.points + amount,
+        points: merchantMember.points + amount,
       },
     });
+
+    // Check for tier upgrade
+    let newTier = updatedMerchantMember.tier;
+    if (
+      updatedMerchantMember.points >= merchantMember.merchant.superThreshold &&
+      newTier !== "SUPER"
+    ) {
+      newTier = "SUPER";
+    } else if (
+      updatedMerchantMember.points >= merchantMember.merchant.vipThreshold &&
+      updatedMerchantMember.points < merchantMember.merchant.superThreshold &&
+      newTier !== "VIP"
+    ) {
+      newTier = "VIP";
+    }
+
+    // Update tier if changed
+    if (newTier !== updatedMerchantMember.tier) {
+      await prisma.merchantMember.update({
+        where: { id: merchantMember.id },
+        data: { tier: newTier },
+      });
+    }
 
     return NextResponse.json({
       success: true,
       transactionId: tx.id,
-      newBalance: updatedBm.points,
+      newBalance: updatedMerchantMember.points,
+      tier: newTier,
       amount,
     });
   } catch (error) {
