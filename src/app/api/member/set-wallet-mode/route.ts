@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma"; // adjust if your prisma helper is in a different path
+import { prisma } from "@/app/lib/prisma";
 
 type Body =
     | {
         mode: "email";
-        businessMemberId: string;
+        merchantMemberId: string;
     }
     | {
         mode: "wallet";
-        businessMemberId: string;
+        merchantMemberId: string;
         walletAddress: string;
         walletNetwork: string; // "ethereum", "xrpl", etc.
     };
@@ -17,28 +17,29 @@ export async function POST(req: NextRequest) {
     try {
         const body = (await req.json()) as Body;
 
-        if (!body.businessMemberId || !body.mode) {
+        if (!body.merchantMemberId || !body.mode) {
             return NextResponse.json(
-                { error: "BusinessMemberId and mode are required" },
+                { error: "MerchantMemberId and mode are required" },
                 { status: 400 }
             );
         }
 
-        const existing = await prisma.businessMember.findUnique({
-            where: { id: body.businessMemberId },
+        // Wallet settings are stored at merchant level via MerchantMember
+        const existing = await prisma.merchantMember.findUnique({
+            where: { id: body.merchantMemberId },
         });
 
         if (!existing) {
             return NextResponse.json(
-                { error: "BusinessMember not found" },
+                { error: "MerchantMember not found" },
                 { status: 404 }
             );
         }
 
         if (body.mode === "email") {
             // Email-based / custodial mode: no external wallet required.
-            const updated = await prisma.businessMember.update({
-                where: { id: body.businessMemberId },
+            const updated = await prisma.merchantMember.update({
+                where: { id: body.merchantMemberId },
                 data: {
                     isCustodial: true,
                     walletAddress: null,
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 success: true,
                 mode: "email",
-                businessMemberId: updated.id,
+                merchantMemberId: updated.id,
             });
         }
 
@@ -64,8 +65,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const updated = await prisma.businessMember.update({
-            where: { id: body.businessMemberId },
+        const updated = await prisma.merchantMember.update({
+            where: { id: body.merchantMemberId },
             data: {
                 isCustodial: false,
                 walletAddress: body.walletAddress,
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             success: true,
             mode: "wallet",
-            businessMemberId: updated.id,
+            merchantMemberId: updated.id,
         });
     } catch (error) {
         console.error("Error in set-wallet-mode:", error);
