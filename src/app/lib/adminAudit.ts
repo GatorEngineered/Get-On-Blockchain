@@ -63,7 +63,7 @@ export async function logAdminAction(params: LogAdminActionParams): Promise<void
         action,
         entityType,
         entityId,
-        changes: changes || null,
+        changes: changes || undefined,
         ipAddress,
       },
     });
