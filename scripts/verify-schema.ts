@@ -30,7 +30,6 @@ async function verifySchema() {
   try {
     const businessMember = await prisma.businessMember.findFirst();
 
-    // @ts-expect-error - Checking if points field exists (it shouldn't)
     if (businessMember && 'points' in businessMember) {
       console.log(`  ❌ FAIL - BusinessMember still has 'points' field!`);
       allPassed = false;
