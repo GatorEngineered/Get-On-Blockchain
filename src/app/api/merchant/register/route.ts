@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         name,
         slug,
         loginEmail,
-        // passwordHash omitted - will be set later via setup-password flow
+        passwordHash: "", // Empty placeholder - will be set later via setup-password flow
         // subscriptionStatus will be updated by PayPal webhook
         subscriptionStatus,
         paymentVerified: false,
