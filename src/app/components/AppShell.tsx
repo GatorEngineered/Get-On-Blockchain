@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
@@ -17,6 +18,13 @@ export function SiteHeader() {
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
+
+  // Force navigation to stay on current domain
+  const handleNavigation = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    e.preventDefault();
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    window.location.href = `${currentOrigin}${path}`;
+  };
 
   return (
     <header className={styles.siteHeader}>
@@ -61,12 +69,14 @@ export function SiteHeader() {
           <Link
             href="/member/login"
             className={styles.siteHeaderLoginBtn}
+            onClick={(e) => handleNavigation(e, '/member/login')}
           >
             Member Login
           </Link>
           <Link
             href="/dashboard/login"
             className={styles.siteHeaderBusinessBtn}
+            onClick={(e) => handleNavigation(e, '/dashboard/login')}
           >
             For Businesses →
           </Link>
