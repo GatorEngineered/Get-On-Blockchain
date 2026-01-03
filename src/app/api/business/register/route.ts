@@ -1,11 +1,9 @@
 // src/app/api/business/register/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/app/lib/prisma';
 import { hashPassword, validatePasswordStrength } from '@/app/lib/passwordUtils';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
 
 /**
  * POST /api/business/register
@@ -112,6 +110,7 @@ export async function POST(req: NextRequest) {
         welcomePoints: 10,
         earnPerVisit: 10,
         vipThreshold: 100,
+        superThreshold: 200,
         // Create the primary business location
         businesses: {
           create: {
