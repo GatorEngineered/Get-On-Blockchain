@@ -55,9 +55,15 @@ export function middleware(request: NextRequest) {
         // For localhost, just change the hostname
         rewardsUrl.host = `rewards.${hostname}`;
       } else {
-        // For production, replace subdomain
-        const domain = hostParts.slice(1).join('.');
-        rewardsUrl.host = `rewards.${domain}`;
+        // For production, add subdomain to existing hostname
+        // If hostname is 'www.getonblockchain.com', replace 'www' with 'rewards'
+        // If hostname is 'getonblockchain.com', prepend 'rewards.'
+        if (subdomain === 'www') {
+          const domain = hostParts.slice(1).join('.');
+          rewardsUrl.host = `rewards.${domain}`;
+        } else {
+          rewardsUrl.host = `rewards.${hostname}`;
+        }
       }
 
       console.log(`[Middleware] Redirecting member route to: ${rewardsUrl.href}`);
@@ -71,8 +77,13 @@ export function middleware(request: NextRequest) {
       if (isLocalhost) {
         dashboardUrl.host = `dashboard.${hostname}`;
       } else {
-        const domain = hostParts.slice(1).join('.');
-        dashboardUrl.host = `dashboard.${domain}`;
+        // For production, add subdomain to existing hostname
+        if (subdomain === 'www') {
+          const domain = hostParts.slice(1).join('.');
+          dashboardUrl.host = `dashboard.${domain}`;
+        } else {
+          dashboardUrl.host = `dashboard.${hostname}`;
+        }
       }
 
       console.log(`[Middleware] Redirecting dashboard route to: ${dashboardUrl.href}`);
