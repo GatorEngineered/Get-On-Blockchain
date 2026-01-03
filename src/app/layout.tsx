@@ -24,7 +24,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://getonblockchain.com"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_VERCEL_URL
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      : process.env.NEXT_PUBLIC_BASE_URL || "https://getonblockchain.com"
+  ),
   title: {
     default: "Loyalty Program Software for Local Businesses | Get On Blockchain",
     template: "%s | Get On Blockchain",
