@@ -12,11 +12,15 @@ export function middleware(request: NextRequest) {
 
   // For localhost:3000 or development environments without subdomain
   const isLocalhost = hostname.includes('localhost');
+
+  // Detect Vercel deployment (*.vercel.app) - disable subdomain routing
+  const isVercelDeployment = hostname.includes('.vercel.app');
+
   const subdomain = isLocalhost
     ? (hostParts.length > 1 ? hostParts[0] : null)
     : (hostParts.length >= 3 ? hostParts[0] : null);
 
-  console.log(`[Middleware] hostname: ${hostname}, subdomain: ${subdomain}, pathname: ${pathname}`);
+  console.log(`[Middleware] hostname: ${hostname}, subdomain: ${subdomain}, pathname: ${pathname}, isVercel: ${isVercelDeployment}`);
 
   // Handle rewards subdomain (Member Portal)
   if (subdomain === 'rewards') {
@@ -31,6 +35,12 @@ export function middleware(request: NextRequest) {
     // Already on dashboard subdomain, allow through
     // Dashboard routes like /login, /register should work
     console.log(`[Middleware] Dashboard subdomain detected, allowing ${pathname}`);
+    return NextResponse.next();
+  }
+
+  // On Vercel deployment, allow all routes without subdomain redirects
+  if (isVercelDeployment) {
+    console.log(`[Middleware] Vercel deployment detected, allowing ${pathname} without subdomain redirect`);
     return NextResponse.next();
   }
 
