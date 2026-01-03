@@ -217,7 +217,15 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Business Registration] Registration complete for ${merchant.slug}`);
 
-    return NextResponse.json({
+    // Create session data (same format as login route)
+    const sessionData = {
+      merchantId: merchant.id,
+      email: merchant.loginEmail,
+      name: merchant.name,
+    };
+
+    // Create response
+    const response = NextResponse.json({
       success: true,
       message: 'Business registered successfully! You can now log in to your dashboard.',
       merchant: {
@@ -228,6 +236,17 @@ export async function POST(req: NextRequest) {
         plan: merchant.plan,
       },
     });
+
+    // Set HTTP-only session cookie (auto-login after registration)
+    response.cookies.set("gob_merchant_session", JSON.stringify(sessionData), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    });
+
+    return response;
   } catch (error: any) {
     console.error('[Business Registration] Error:', error);
     return NextResponse.json(
