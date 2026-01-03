@@ -59,13 +59,13 @@ export function SiteHeader() {
         {/* RIGHT CTA */}
         <div className={styles.siteHeaderCta}>
           <Link
-            href="/member/login"
+            href="https://rewards.getonblockchain.com/member/login"
             className={styles.siteHeaderLoginBtn}
           >
             Member Login
           </Link>
           <Link
-            href="/dashboard/login"
+            href="https://dashboard.getonblockchain.com/dashboard/login"
             className={styles.siteHeaderBusinessBtn}
           >
             For Businesses →
