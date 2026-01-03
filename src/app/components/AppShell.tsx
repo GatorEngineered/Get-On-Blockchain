@@ -18,11 +18,6 @@ export function SiteHeader() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
 
-  // Determine login URLs based on environment
-  const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('.vercel.app');
-  const memberLoginUrl = isVercel ? '/member/login' : 'https://rewards.getonblockchain.com/member/login';
-  const businessLoginUrl = isVercel ? '/dashboard/login' : 'https://dashboard.getonblockchain.com/dashboard/login';
-
   return (
     <header className={styles.siteHeader}>
       <div className={styles.siteHeaderInner}>
@@ -64,13 +59,13 @@ export function SiteHeader() {
         {/* RIGHT CTA */}
         <div className={styles.siteHeaderCta}>
           <Link
-            href={memberLoginUrl}
+            href="/member/login"
             className={styles.siteHeaderLoginBtn}
           >
             Member Login
           </Link>
           <Link
-            href={businessLoginUrl}
+            href="/dashboard/login"
             className={styles.siteHeaderBusinessBtn}
           >
             For Businesses →
