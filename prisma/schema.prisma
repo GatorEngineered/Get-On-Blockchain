@@ -3,11 +3,10 @@ generator client {
 }
 
 datasource db {
-  // Using SQLite for local dev: DATABASE_URL="file:./dev.db"
-  // For production, switch to PostgreSQL: DATABASE_URL="postgresql://..."
-  // Prisma will auto-detect the provider from the DATABASE_URL format
+  // Using PostgreSQL for both local dev and production
+  // DATABASE_URL should be set in .env.local and Vercel environment variables
 
-  provider = "sqlite" // Change to "postgresql" for production
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
