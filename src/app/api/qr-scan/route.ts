@@ -39,6 +39,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Business not found' }, { status: 404 });
     }
 
+    if (!business.merchantId || !business.merchant) {
+      return NextResponse.json({ error: 'Business has no associated merchant' }, { status: 400 });
+    }
+
     // Find or create MerchantMember relationship
     let merchantMember = await prisma.merchantMember.findUnique({
       where: {
