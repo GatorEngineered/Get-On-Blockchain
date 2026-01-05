@@ -59,10 +59,8 @@ export async function POST(req: NextRequest) {
         data: {
           merchantId: business.merchantId,
           memberId,
-          pointsBalance: business.merchant.welcomePoints,
-          currentTier: 'BASE',
-          visitCount: 1,
-          totalPointsEarned: business.merchant.welcomePoints,
+          points: business.merchant.welcomePoints,
+          tier: 'BASE',
         },
       });
 
@@ -73,7 +71,7 @@ export async function POST(req: NextRequest) {
           memberId,
           businessId: business.id,
           type: 'EARN',
-          points: business.merchant.welcomePoints,
+          amount: business.merchant.welcomePoints,
           reason: 'Welcome bonus',
           status: 'SUCCESS',
         },
@@ -106,15 +104,13 @@ export async function POST(req: NextRequest) {
 
     // Award points for this scan
     const pointsToAward = business.merchant.earnPerVisit;
-    const newPointsBalance = merchantMember.pointsBalance + pointsToAward;
-    const newTotalPointsEarned = merchantMember.totalPointsEarned + pointsToAward;
-    const newVisitCount = merchantMember.visitCount + 1;
+    const newPoints = merchantMember.points + pointsToAward;
 
-    // Determine tier based on total points earned
+    // Determine tier based on total points
     let newTier = 'BASE';
-    if (newTotalPointsEarned >= business.merchant.superThreshold) {
+    if (newPoints >= business.merchant.superThreshold) {
       newTier = 'SUPER';
-    } else if (newTotalPointsEarned >= business.merchant.vipThreshold) {
+    } else if (newPoints >= business.merchant.vipThreshold) {
       newTier = 'VIP';
     }
 
@@ -122,13 +118,40 @@ export async function POST(req: NextRequest) {
     const updatedMerchantMember = await prisma.merchantMember.update({
       where: { id: merchantMember.id },
       data: {
-        pointsBalance: newPointsBalance,
-        totalPointsEarned: newTotalPointsEarned,
-        visitCount: newVisitCount,
-        currentTier: newTier,
-        lastVisitAt: new Date(),
+        points: newPoints,
+        tier: newTier,
       },
     });
+
+    // Find or create BusinessMember for visit tracking
+    let businessMember = await prisma.businessMember.findUnique({
+      where: {
+        businessId_memberId: {
+          businessId: business.id,
+          memberId,
+        },
+      },
+    });
+
+    if (!businessMember) {
+      businessMember = await prisma.businessMember.create({
+        data: {
+          businessId: business.id,
+          memberId,
+          visitCount: 1,
+          firstVisitAt: new Date(),
+          lastVisitAt: new Date(),
+        },
+      });
+    } else {
+      businessMember = await prisma.businessMember.update({
+        where: { id: businessMember.id },
+        data: {
+          visitCount: businessMember.visitCount + 1,
+          lastVisitAt: new Date(),
+        },
+      });
+    }
 
     // Create transaction
     await prisma.rewardTransaction.create({
@@ -137,7 +160,7 @@ export async function POST(req: NextRequest) {
         memberId,
         businessId: business.id,
         type: 'EARN',
-        points: pointsToAward,
+        amount: pointsToAward,
         reason: 'QR code scan',
         status: 'SUCCESS',
       },
@@ -162,26 +185,26 @@ export async function POST(req: NextRequest) {
     if (newTier === 'BASE') {
       nextTier = {
         name: 'VIP',
-        pointsNeeded: business.merchant.vipThreshold - newTotalPointsEarned,
+        pointsNeeded: business.merchant.vipThreshold - newPoints,
       };
     } else if (newTier === 'VIP') {
       nextTier = {
         name: 'SUPER',
-        pointsNeeded: business.merchant.superThreshold - newTotalPointsEarned,
+        pointsNeeded: business.merchant.superThreshold - newPoints,
       };
     }
 
     // Check if can claim payout
-    const canClaimPayout = newPointsBalance >= business.merchant.payoutMilestonePoints;
+    const canClaimPayout = newPoints >= business.merchant.payoutMilestonePoints;
 
     return NextResponse.json({
       success: true,
       businessName: business.name,
       pointsAwarded: pointsToAward,
-      totalPoints: newPointsBalance,
-      totalPointsEarned: newTotalPointsEarned,
+      totalPoints: newPoints,
+      totalPointsEarned: newPoints,
       tier: newTier,
-      visitCount: newVisitCount,
+      visitCount: businessMember.visitCount,
       nextTier,
       canClaimPayout,
       payoutAmount: business.merchant.payoutAmountUSD,
