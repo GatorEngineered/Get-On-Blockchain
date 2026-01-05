@@ -269,15 +269,21 @@ export async function GET(req: NextRequest) {
     console.error("[Dashboard] Error stack:", error.stack);
     console.error("[Dashboard] Error name:", error.name);
     console.error("[Dashboard] Error message:", error.message);
-    return NextResponse.json(
-      {
-        error: "Failed to fetch dashboard metrics",
-        details: error.message,
-        errorType: error.name,
-        errorCode: error.code
-      },
-      { status: 500 }
-    );
+
+    // Return detailed error for debugging
+    const errorDetails = {
+      error: "Failed to fetch dashboard metrics",
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      // Prisma-specific error info
+      clientVersion: error.clientVersion,
+      meta: error.meta,
+      // Stack trace (truncated for security)
+      stack: error.stack?.split('\n').slice(0, 5).join('\n'),
+    };
+
+    return NextResponse.json(errorDetails, { status: 500 });
   }
 }
 
