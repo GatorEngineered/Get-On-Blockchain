@@ -69,6 +69,17 @@ export async function GET(req: NextRequest) {
         state: loc.state,
         zipCode: loc.zipCode,
       })),
+      // All businesses (for QR codes)
+      businesses: merchant.businesses.map(biz => ({
+        id: biz.id,
+        slug: biz.slug,
+        name: biz.name,
+        locationNickname: biz.locationNickname,
+        address: biz.address,
+        city: biz.city,
+        state: biz.state,
+        zipCode: biz.zipCode,
+      })),
       // Payout settings
       payoutEnabled: merchant.payoutEnabled,
       payoutWalletAddress: merchant.payoutWalletAddress,
@@ -79,6 +90,8 @@ export async function GET(req: NextRequest) {
       earnPerVisit: merchant.earnPerVisit,
       vipThreshold: merchant.vipThreshold,
       superThreshold: merchant.superThreshold,
+      // Email settings
+      notificationEmail: merchant.notificationEmail,
     });
   } catch (error: any) {
     console.error('[Merchant Settings] Error:', error);

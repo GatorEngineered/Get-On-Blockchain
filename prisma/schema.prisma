@@ -15,7 +15,8 @@ model Business {
   slug               String              @unique
   name               String
   locationNickname   String?
-  address            String
+  address            String // Street address
+  suite              String? // Suite/Apt/Unit number
   city               String?
   state              String? // Two-letter state code for filtering
   zipCode            String?

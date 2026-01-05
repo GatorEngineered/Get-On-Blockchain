@@ -9,8 +9,9 @@ import PlansSettings from './components/PlansSettings';
 import RewardTiersSettings from './components/RewardTiersSettings';
 import EmailMarketingSettings from './components/EmailMarketingSettings';
 import SupportSettings from './components/SupportSettings';
+import QRCodesSettings from './components/QRCodesSettings';
 
-type SettingsTab = 'account' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'email-marketing' | 'support';
+type SettingsTab = 'account' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'qr-codes' | 'email-marketing' | 'support';
 
 export default function MerchantSettingsPage() {
   const router = useRouter();
@@ -134,6 +135,16 @@ export default function MerchantSettingsPage() {
             </button>
 
             <button
+              className={`${styles.navItem} ${activeTab === 'qr-codes' ? styles.active : ''}`}
+              onClick={() => handleTabChange('qr-codes')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              QR Codes
+            </button>
+
+            <button
               className={`${styles.navItem} ${activeTab === 'email-marketing' ? styles.active : ''}`}
               onClick={() => handleTabChange('email-marketing')}
             >
@@ -180,6 +191,11 @@ export default function MerchantSettingsPage() {
             <RewardTiersSettings
               merchantData={merchantData}
               onUpdate={handleDataUpdate}
+            />
+          )}
+          {activeTab === 'qr-codes' && (
+            <QRCodesSettings
+              merchantData={merchantData}
             />
           )}
           {activeTab === 'email-marketing' && (

@@ -389,7 +389,7 @@ export default function MerchantClaimPage() {
                     value={walletForm.walletAddress}
                     onChange={(e) =>
                       handleWalletFormChange("walletAddress", e.target.value)
-                    }
+                    } 
                   />
                 </label>
 

@@ -448,7 +448,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <button
-              onClick={() => router.push('/dashboard/qr-codes')}
+              onClick={() => router.push('/dashboard/settings?tab=qr-codes')}
               style={{
                 padding: '0.75rem 1.5rem',
                 background: '#244b7a',
@@ -554,7 +554,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <button
-              onClick={() => router.push('/dashboard/settings?tab=payouts')}
+              onClick={() => router.push('/dashboard/settings?tab=payout-wallet')}
               style={{
                 padding: '0.75rem 1.5rem',
                 background: 'transparent',
@@ -740,7 +740,7 @@ export default function DashboardPage() {
             Configure your payout wallet in Settings to start rewarding your loyal customers with USDC payments on Polygon.
           </p>
           <button
-            onClick={() => router.push('/dashboard/settings?tab=payouts')}
+            onClick={() => router.push('/dashboard/settings?tab=payout-wallet')}
             style={{
               padding: '0.75rem 2rem',
               background: '#244b7a',
