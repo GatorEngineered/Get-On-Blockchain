@@ -5,12 +5,15 @@ import { prisma } from "@/app/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  const debugSteps: string[] = [];
+
   try {
-    console.log('[Dashboard] Starting dashboard metrics fetch');
+    debugSteps.push('1. Starting dashboard metrics fetch');
 
     // 1. Validate merchant session
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("gob_merchant_session");
+    debugSteps.push('2. Got cookie store');
 
     if (!sessionCookie?.value) {
       console.log('[Dashboard] No session cookie found');
@@ -32,7 +35,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Invalid session" }, { status: 401 });
     }
 
-    console.log(`[Dashboard] Session found for merchant: ${merchantId}`);
+    debugSteps.push(`3. Session found for merchant: ${merchantId}`);
 
     // 2. Find merchant
     const merchant = await prisma.merchant.findUnique({
@@ -41,18 +44,18 @@ export async function GET(req: NextRequest) {
         businesses: true,
       },
     });
+    debugSteps.push('4. Merchant query complete');
 
     if (!merchant) {
-      console.log(`[Dashboard] Merchant not found for session: ${sessionCookie.value}`);
-      return NextResponse.json({ error: "Merchant not found" }, { status: 404 });
+      return NextResponse.json({ error: "Merchant not found", debugSteps }, { status: 404 });
     }
 
-    console.log(`[Dashboard] Merchant found: ${merchant.name} (${merchant.id})`);
+    debugSteps.push(`5. Merchant found: ${merchant.name}`);
 
     // 2b. If merchant has no business, create one automatically
     let business = merchant.businesses[0];
     if (!business) {
-      console.log(`[Dashboard] Creating default business for merchant ${merchant.id}`);
+      debugSteps.push('6. Creating default business');
       business = await prisma.business.create({
         data: {
           slug: `${merchant.slug}-main`,
@@ -63,9 +66,9 @@ export async function GET(req: NextRequest) {
           merchantId: merchant.id,
         },
       });
-      console.log(`[Dashboard] Business created: ${business.id}`);
+      debugSteps.push(`7. Business created: ${business.id}`);
     } else {
-      console.log(`[Dashboard] Using existing business: ${business.name} (${business.id})`);
+      debugSteps.push(`6. Using existing business: ${business.id}`);
     }
 
     // 3. Calculate date ranges
@@ -73,17 +76,17 @@ export async function GET(req: NextRequest) {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - 7);
-    console.log('[Dashboard] Date ranges calculated');
+    debugSteps.push('7. Date ranges calculated');
 
     // 4. Fetch active members count
-    console.log('[Dashboard] Fetching active members count...');
+    debugSteps.push('8. Fetching active members...');
     const activeMembers = await prisma.businessMember.count({
       where: { businessId: business.id },
     });
-    console.log(`[Dashboard] Active members: ${activeMembers}`);
+    debugSteps.push(`9. Active members: ${activeMembers}`);
 
     // 5. Fetch scan events
-    console.log('[Dashboard] Fetching scan events...');
+    debugSteps.push('10. Fetching scan events...');
     const scansToday = await prisma.event.count({
       where: {
         merchantId: merchant.id,
@@ -99,7 +102,7 @@ export async function GET(req: NextRequest) {
         createdAt: { gte: startOfWeek },
       },
     });
-    console.log(`[Dashboard] Scans - Today: ${scansToday}, Week: ${scansWeek}`);
+    debugSteps.push(`11. Scans - Today: ${scansToday}, Week: ${scansWeek}`);
 
     // 6. Fetch points issued (30 days)
     const thirtyDaysAgo = new Date(now);
@@ -265,25 +268,19 @@ export async function GET(req: NextRequest) {
       weeklyScans: weeklyScansData,
     });
   } catch (error: any) {
-    console.error("[Dashboard] Error fetching dashboard metrics:", error);
-    console.error("[Dashboard] Error stack:", error.stack);
-    console.error("[Dashboard] Error name:", error.name);
-    console.error("[Dashboard] Error message:", error.message);
+    console.error("[Dashboard] Error:", error.message);
 
-    // Return detailed error for debugging
-    const errorDetails = {
+    // Return detailed error with debug steps
+    return NextResponse.json({
       error: "Failed to fetch dashboard metrics",
       message: error.message,
       name: error.name,
       code: error.code,
-      // Prisma-specific error info
       clientVersion: error.clientVersion,
       meta: error.meta,
-      // Stack trace (truncated for security)
-      stack: error.stack?.split('\n').slice(0, 5).join('\n'),
-    };
-
-    return NextResponse.json(errorDetails, { status: 500 });
+      debugSteps, // Show where we got to before the error
+      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+    }, { status: 500 });
   }
 }
 
