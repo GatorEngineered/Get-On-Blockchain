@@ -69,13 +69,22 @@ type RewardTransaction = {
   };
 };
 
-// Available rewards catalog
-const REWARDS_CATALOG = [
-  { id: 1, name: "Free Coffee", points: 100, description: "Any size, any blend" },
-  { id: 2, name: "Free Pastry", points: 150, description: "Choose from daily selection" },
-  { id: 3, name: "10% Off Purchase", points: 200, description: "Valid on any purchase" },
-  { id: 4, name: "Free Bag of Beans", points: 500, description: "12oz of house blend" },
-];
+type Reward = {
+  id: string;
+  name: string;
+  description: string | null;
+  pointsCost: number;
+  rewardType: 'TRADITIONAL' | 'USDC_PAYOUT';
+  usdcAmount: number | null;
+};
+
+type MerchantRewards = {
+  merchantId: string;
+  merchantName: string;
+  merchantSlug: string;
+  rewards: Reward[];
+  memberPoints: number;
+};
 
 export default function MemberDashboardPage() {
   const router = useRouter();
@@ -83,6 +92,7 @@ export default function MemberDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [member, setMember] = useState<Member | null>(null);
   const [transactions, setTransactions] = useState<RewardTransaction[]>([]);
+  const [merchantRewards, setMerchantRewards] = useState<MerchantRewards[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [claimingPayout, setClaimingPayout] = useState(false);
   const [payoutSuccess, setPayoutSuccess] = useState<string | null>(null);
@@ -117,6 +127,37 @@ export default function MemberDashboardPage() {
       const data = await res.json();
       setMember(data.member);
       setTransactions(data.transactions || []);
+
+      // Fetch rewards for each merchant the member is connected to
+      if (data.member?.merchants?.length > 0) {
+        const rewardsPromises = data.member.merchants.map(async (mm: MerchantMember) => {
+          try {
+            const rewardsRes = await fetch(`/api/merchant/${mm.merchant.slug}/rewards`);
+            if (rewardsRes.ok) {
+              const rewardsData = await rewardsRes.json();
+              return {
+                merchantId: mm.merchantId,
+                merchantName: mm.merchant.name,
+                merchantSlug: mm.merchant.slug,
+                rewards: rewardsData.rewards || [],
+                memberPoints: mm.points,
+              };
+            }
+          } catch (e) {
+            console.error(`Failed to fetch rewards for ${mm.merchant.slug}:`, e);
+          }
+          return {
+            merchantId: mm.merchantId,
+            merchantName: mm.merchant.name,
+            merchantSlug: mm.merchant.slug,
+            rewards: [],
+            memberPoints: mm.points,
+          };
+        });
+
+        const allRewards = await Promise.all(rewardsPromises);
+        setMerchantRewards(allRewards);
+      }
     } catch (err: any) {
       console.error("Failed to load member data:", err);
       setError(err.message);
@@ -201,10 +242,12 @@ export default function MemberDashboardPage() {
   // Calculate total points across all merchants
   const totalPoints = member.merchants.reduce((sum, mm) => sum + mm.points, 0);
 
-  // Find next reward milestone
-  const nextRewardMilestone = REWARDS_CATALOG.find((r) => r.points > totalPoints);
-  const nextReward = nextRewardMilestone || REWARDS_CATALOG[REWARDS_CATALOG.length - 1];
-  const progressPercentage = (totalPoints / nextReward.points) * 100;
+  // Find next reward milestone from all merchant rewards
+  const allRewards = merchantRewards.flatMap((mr) => mr.rewards);
+  const sortedRewards = [...allRewards].sort((a, b) => a.pointsCost - b.pointsCost);
+  const nextRewardMilestone = sortedRewards.find((r) => r.pointsCost > totalPoints);
+  const nextReward = nextRewardMilestone || sortedRewards[sortedRewards.length - 1];
+  const progressPercentage = nextReward ? (totalPoints / nextReward.pointsCost) * 100 : 100;
 
   // Get tier level (using the highest tier across all merchants)
   const tierLevel = member.merchants.reduce((highest, mm) => {
@@ -257,25 +300,33 @@ export default function MemberDashboardPage() {
             <h2 className={styles.pointsNumber}>{totalPoints}</h2>
           </div>
 
-          <div className={styles.progressSection}>
-            <div className={styles.progressHeader}>
-              <span className={styles.progressLabel}>Progress to next reward</span>
-              <span className={styles.progressPoints}>
-                {totalPoints} / {nextReward.points}
-              </span>
+          {nextReward ? (
+            <div className={styles.progressSection}>
+              <div className={styles.progressHeader}>
+                <span className={styles.progressLabel}>Progress to next reward</span>
+                <span className={styles.progressPoints}>
+                  {totalPoints} / {nextReward.pointsCost}
+                </span>
+              </div>
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                />
+              </div>
+              <p className={styles.pointsRemaining}>
+                {totalPoints >= nextReward.pointsCost
+                  ? "You've reached the highest reward!"
+                  : `${nextReward.pointsCost - totalPoints} points until ${nextReward.name}`}
+              </p>
             </div>
-            <div className={styles.progressBar}>
-              <div
-                className={styles.progressFill}
-                style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-              />
+          ) : (
+            <div className={styles.progressSection}>
+              <p className={styles.pointsRemaining}>
+                No rewards available yet. Check back soon!
+              </p>
             </div>
-            <p className={styles.pointsRemaining}>
-              {totalPoints >= nextReward.points
-                ? "You've reached the highest reward!"
-                : `${nextReward.points - totalPoints} points until ${nextReward.name}`}
-            </p>
-          </div>
+          )}
         </div>
       </div>
 
@@ -507,42 +558,105 @@ export default function MemberDashboardPage() {
         </div>
       )}
 
-      {/* Available Rewards */}
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Available Rewards</h3>
-        <div className={styles.rewardsGrid}>
-          {REWARDS_CATALOG.map((reward) => {
-            const canRedeem = totalPoints >= reward.points;
-            return (
-              <div
-                key={reward.id}
-                className={`${styles.rewardCard} ${
-                  canRedeem ? styles.rewardCardActive : styles.rewardCardInactive
-                }`}
-              >
-                <div className={styles.rewardHeader}>
-                  <h4 className={styles.rewardName}>{reward.name}</h4>
-                  <span className={styles.rewardPoints}>{reward.points} pts</span>
+      {/* Available Rewards - Per Merchant */}
+      {merchantRewards.length > 0 && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Available Rewards</h3>
+          {merchantRewards.map((mr) => (
+            <div key={mr.merchantId} style={{ marginBottom: "1.5rem" }}>
+              {merchantRewards.length > 1 && (
+                <h4 style={{
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  color: "#374151",
+                  marginBottom: "0.75rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem"
+                }}>
+                  {mr.merchantName}
+                  <span style={{
+                    fontSize: "0.75rem",
+                    fontWeight: "500",
+                    color: "#6b7280",
+                    background: "#f3f4f6",
+                    padding: "0.25rem 0.5rem",
+                    borderRadius: "9999px"
+                  }}>
+                    {mr.memberPoints} pts
+                  </span>
+                </h4>
+              )}
+              {mr.rewards.length > 0 ? (
+                <div className={styles.rewardsGrid}>
+                  {mr.rewards.map((reward) => {
+                    const canRedeem = mr.memberPoints >= reward.pointsCost;
+                    return (
+                      <div
+                        key={reward.id}
+                        className={`${styles.rewardCard} ${
+                          canRedeem ? styles.rewardCardActive : styles.rewardCardInactive
+                        }`}
+                      >
+                        <div className={styles.rewardHeader}>
+                          <h4 className={styles.rewardName}>{reward.name}</h4>
+                          <span className={styles.rewardPoints}>{reward.pointsCost} pts</span>
+                        </div>
+                        <p className={styles.rewardDescription}>
+                          {reward.description || (reward.rewardType === 'USDC_PAYOUT'
+                            ? `$${reward.usdcAmount?.toFixed(2)} USDC payout`
+                            : 'Redeem at checkout')}
+                        </p>
+                        {reward.rewardType === 'USDC_PAYOUT' && (
+                          <span style={{
+                            display: "inline-block",
+                            fontSize: "0.7rem",
+                            fontWeight: "600",
+                            color: "#1e40af",
+                            background: "#dbeafe",
+                            padding: "0.2rem 0.5rem",
+                            borderRadius: "9999px",
+                            marginBottom: "0.5rem"
+                          }}>
+                            USDC Payout
+                          </span>
+                        )}
+                        <button
+                          className={`${styles.redeemButton} ${
+                            canRedeem ? "" : styles.redeemButtonDisabled
+                          }`}
+                          disabled={!canRedeem}
+                          onClick={() => {
+                            if (canRedeem) {
+                              alert("Redeem feature coming soon! Show this at checkout.");
+                            }
+                          }}
+                        >
+                          {canRedeem ? "Redeem Now" : "Not Enough Points"}
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
-                <p className={styles.rewardDescription}>{reward.description}</p>
-                <button
-                  className={`${styles.redeemButton} ${
-                    canRedeem ? "" : styles.redeemButtonDisabled
-                  }`}
-                  disabled={!canRedeem}
-                  onClick={() => {
-                    if (canRedeem) {
-                      alert("Redeem feature coming soon! Show this at checkout.");
-                    }
-                  }}
-                >
-                  {canRedeem ? "Redeem Now" : "Not Enough Points"}
-                </button>
-              </div>
-            );
-          })}
+              ) : (
+                <p style={{ color: "#6b7280", fontSize: "0.9rem", padding: "1rem", background: "#f9fafb", borderRadius: "8px" }}>
+                  No rewards available from {mr.merchantName} yet.
+                </p>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
+
+      {/* No merchants connected */}
+      {merchantRewards.length === 0 && (
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Available Rewards</h3>
+          <p style={{ textAlign: "center", color: "#6b7280", padding: "2rem" }}>
+            Visit a participating business to start earning rewards!
+          </p>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className={styles.section}>

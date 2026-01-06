@@ -7,11 +7,12 @@ import AccountSettings from './components/AccountSettings';
 import PayoutWalletSettings from './components/PayoutWalletSettings';
 import PlansSettings from './components/PlansSettings';
 import RewardTiersSettings from './components/RewardTiersSettings';
+import RewardsSettings from './components/RewardsSettings';
 import EmailMarketingSettings from './components/EmailMarketingSettings';
 import SupportSettings from './components/SupportSettings';
 import QRCodesSettings from './components/QRCodesSettings';
 
-type SettingsTab = 'account' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'qr-codes' | 'email-marketing' | 'support';
+type SettingsTab = 'account' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'email-marketing' | 'support';
 
 export default function MerchantSettingsPage() {
   const router = useRouter();
@@ -135,6 +136,16 @@ export default function MerchantSettingsPage() {
             </button>
 
             <button
+              className={`${styles.navItem} ${activeTab === 'rewards' ? styles.active : ''}`}
+              onClick={() => handleTabChange('rewards')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
+              Rewards Catalog
+            </button>
+
+            <button
               className={`${styles.navItem} ${activeTab === 'qr-codes' ? styles.active : ''}`}
               onClick={() => handleTabChange('qr-codes')}
             >
@@ -189,6 +200,12 @@ export default function MerchantSettingsPage() {
           )}
           {activeTab === 'reward-tiers' && (
             <RewardTiersSettings
+              merchantData={merchantData}
+              onUpdate={handleDataUpdate}
+            />
+          )}
+          {activeTab === 'rewards' && (
+            <RewardsSettings
               merchantData={merchantData}
               onUpdate={handleDataUpdate}
             />
