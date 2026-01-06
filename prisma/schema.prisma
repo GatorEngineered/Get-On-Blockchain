@@ -93,6 +93,7 @@ model Merchant {
   events          Event[]
   staff           Staff[]
   merchantMembers MerchantMember[] // NEW: Merchant-level member relationships
+  rewards         Reward[]         // Customizable rewards catalog
 }
 
 /// *
@@ -377,6 +378,31 @@ model MemberWallet {
   network       String   @default("polygon")
   createdAt     DateTime @default(now())
   member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+}
+
+/// *
+///  * Reward - customizable rewards catalog per merchant
+///  * Traditional rewards (in-store) or USDC payouts
+model Reward {
+  id          String     @id @default(cuid())
+  merchantId  String
+  name        String     // "Free Coffee", "10% Off", "$5 USDC"
+  description String?    // "Any size, any blend"
+  pointsCost  Int        // Points required to redeem
+  rewardType  RewardKind @default(TRADITIONAL)
+  usdcAmount  Float?     // For USDC payouts
+  isActive    Boolean    @default(true)
+  sortOrder   Int        @default(0) // For display ordering
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  merchant    Merchant   @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+}
+
+enum RewardKind {
+  TRADITIONAL // Redeemed in-store (free item, discount, etc.)
+  USDC_PAYOUT // Crypto payout to member wallet
 }
 
 enum Plan {
