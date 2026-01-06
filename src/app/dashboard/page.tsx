@@ -206,7 +206,7 @@ export default function DashboardPage() {
             {error || 'Failed to load dashboard data'}
           </p>
           <button
-            onClick={fetchDashboardMetrics}
+            onClick={() => selectedBusinessId && fetchDashboardMetrics(selectedBusinessId)}
             style={{
               marginTop: '1rem',
               padding: '0.5rem 1.5rem',
