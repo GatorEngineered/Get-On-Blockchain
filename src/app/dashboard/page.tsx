@@ -4,9 +4,20 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '../styles/dashboard-mockups.module.css';
 import PayoutHistory from './components/PayoutHistory';
+import LocationSelector from './components/LocationSelector';
+
+type Business = {
+  id: string;
+  name: string;
+  locationNickname: string | null;
+  address: string;
+  slug: string;
+};
 
 type DashboardMetrics = {
   businessName: string;
+  businessId: string;
+  locationNickname: string | null;
   stats: {
     activeMembers: number;
     totalScansToday: number;
@@ -43,17 +54,72 @@ export default function DashboardPage() {
   const [businessData, setBusinessData] = useState<DashboardMetrics | null>(null);
   const [qrData, setQrData] = useState<any>(null);
   const [walletData, setWalletData] = useState<any>(null);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
 
+  // Initial load - fetch merchant data first to get all businesses
   useEffect(() => {
-    fetchDashboardMetrics();
-    fetchQRCode();
+    fetchMerchantData();
     fetchWalletBalance();
   }, []);
 
-  async function fetchDashboardMetrics() {
+  // Fetch dashboard metrics when business selection changes
+  useEffect(() => {
+    if (selectedBusinessId) {
+      fetchDashboardMetrics(selectedBusinessId);
+      fetchQRCode(selectedBusinessId);
+    }
+  }, [selectedBusinessId]);
+
+  async function fetchMerchantData() {
+    try {
+      const res = await fetch('/api/merchant/me');
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push('/dashboard/login');
+          return;
+        }
+        throw new Error('Failed to fetch merchant data');
+      }
+
+      const data = await res.json();
+      const allBusinesses = data.businesses || [];
+      setBusinesses(allBusinesses);
+
+      // Set initial selected business (from localStorage or first one)
+      const savedBusinessId = typeof window !== 'undefined'
+        ? localStorage.getItem('gob_selected_business')
+        : null;
+
+      const initialBusinessId = savedBusinessId && allBusinesses.some((b: Business) => b.id === savedBusinessId)
+        ? savedBusinessId
+        : allBusinesses[0]?.id;
+
+      if (initialBusinessId) {
+        setSelectedBusinessId(initialBusinessId);
+      } else {
+        setLoading(false);
+        setError('No business locations found');
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch merchant data:', err);
+      setError(err.message);
+      setLoading(false);
+    }
+  }
+
+  function handleSelectBusiness(businessId: string) {
+    setSelectedBusinessId(businessId);
+    // Save to localStorage for persistence
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gob_selected_business', businessId);
+    }
+  }
+
+  async function fetchDashboardMetrics(businessId: string) {
     try {
       setLoading(true);
-      const res = await fetch('/api/merchant/dashboard-metrics');
+      const res = await fetch(`/api/merchant/dashboard-metrics?businessId=${businessId}`);
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -83,9 +149,9 @@ export default function DashboardPage() {
     }
   }
 
-  async function fetchQRCode() {
+  async function fetchQRCode(businessId: string) {
     try {
-      const res = await fetch('/api/merchant/qr-code');
+      const res = await fetch(`/api/merchant/qr-code?businessId=${businessId}`);
       if (res.ok) {
         const data = await res.json();
         setQrData(data);
@@ -180,6 +246,15 @@ export default function DashboardPage() {
           <span style={{ color: '#424242' }}> Analytics and management tools for your business. Track active members, scan activity, top customers, and business metrics in real-time.</span>
         </div>
       </div>
+
+      {/* Location Selector - only show if multiple locations */}
+      {businesses.length > 1 && (
+        <LocationSelector
+          businesses={businesses}
+          selectedBusinessId={selectedBusinessId}
+          onSelectBusiness={handleSelectBusiness}
+        />
+      )}
 
       {/* Header Section */}
       <div className={styles.businessHeader}>

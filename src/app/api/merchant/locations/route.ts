@@ -16,11 +16,11 @@ export async function POST(req: NextRequest) {
     const session = JSON.parse(sessionCookie.value);
     const merchantId = session.merchantId;
 
-    const { name, nickname, address } = await req.json();
+    const { name, nickname, address, suite, city, state, zipCode } = await req.json();
 
     if (!name || !address) {
       return NextResponse.json(
-        { error: 'Location name and address are required' },
+        { error: 'Location name and street address are required' },
         { status: 400 }
       );
     }
@@ -54,6 +54,10 @@ export async function POST(req: NextRequest) {
         name: merchant.name,
         locationNickname: nickname || name,
         address,
+        suite: suite?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim()?.toUpperCase() || null,
+        zipCode: zipCode?.trim() || null,
         contactEmail: merchant.loginEmail,
         merchantId,
       },
@@ -66,6 +70,10 @@ export async function POST(req: NextRequest) {
         name: newLocation.name,
         locationNickname: newLocation.locationNickname,
         address: newLocation.address,
+        suite: newLocation.suite,
+        city: newLocation.city,
+        state: newLocation.state,
+        zipCode: newLocation.zipCode,
       },
     });
   } catch (error: any) {

@@ -5,18 +5,12 @@ import { prisma } from "@/app/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const debugSteps: string[] = [];
-
   try {
-    debugSteps.push('1. Starting dashboard metrics fetch');
-
     // 1. Validate merchant session
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get("gob_merchant_session");
-    debugSteps.push('2. Got cookie store');
 
     if (!sessionCookie?.value) {
-      console.log('[Dashboard] No session cookie found');
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -25,17 +19,13 @@ export async function GET(req: NextRequest) {
     try {
       sessionData = JSON.parse(sessionCookie.value);
     } catch (e) {
-      console.log('[Dashboard] Invalid session cookie format');
       return NextResponse.json({ error: "Invalid session" }, { status: 401 });
     }
 
     const merchantId = sessionData.merchantId;
     if (!merchantId) {
-      console.log('[Dashboard] No merchantId in session');
       return NextResponse.json({ error: "Invalid session" }, { status: 401 });
     }
-
-    debugSteps.push(`3. Session found for merchant: ${merchantId}`);
 
     // 2. Find merchant
     const merchant = await prisma.merchant.findUnique({
@@ -44,18 +34,26 @@ export async function GET(req: NextRequest) {
         businesses: true,
       },
     });
-    debugSteps.push('4. Merchant query complete');
 
     if (!merchant) {
-      return NextResponse.json({ error: "Merchant not found", debugSteps }, { status: 404 });
+      return NextResponse.json({ error: "Merchant not found" }, { status: 404 });
     }
 
-    debugSteps.push(`5. Merchant found: ${merchant.name}`);
+    // Check for businessId query parameter (for multi-location support)
+    const { searchParams } = new URL(req.url);
+    const requestedBusinessId = searchParams.get('businessId');
 
-    // 2b. If merchant has no business, create one automatically
-    let business = merchant.businesses[0];
+    // 2b. Select business based on query param or use first one
+    let business = requestedBusinessId
+      ? merchant.businesses.find(b => b.id === requestedBusinessId)
+      : merchant.businesses[0];
+
+    // If requested businessId doesn't match any of merchant's businesses, use first
+    if (!business && requestedBusinessId) {
+      business = merchant.businesses[0];
+    }
+
     if (!business) {
-      debugSteps.push('6. Creating default business');
       business = await prisma.business.create({
         data: {
           slug: `${merchant.slug}-main`,
@@ -66,9 +64,6 @@ export async function GET(req: NextRequest) {
           merchantId: merchant.id,
         },
       });
-      debugSteps.push(`7. Business created: ${business.id}`);
-    } else {
-      debugSteps.push(`6. Using existing business: ${business.id}`);
     }
 
     // 3. Calculate date ranges
@@ -76,17 +71,13 @@ export async function GET(req: NextRequest) {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - 7);
-    debugSteps.push('7. Date ranges calculated');
 
     // 4. Fetch active members count
-    debugSteps.push('8. Fetching active members...');
     const activeMembers = await prisma.businessMember.count({
       where: { businessId: business.id },
     });
-    debugSteps.push(`9. Active members: ${activeMembers}`);
 
     // 5. Fetch scan events
-    debugSteps.push('10. Fetching scan events...');
     const scansToday = await prisma.event.count({
       where: {
         merchantId: merchant.id,
@@ -102,13 +93,11 @@ export async function GET(req: NextRequest) {
         createdAt: { gte: startOfWeek },
       },
     });
-    debugSteps.push(`11. Scans - Today: ${scansToday}, Week: ${scansWeek}`);
 
     // 6. Fetch points issued (30 days)
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(now.getDate() - 30);
 
-    console.log('[Dashboard] Fetching points issued...');
     const pointsIssuedResult = await prisma.rewardTransaction.aggregate({
       where: {
         businessId: business.id,
@@ -121,10 +110,8 @@ export async function GET(req: NextRequest) {
     });
 
     const pointsIssued = pointsIssuedResult._sum.amount || 0;
-    console.log(`[Dashboard] Points issued: ${pointsIssued}`);
 
     // 7. Fetch redemptions today
-    console.log('[Dashboard] Fetching redemptions...');
     const redemptionsToday = await prisma.rewardTransaction.count({
       where: {
         businessId: business.id,
@@ -132,10 +119,8 @@ export async function GET(req: NextRequest) {
         createdAt: { gte: startOfToday },
       },
     });
-    console.log(`[Dashboard] Redemptions today: ${redemptionsToday}`);
 
     // 8. Fetch total USDC paid out (all time)
-    console.log('[Dashboard] Fetching total payouts...');
     const totalPayoutResult = await prisma.rewardTransaction.aggregate({
       where: {
         businessId: business.id,
@@ -148,10 +133,8 @@ export async function GET(req: NextRequest) {
     });
 
     const totalPayoutUSDC = totalPayoutResult._sum.usdcAmount || 0;
-    console.log(`[Dashboard] Total payout USDC: ${totalPayoutUSDC}`);
 
     // 9. Fetch recent activity (last 10 transactions with privacy protection)
-    console.log('[Dashboard] Fetching recent transactions...');
     const recentTransactions = await prisma.rewardTransaction.findMany({
       where: { businessId: business.id },
       include: {
@@ -160,7 +143,6 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       take: 10,
     });
-    console.log(`[Dashboard] Recent transactions count: ${recentTransactions.length}`);
 
     const recentActivity = recentTransactions.map((tx) => {
       const firstName = tx.member.firstName || "Anonymous";
@@ -188,7 +170,6 @@ export async function GET(req: NextRequest) {
     });
 
     // 10. Fetch top customers (by points balance from MerchantMember)
-    console.log('[Dashboard] Fetching top customers...');
     const topCustomers = await prisma.merchantMember.findMany({
       where: { merchantId: merchant.id },
       include: {
@@ -203,7 +184,6 @@ export async function GET(req: NextRequest) {
       orderBy: { points: "desc" },
       take: 10,
     });
-    console.log(`[Dashboard] Top customers count: ${topCustomers.length}`);
 
     const topCustomersData = topCustomers.map((mm) => {
       const firstName = mm.member.firstName || "Anonymous";
@@ -222,7 +202,6 @@ export async function GET(req: NextRequest) {
     });
 
     // 11. Fetch weekly scan activity (last 7 days)
-    console.log('[Dashboard] Fetching weekly scan activity...');
     const weeklyScansData = [];
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -249,12 +228,12 @@ export async function GET(req: NextRequest) {
         scans: scansCount,
       });
     }
-    console.log('[Dashboard] Weekly scans data generated');
 
     // 12. Return all metrics
-    console.log('[Dashboard] Returning dashboard metrics');
     return NextResponse.json({
       businessName: business.name,
+      businessId: business.id,
+      locationNickname: business.locationNickname,
       stats: {
         activeMembers,
         totalScansToday: scansToday,
@@ -269,18 +248,10 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("[Dashboard] Error:", error.message);
-
-    // Return detailed error with debug steps
-    return NextResponse.json({
-      error: "Failed to fetch dashboard metrics",
-      message: error.message,
-      name: error.name,
-      code: error.code,
-      clientVersion: error.clientVersion,
-      meta: error.meta,
-      debugSteps, // Show where we got to before the error
-      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch dashboard metrics" },
+      { status: 500 }
+    );
   }
 }
 

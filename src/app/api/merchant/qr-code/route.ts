@@ -5,8 +5,11 @@ import crypto from "crypto";
 
 const QR_SECRET = process.env.QR_SECRET || "default-secret-change-in-production";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const requestedBusinessId = searchParams.get('businessId');
+
     const cookieStore = await cookies();
     const session = cookieStore.get("gob_merchant_session");
 
@@ -35,7 +38,7 @@ export async function GET() {
       );
     }
 
-    // Get merchant with first business
+    // Get merchant with all businesses
     const merchant = await prisma.merchant.findUnique({
       where: { id: merchantId },
       include: {
@@ -47,7 +50,7 @@ export async function GET() {
               take: 1,
             },
           },
-          take: 1,
+          orderBy: { createdAt: 'asc' },
         },
       },
     });
@@ -59,7 +62,16 @@ export async function GET() {
       );
     }
 
-    const business = merchant.businesses[0];
+    // Find the requested business or fall back to first one
+    let business = requestedBusinessId
+      ? merchant.businesses.find(b => b.id === requestedBusinessId)
+      : merchant.businesses[0];
+
+    // If requested business not found, fall back to first
+    if (!business) {
+      business = merchant.businesses[0];
+    }
+
     if (!business) {
       return NextResponse.json(
         { error: "No business found" },

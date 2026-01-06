@@ -22,11 +22,11 @@ export async function PUT(
     const params = await context.params;
     const locationId = params.id;
 
-    const { name, nickname, address } = await req.json();
+    const { name, nickname, address, suite, city, state, zipCode } = await req.json();
 
     if (!name || !address) {
       return NextResponse.json(
-        { error: 'Location name and address are required' },
+        { error: 'Location name and street address are required' },
         { status: 400 }
       );
     }
@@ -49,6 +49,10 @@ export async function PUT(
       data: {
         locationNickname: nickname || name,
         address,
+        suite: suite?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim()?.toUpperCase() || null,
+        zipCode: zipCode?.trim() || null,
       },
     });
 
@@ -59,6 +63,10 @@ export async function PUT(
         name: updatedLocation.name,
         locationNickname: updatedLocation.locationNickname,
         address: updatedLocation.address,
+        suite: updatedLocation.suite,
+        city: updatedLocation.city,
+        state: updatedLocation.state,
+        zipCode: updatedLocation.zipCode,
       },
     });
   } catch (error: any) {

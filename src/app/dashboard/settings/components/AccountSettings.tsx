@@ -30,7 +30,13 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
 
   // Main Address Edit State
   const [editingAddress, setEditingAddress] = useState(false);
-  const [mainAddress, setMainAddress] = useState(merchantData?.mainBusiness?.address || '');
+  const [mainAddressForm, setMainAddressForm] = useState({
+    address: merchantData?.mainBusiness?.address || '',
+    suite: merchantData?.mainBusiness?.suite || '',
+    city: merchantData?.mainBusiness?.city || '',
+    state: merchantData?.mainBusiness?.state || '',
+    zipCode: merchantData?.mainBusiness?.zipCode || '',
+  });
 
   // Multi-location State
   const [addingLocation, setAddingLocation] = useState(false);
@@ -39,6 +45,10 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
     name: '',
     nickname: '',
     address: '',
+    suite: '',
+    city: '',
+    state: '',
+    zipCode: '',
   });
 
   async function handleUpdateBusinessName() {
@@ -150,8 +160,8 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
   }
 
   async function handleUpdateMainAddress() {
-    if (!mainAddress.trim()) {
-      setError('Address cannot be empty');
+    if (!mainAddressForm.address.trim()) {
+      setError('Street address is required');
       return;
     }
 
@@ -163,7 +173,7 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
       const res = await fetch('/api/merchant/update-main-address', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: mainAddress }),
+        body: JSON.stringify(mainAddressForm),
       });
 
       if (!res.ok) {
@@ -179,6 +189,22 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
     } finally {
       setLoading(false);
     }
+  }
+
+  // Helper to format address for display
+  function formatAddress(business: any): string {
+    if (!business) return 'Not set';
+    const parts = [business.address];
+    if (business.suite) parts[0] += `, ${business.suite}`;
+    if (business.city || business.state || business.zipCode) {
+      const cityStateZip = [
+        business.city,
+        business.state,
+        business.zipCode,
+      ].filter(Boolean).join(', ');
+      if (cityStateZip) parts.push(cityStateZip);
+    }
+    return parts.join('\n') || 'Not set';
   }
 
   async function handleAddLocation() {
@@ -205,7 +231,7 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
 
       setSuccess('Location added successfully');
       setAddingLocation(false);
-      setLocationForm({ name: '', nickname: '', address: '' });
+      setLocationForm({ name: '', nickname: '', address: '', suite: '', city: '', state: '', zipCode: '' });
       onRefresh();
     } catch (err: any) {
       setError(err.message);
@@ -238,7 +264,7 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
 
       setSuccess('Location updated successfully');
       setEditingLocationId(null);
-      setLocationForm({ name: '', nickname: '', address: '' });
+      setLocationForm({ name: '', nickname: '', address: '', suite: '', city: '', state: '', zipCode: '' });
       onRefresh();
     } catch (err: any) {
       setError(err.message);
@@ -280,7 +306,11 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
     setLocationForm({
       name: location.name,
       nickname: location.locationNickname || '',
-      address: location.address,
+      address: location.address || '',
+      suite: location.suite || '',
+      city: location.city || '',
+      state: location.state || '',
+      zipCode: location.zipCode || '',
     });
   }
 
@@ -501,13 +531,61 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
 
         {editingAddress ? (
           <div className={styles.formGroup}>
-            <textarea
-              value={mainAddress}
-              onChange={(e) => setMainAddress(e.target.value)}
-              className={styles.textarea}
-              placeholder="Enter business address"
-              rows={3}
-            />
+            <div className={styles.addressGrid}>
+              <div>
+                <label className={styles.inputLabel}>Street Address *</label>
+                <input
+                  type="text"
+                  value={mainAddressForm.address}
+                  onChange={(e) => setMainAddressForm({ ...mainAddressForm, address: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="123 Main Street"
+                />
+              </div>
+              <div>
+                <label className={styles.inputLabel}>Suite/Unit</label>
+                <input
+                  type="text"
+                  value={mainAddressForm.suite}
+                  onChange={(e) => setMainAddressForm({ ...mainAddressForm, suite: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="Suite 100"
+                />
+              </div>
+            </div>
+            <div className={styles.cityStateZip}>
+              <div>
+                <label className={styles.inputLabel}>City</label>
+                <input
+                  type="text"
+                  value={mainAddressForm.city}
+                  onChange={(e) => setMainAddressForm({ ...mainAddressForm, city: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <label className={styles.inputLabel}>State</label>
+                <input
+                  type="text"
+                  value={mainAddressForm.state}
+                  onChange={(e) => setMainAddressForm({ ...mainAddressForm, state: e.target.value.toUpperCase().slice(0, 2) })}
+                  className={styles.inputSmall}
+                  placeholder="CA"
+                  maxLength={2}
+                />
+              </div>
+              <div>
+                <label className={styles.inputLabel}>ZIP Code</label>
+                <input
+                  type="text"
+                  value={mainAddressForm.zipCode}
+                  onChange={(e) => setMainAddressForm({ ...mainAddressForm, zipCode: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="90210"
+                />
+              </div>
+            </div>
             <div className={styles.buttonGroup}>
               <button
                 onClick={handleUpdateMainAddress}
@@ -519,7 +597,13 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
               <button
                 onClick={() => {
                   setEditingAddress(false);
-                  setMainAddress(merchantData.mainBusiness?.address || '');
+                  setMainAddressForm({
+                    address: merchantData.mainBusiness?.address || '',
+                    suite: merchantData.mainBusiness?.suite || '',
+                    city: merchantData.mainBusiness?.city || '',
+                    state: merchantData.mainBusiness?.state || '',
+                    zipCode: merchantData.mainBusiness?.zipCode || '',
+                  });
                 }}
                 className={styles.cancelButton}
               >
@@ -528,7 +612,9 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
             </div>
           </div>
         ) : (
-          <div className={styles.displayValue}>{merchantData.mainBusiness?.address || 'Not set'}</div>
+          <div className={styles.displayValue} style={{ whiteSpace: 'pre-line' }}>
+            {formatAddress(merchantData.mainBusiness)}
+          </div>
         )}
       </div>
 
@@ -569,13 +655,61 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
               className={styles.input}
               placeholder="Nickname (optional)"
             />
-            <textarea
-              value={locationForm.address}
-              onChange={(e) => setLocationForm({ ...locationForm, address: e.target.value })}
-              className={styles.textarea}
-              placeholder="Full address"
-              rows={2}
-            />
+            <div className={styles.addressGrid}>
+              <div>
+                <label className={styles.inputLabel}>Street Address *</label>
+                <input
+                  type="text"
+                  value={locationForm.address}
+                  onChange={(e) => setLocationForm({ ...locationForm, address: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="123 Main Street"
+                />
+              </div>
+              <div>
+                <label className={styles.inputLabel}>Suite/Unit</label>
+                <input
+                  type="text"
+                  value={locationForm.suite}
+                  onChange={(e) => setLocationForm({ ...locationForm, suite: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="Suite 100"
+                />
+              </div>
+            </div>
+            <div className={styles.cityStateZip}>
+              <div>
+                <label className={styles.inputLabel}>City</label>
+                <input
+                  type="text"
+                  value={locationForm.city}
+                  onChange={(e) => setLocationForm({ ...locationForm, city: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <label className={styles.inputLabel}>State</label>
+                <input
+                  type="text"
+                  value={locationForm.state}
+                  onChange={(e) => setLocationForm({ ...locationForm, state: e.target.value.toUpperCase().slice(0, 2) })}
+                  className={styles.inputSmall}
+                  placeholder="CA"
+                  maxLength={2}
+                />
+              </div>
+              <div>
+                <label className={styles.inputLabel}>ZIP Code</label>
+                <input
+                  type="text"
+                  value={locationForm.zipCode}
+                  onChange={(e) => setLocationForm({ ...locationForm, zipCode: e.target.value })}
+                  className={styles.inputSmall}
+                  placeholder="90210"
+                />
+              </div>
+            </div>
             <div className={styles.buttonGroup}>
               <button
                 onClick={handleAddLocation}
@@ -587,7 +721,7 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
               <button
                 onClick={() => {
                   setAddingLocation(false);
-                  setLocationForm({ name: '', nickname: '', address: '' });
+                  setLocationForm({ name: '', nickname: '', address: '', suite: '', city: '', state: '', zipCode: '' });
                 }}
                 className={styles.cancelButton}
               >
@@ -618,13 +752,61 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
                       className={styles.input}
                       placeholder="Nickname (optional)"
                     />
-                    <textarea
-                      value={locationForm.address}
-                      onChange={(e) => setLocationForm({ ...locationForm, address: e.target.value })}
-                      className={styles.textarea}
-                      placeholder="Full address"
-                      rows={2}
-                    />
+                    <div className={styles.addressGrid}>
+                      <div>
+                        <label className={styles.inputLabel}>Street Address *</label>
+                        <input
+                          type="text"
+                          value={locationForm.address}
+                          onChange={(e) => setLocationForm({ ...locationForm, address: e.target.value })}
+                          className={styles.inputSmall}
+                          placeholder="123 Main Street"
+                        />
+                      </div>
+                      <div>
+                        <label className={styles.inputLabel}>Suite/Unit</label>
+                        <input
+                          type="text"
+                          value={locationForm.suite}
+                          onChange={(e) => setLocationForm({ ...locationForm, suite: e.target.value })}
+                          className={styles.inputSmall}
+                          placeholder="Suite 100"
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.cityStateZip}>
+                      <div>
+                        <label className={styles.inputLabel}>City</label>
+                        <input
+                          type="text"
+                          value={locationForm.city}
+                          onChange={(e) => setLocationForm({ ...locationForm, city: e.target.value })}
+                          className={styles.inputSmall}
+                          placeholder="City"
+                        />
+                      </div>
+                      <div>
+                        <label className={styles.inputLabel}>State</label>
+                        <input
+                          type="text"
+                          value={locationForm.state}
+                          onChange={(e) => setLocationForm({ ...locationForm, state: e.target.value.toUpperCase().slice(0, 2) })}
+                          className={styles.inputSmall}
+                          placeholder="CA"
+                          maxLength={2}
+                        />
+                      </div>
+                      <div>
+                        <label className={styles.inputLabel}>ZIP Code</label>
+                        <input
+                          type="text"
+                          value={locationForm.zipCode}
+                          onChange={(e) => setLocationForm({ ...locationForm, zipCode: e.target.value })}
+                          className={styles.inputSmall}
+                          placeholder="90210"
+                        />
+                      </div>
+                    </div>
                     <div className={styles.buttonGroup}>
                       <button
                         onClick={() => handleUpdateLocation(location.id)}
@@ -636,7 +818,7 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
                       <button
                         onClick={() => {
                           setEditingLocationId(null);
-                          setLocationForm({ name: '', nickname: '', address: '' });
+                          setLocationForm({ name: '', nickname: '', address: '', suite: '', city: '', state: '', zipCode: '' });
                         }}
                         className={styles.cancelButton}
                       >
@@ -653,7 +835,7 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
                           <span className={styles.locationNickname}>({location.locationNickname})</span>
                         )}
                       </h4>
-                      <p className={styles.locationAddress}>{location.address}</p>
+                      <p className={styles.locationAddress} style={{ whiteSpace: 'pre-line' }}>{formatAddress(location)}</p>
                     </div>
                     <div className={styles.locationActions}>
                       <button

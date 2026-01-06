@@ -50,6 +50,23 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Check plan restrictions - Starter and Basic plans cannot configure wallet
+    const existingMerchant = await prisma.merchant.findUnique({
+      where: { id: merchantId },
+      select: { plan: true },
+    });
+
+    if (existingMerchant?.plan === "STARTER" || existingMerchant?.plan === "BASIC") {
+      return NextResponse.json(
+        {
+          error: "Wallet configuration requires a Premium plan or higher. Please upgrade your plan to enable USDC payouts.",
+          planRestricted: true,
+          currentPlan: existingMerchant.plan,
+        },
+        { status: 403 }
+      );
+    }
+
     const merchant = await prisma.merchant.update({
       where: { id: merchantId },
       data: {

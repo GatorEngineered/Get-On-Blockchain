@@ -56,15 +56,16 @@ export async function GET() {
             vipThreshold: true,
             primaryColor: true,
             accentColor: true,
-            // Include business for location data
+            // Include ALL businesses for location selector
             businesses: {
                 select: {
                     id: true,
                     name: true,
                     locationNickname: true,
                     address: true,
+                    slug: true,
                 },
-                take: 1,
+                orderBy: { createdAt: 'asc' },
             },
         },
     });
@@ -78,7 +79,6 @@ export async function GET() {
 
     // Auto-create business if it doesn't exist
     if (!merchant.businesses || merchant.businesses.length === 0) {
-        console.log(`[Merchant ME] Creating default business for merchant ${merchant.id}`);
         await prisma.business.create({
             data: {
                 slug: `${merchant.slug}-main`,
@@ -118,8 +118,9 @@ export async function GET() {
                         name: true,
                         locationNickname: true,
                         address: true,
+                        slug: true,
                     },
-                    take: 1,
+                    orderBy: { createdAt: 'asc' },
                 },
             },
         });

@@ -57,11 +57,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify Premium plan
-    if (merchant.plan !== 'PREMIUM') {
+    // Verify Premium, Growth, or Pro plan
+    const allowedPlans = ["PREMIUM", "GROWTH", "PRO"];
+    if (!allowedPlans.includes(merchant.plan)) {
       return NextResponse.json(
         {
-          error: 'Stablecoin payouts require Premium plan. Upgrade at /pricing',
+          error: 'Stablecoin payouts require Premium plan or higher. Upgrade at /pricing',
+          planRestricted: true,
+          currentPlan: merchant.plan,
         },
         { status: 403 }
       );
@@ -80,10 +83,6 @@ export async function POST(req: NextRequest) {
       walletAddress = balance.address;
       usdcBalance = balance.usdcBalance;
       maticBalance = balance.maticBalance;
-
-      console.log(`[Setup] Wallet verified: ${walletAddress}`);
-      console.log(`[Setup] USDC Balance: ${usdcBalance}`);
-      console.log(`[Setup] MATIC Balance: ${maticBalance}`);
     } catch (error: any) {
       console.error('[Setup] Failed to verify wallet:', error);
       return NextResponse.json(
@@ -129,8 +128,6 @@ export async function POST(req: NextRequest) {
         },
       },
     });
-
-    console.log(`[Setup] Payout wallet configured for ${merchantSlug}`);
 
     return NextResponse.json({
       success: true,

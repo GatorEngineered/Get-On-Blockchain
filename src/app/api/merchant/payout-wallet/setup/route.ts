@@ -31,6 +31,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
     }
 
+    // Check plan restrictions - Starter and Basic plans cannot configure wallet
+    if (merchant.plan === "STARTER" || merchant.plan === "BASIC") {
+      return NextResponse.json(
+        {
+          error: 'Wallet configuration requires a Premium plan or higher. Please upgrade your plan to enable USDC payouts.',
+          planRestricted: true,
+          currentPlan: merchant.plan,
+        },
+        { status: 403 }
+      );
+    }
+
     // Check if wallet already exists
     if (merchant.payoutWalletAddress && merchant.payoutWalletEncrypted) {
       return NextResponse.json(

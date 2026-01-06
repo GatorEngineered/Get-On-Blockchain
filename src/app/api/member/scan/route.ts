@@ -143,7 +143,6 @@ export async function POST(req: NextRequest) {
             network: "polygon",
           },
         });
-        console.log(`Generated wallet for member ${memberId}: ${wallet.address}`);
       } catch (error) {
         console.error("Wallet generation error:", error);
         // Don't block the scan if wallet generation fails
@@ -200,6 +199,23 @@ export async function POST(req: NextRequest) {
     const isNewMember = !merchantMember;
 
     if (!merchantMember) {
+      // Check Starter plan limit (max 5 customers)
+      if (merchant.plan === "STARTER") {
+        const currentMemberCount = await prisma.merchantMember.count({
+          where: { merchantId: merchant.id },
+        });
+
+        if (currentMemberCount >= 5) {
+          return NextResponse.json(
+            {
+              error: "This merchant's plan doesn't support additional customers. Please ask them to upgrade their plan.",
+              planLimited: true,
+            },
+            { status: 403 }
+          );
+        }
+      }
+
       // Create new merchant member with welcome points
       merchantMember = await prisma.merchantMember.create({
         data: {

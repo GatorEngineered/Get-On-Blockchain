@@ -16,10 +16,10 @@ export async function PUT(req: NextRequest) {
     const session = JSON.parse(sessionCookie.value);
     const merchantId = session.merchantId;
 
-    const { address } = await req.json();
+    const { address, suite, city, state, zipCode } = await req.json();
 
     if (!address || !address.trim()) {
-      return NextResponse.json({ error: 'Address is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Street address is required' }, { status: 400 });
     }
 
     // Get first business (main location)
@@ -33,10 +33,16 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Main business not found' }, { status: 404 });
     }
 
-    // Update main business address
+    // Update main business address with all fields
     await prisma.business.update({
       where: { id: businesses[0].id },
-      data: { address: address.trim() },
+      data: {
+        address: address.trim(),
+        suite: suite?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim()?.toUpperCase() || null,
+        zipCode: zipCode?.trim() || null,
+      },
     });
 
     return NextResponse.json({ success: true });

@@ -54,6 +54,23 @@ export async function POST(req: NextRequest) {
     });
 
     if (!merchantMember) {
+      // Check Starter plan limit (max 5 customers)
+      if (business.merchant.plan === "STARTER") {
+        const currentMemberCount = await prisma.merchantMember.count({
+          where: { merchantId: business.merchantId },
+        });
+
+        if (currentMemberCount >= 5) {
+          return NextResponse.json(
+            {
+              error: "This merchant's plan doesn't support additional customers. Please ask them to upgrade their plan.",
+              planLimited: true,
+            },
+            { status: 403 }
+          );
+        }
+      }
+
       // Create new merchant-member relationship with welcome points
       merchantMember = await prisma.merchantMember.create({
         data: {
