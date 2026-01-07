@@ -114,19 +114,19 @@ const structuredData = {
       offers: {
         "@type": "AggregateOffer",
         priceCurrency: "USD",
-        lowPrice: "99",
-        highPrice: "149",
+        lowPrice: "49",
+        highPrice: "199",
         priceSpecification: [
           {
             "@type": "UnitPriceSpecification",
-            price: "99.00",
+            price: "49.00",
             priceCurrency: "USD",
             name: "Basic Plan",
             billingDuration: "P1M",
           },
           {
             "@type": "UnitPriceSpecification",
-            price: "149.00",
+            price: "99.00",
             priceCurrency: "USD",
             name: "Premium Plan",
             billingDuration: "P1M",
