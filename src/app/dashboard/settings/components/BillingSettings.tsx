@@ -35,22 +35,22 @@ const planDetails: Record<string, { name: string; price: number; features: strin
   },
   BASIC: {
     name: 'Basic',
-    price: 99,
+    price: 49,
     features: ['1,000 active members', '3 rewards', 'Full dashboard', 'Email support'],
   },
   PREMIUM: {
     name: 'Premium',
-    price: 149,
+    price: 99,
     features: ['5,000 active members', '4 rewards', 'USDC payouts', 'Priority support'],
   },
   GROWTH: {
     name: 'Growth',
-    price: 249,
+    price: 149,
     features: ['15,000 active members', '5 rewards', 'Multiple milestones', 'Custom tiers'],
   },
   PRO: {
     name: 'Pro',
-    price: 349,
+    price: 199,
     features: ['35,000 active members', '6 rewards', 'Advanced features', 'Dedicated support'],
   },
 };
