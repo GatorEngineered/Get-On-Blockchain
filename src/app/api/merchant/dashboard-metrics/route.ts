@@ -247,9 +247,13 @@ export async function GET(req: NextRequest) {
       weeklyScans: weeklyScansData,
     });
   } catch (error: any) {
-    console.error("[Dashboard] Error:", error.message);
+    console.error("[Dashboard] Error:", error.message, error.stack);
     return NextResponse.json(
-      { error: "Failed to fetch dashboard metrics" },
+      {
+        error: "Failed to fetch dashboard metrics",
+        details: process.env.NODE_ENV === 'development' ? error.message : error.message,
+        code: error.code || 'UNKNOWN'
+      },
       { status: 500 }
     );
   }

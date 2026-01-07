@@ -135,7 +135,11 @@ export default function DashboardPage() {
           error: errorData
         });
 
-        throw new Error(errorData?.error || `Failed to fetch dashboard metrics (${res.status})`);
+        // Show detailed error message for debugging
+        const errorMsg = errorData?.details
+          ? `${errorData.error}: ${errorData.details}`
+          : errorData?.error || `Failed to fetch dashboard metrics (${res.status})`;
+        throw new Error(errorMsg);
       }
 
       const data = await res.json();
