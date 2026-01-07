@@ -27,15 +27,14 @@ console.log(`✅ PAYPAL_CLIENT_ID: ${process.env.PAYPAL_CLIENT_ID ? 'Set' : 'NOT
 console.log(`✅ PAYPAL_CLIENT_SECRET: ${process.env.PAYPAL_CLIENT_SECRET ? 'Set' : 'NOT SET'}`);
 console.log('');
 
-// Now import PayPal library (after env vars are loaded)
-import {
-  createProduct,
-  createPlan,
-  createTrialBillingCycles,
-  createAnnualBillingCycle,
-} from '../src/app/lib/paypal/subscriptions.js';
-
 async function setupPayPalPlans() {
+  // Use dynamic import to ensure env vars are loaded first
+  const {
+    createProduct,
+    createPlan,
+    createTrialBillingCycles,
+    createAnnualBillingCycle,
+  } = await import('../src/app/lib/paypal/subscriptions.js');
   console.log('🚀 Setting up PayPal Products and Plans...\n');
   console.log('=' .repeat(60));
 
