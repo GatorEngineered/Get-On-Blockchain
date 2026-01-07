@@ -2,30 +2,27 @@
 // Get and update member profile
 
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/app/lib/prisma';
-import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+async function getMemberIdFromSession(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const session = cookieStore.get('gob_member_session');
 
-async function getMemberFromToken(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
+  if (!session?.value) return null;
 
-  const token = authHeader.slice(7);
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { memberId: string };
-    return decoded.memberId;
+    const sessionData = JSON.parse(session.value);
+    return sessionData.memberId || null;
   } catch {
     return null;
   }
 }
 
 // GET - Fetch member profile
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const memberId = await getMemberFromToken(req);
+    const memberId = await getMemberIdFromSession();
     if (!memberId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -60,7 +57,7 @@ export async function GET(req: NextRequest) {
 // PUT - Update member profile
 export async function PUT(req: NextRequest) {
   try {
-    const memberId = await getMemberFromToken(req);
+    const memberId = await getMemberIdFromSession();
     if (!memberId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
