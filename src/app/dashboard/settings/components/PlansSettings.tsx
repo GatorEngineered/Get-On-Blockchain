@@ -71,7 +71,7 @@ const PLAN_DETAILS = {
   },
   BASIC: {
     name: 'Basic',
-    price: 99,
+    price: 49,
     interval: 'month',
     description: 'Points & rewards only',
     features: [
@@ -85,7 +85,7 @@ const PLAN_DETAILS = {
   },
   PREMIUM: {
     name: 'Premium',
-    price: 149,
+    price: 99,
     interval: 'month',
     description: 'Everything in Basic + stablecoin rewards',
     features: [
@@ -100,7 +100,7 @@ const PLAN_DETAILS = {
   },
   GROWTH: {
     name: 'Growth',
-    price: 249,
+    price: 149,
     interval: 'month',
     description: 'For growing brands with multi-location support',
     features: [
@@ -113,7 +113,7 @@ const PLAN_DETAILS = {
   },
   PRO: {
     name: 'Enterprise',
-    price: 349,
+    price: 199,
     interval: 'month',
     description: 'High-volume businesses with custom workflows',
     features: [

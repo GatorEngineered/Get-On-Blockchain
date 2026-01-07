@@ -6,7 +6,7 @@ import styles from "../industry.module.css";
 export const metadata: Metadata = {
   title: "Fitness Studio Loyalty Program | Boost Member Retention",
   description:
-    "Reduce gym churn by 35% with our QR-based loyalty program for fitness studios. Reward attendance, increase retention, proven ROI. Starting at $99/month.",
+    "Reduce gym churn by 35% with our QR-based loyalty program for fitness studios. Reward attendance, increase retention, proven ROI. Starting at $49/month.",
   keywords: [
     "fitness loyalty program",
     "gym rewards program",
@@ -88,7 +88,7 @@ export default function FitnessPage() {
             </Link>
           </div>
           <p className={styles.heroCaption}>
-            ✓ No check-in hardware ✓ Setup in 30 minutes ✓ Starting at $99/month
+            ✓ No check-in hardware ✓ Setup in 30 minutes ✓ Starting at $49/month
           </p>
         </div>
       </section>
@@ -167,7 +167,7 @@ export default function FitnessPage() {
               <p><strong>Your Math:</strong></p>
               <p>30 members × $150/month membership = $4,500/month retained</p>
               <p><strong>Annual value of reduced churn: $54,000+</strong></p>
-              <p className={styles.roiHighlight}>300x return on a $149/month investment</p>
+              <p className={styles.roiHighlight}>545x return on a $99/month investment</p>
             </div>
             <div className={styles.calculatorCta}>
               <Link href="/roi-calculator?industry=fitness" className={styles.calculatorButton}>
@@ -186,7 +186,7 @@ export default function FitnessPage() {
           <h2>Ready to Reduce Churn and Boost Retention?</h2>
           <p>Join fitness studios using loyalty rewards to keep members motivated.</p>
           <Link href="/pricing" className={styles.ctaPrimary}>
-            Get Started - $99/month
+            Get Started - $49/month
           </Link>
           <p className={styles.ctaCaption}>
             Questions? <Link href="/faq">Read our FAQ</Link> or <Link href="/support">contact support</Link>

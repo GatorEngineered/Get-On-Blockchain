@@ -59,46 +59,46 @@ async function setupPayPalPlans() {
 
     const plans = [];
 
-    // Plan 1: Basic Monthly ($99/mo with 7-day trial)
+    // Plan 1: Basic Monthly ($49/mo with 7-day trial)
     console.log('Creating Basic Monthly plan...');
     const basicMonthly = await createPlan({
       product_id: product.id,
       name: 'Basic Monthly',
-      description: 'Basic plan - $99/month with 7-day free trial',
-      billing_cycles: createTrialBillingCycles('99.00'),
+      description: 'Basic plan - $49/month with 7-day free trial',
+      billing_cycles: createTrialBillingCycles('49.00'),
     });
     plans.push(basicMonthly);
     console.log(`✅ Basic Monthly: ${basicMonthly.id}`);
 
-    // Plan 2: Premium Monthly ($149/mo with 7-day trial)
+    // Plan 2: Premium Monthly ($99/mo with 7-day trial)
     console.log('Creating Premium Monthly plan...');
     const premiumMonthly = await createPlan({
       product_id: product.id,
       name: 'Premium Monthly',
-      description: 'Premium plan - $149/month with 7-day free trial',
-      billing_cycles: createTrialBillingCycles('149.00'),
+      description: 'Premium plan - $99/month with 7-day free trial',
+      billing_cycles: createTrialBillingCycles('99.00'),
     });
     plans.push(premiumMonthly);
     console.log(`✅ Premium Monthly: ${premiumMonthly.id}`);
 
-    // Plan 3: Basic Annual ($990/year - save $198)
+    // Plan 3: Basic Annual ($490/year - save $98)
     console.log('Creating Basic Annual plan...');
     const basicAnnual = await createPlan({
       product_id: product.id,
       name: 'Basic Annual',
-      description: 'Basic plan - $990/year (save $198 vs monthly)',
-      billing_cycles: createAnnualBillingCycle('990.00'),
+      description: 'Basic plan - $490/year (save $98 vs monthly)',
+      billing_cycles: createAnnualBillingCycle('490.00'),
     });
     plans.push(basicAnnual);
     console.log(`✅ Basic Annual: ${basicAnnual.id}`);
 
-    // Plan 4: Premium Annual ($1490/year - save $298)
+    // Plan 4: Premium Annual ($990/year - save $198)
     console.log('Creating Premium Annual plan...');
     const premiumAnnual = await createPlan({
       product_id: product.id,
       name: 'Premium Annual',
-      description: 'Premium plan - $1490/year (save $298 vs monthly)',
-      billing_cycles: createAnnualBillingCycle('1490.00'),
+      description: 'Premium plan - $990/year (save $198 vs monthly)',
+      billing_cycles: createAnnualBillingCycle('990.00'),
     });
     plans.push(premiumAnnual);
     console.log(`✅ Premium Annual: ${premiumAnnual.id}`);

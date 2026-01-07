@@ -168,7 +168,7 @@ export default function QRLoyaltyVsPunchCardsArticle() {
           <h3>5. Lower Long-Term Costs</h3>
           <p>
             <strong>Punch cards:</strong> $50-$150 to print 1,000 cards every few months = $200-$600/year<br />
-            <strong>QR loyalty platform:</strong> $99-$149/month = $1,188-$1,788/year
+            <strong>QR loyalty platform:</strong> $49-$99/month = $588-$1,188/year
           </p>
           <p>
             Yes, QR platforms cost more upfront. But you get:
@@ -271,7 +271,7 @@ export default function QRLoyaltyVsPunchCardsArticle() {
             <strong>Reality:</strong> For you, maybe. For customers? No. Losing progress, carrying extra cards, and forgetting them at home is frustrating. QR codes are scan-and-done.
           </p>
 
-          <h3>"I don't want to pay $99/month when punch cards cost $50."</h3>
+          <h3>"I don't want to pay $49/month when punch cards cost $50."</h3>
           <p>
             <strong>Reality:</strong> You're comparing a one-time printing cost to ongoing software. The real comparison is ROI:
           </p>
@@ -280,7 +280,7 @@ export default function QRLoyaltyVsPunchCardsArticle() {
             <li><strong>QR loyalty:</strong> 70% participation, 40-60% more repeat visits</li>
           </ul>
           <p>
-            The $99/month pays for itself in the first week.
+            The $49/month pays for itself in the first week.
           </p>
 
           <h2>How to Make the Switch</h2>
@@ -291,7 +291,7 @@ export default function QRLoyaltyVsPunchCardsArticle() {
           </p>
           <ul>
             <li>No hardware required (QR code-based)</li>
-            <li>Transparent pricing ($99-$149/month)</li>
+            <li>Transparent pricing ($49-$99/month)</li>
             <li>Easy setup (30 minutes or less)</li>
             <li>Customer data tracking and reporting</li>
           </ul>

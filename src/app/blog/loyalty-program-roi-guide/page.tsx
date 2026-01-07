@@ -97,10 +97,10 @@ export default function LoyaltyProgramROIArticle() {
 
           <h3>Step 3: Subtract Platform Costs</h3>
           <p>
-            Most loyalty platforms cost $99-$199/month depending on features and scale.
+            Most loyalty platforms cost $49-$199/month depending on features and scale.
           </p>
           <p>
-            <strong>Example platform cost: $99/month</strong>
+            <strong>Example platform cost: $49/month</strong>
           </p>
 
           <h3>Step 4: Calculate Net Profit</h3>
@@ -112,14 +112,14 @@ export default function LoyaltyProgramROIArticle() {
             Extra revenue: $1,200<br />
             Gross profit (60%): $720<br />
             Reward costs: -$12<br />
-            Platform cost: -$99<br />
-            <strong>Net profit: $609/month</strong>
+            Platform cost: -$49<br />
+            <strong>Net profit: $659/month</strong>
           </p>
 
           <h3>Step 5: Calculate ROI</h3>
           <div className={styles.callout}>
             <p>
-              ROI = ($609 - $99) / $99 × 100 = <strong>515% ROI</strong>
+              ROI = ($659 - $49) / $49 × 100 = <strong>1245% ROI</strong>
             </p>
           </div>
           <p>

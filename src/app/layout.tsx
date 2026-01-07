@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     template: "%s | Get On Blockchain",
   },
   description:
-    "Increase foot traffic and repeat customers with our QR-based loyalty rewards platform. Easy setup, crypto payments (USDC), proven ROI. Starting at $99/month.",
+    "Increase foot traffic and repeat customers with our QR-based loyalty rewards platform. Easy setup, crypto payments (USDC), proven ROI. Starting at $49/month.",
   keywords: [
     "loyalty program software",
     "customer retention platform",
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Loyalty Program That Increases Foot Traffic & Repeat Customers",
     description:
-      "Launch a QR-based loyalty program in 30 minutes. Customers earn rewards, you see more repeat visits. Starting at $99/month with proven ROI.",
+      "Launch a QR-based loyalty program in 30 minutes. Customers earn rewards, you see more repeat visits. Starting at $49/month with proven ROI.",
     url: "https://getonblockchain.com",
     siteName: "Get On Blockchain",
     images: [

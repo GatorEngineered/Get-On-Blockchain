@@ -45,11 +45,11 @@ export default function Pricing() {
             <p className="pricing-footnote">Perfect for testing the waters before you commit.</p>
           </div>
 
-          {/* Basic Tier - $99/month */}
+          {/* Basic Tier - $49/month */}
           <div className="pricing-card">
             <p className="pricing-pill">Basic</p>
             <h3>For Single-Location Shops</h3>
-            <p className="pricing-price">$99<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-price">$49<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
               <li>QR-based loyalty with points & rewards</li>
@@ -71,11 +71,11 @@ export default function Pricing() {
             <p className="pricing-footnote">Perfect for businesses who don&apos;t want crypto complexity.</p>
           </div>
 
-          {/* Premium Tier - $149-199/month */}
+          {/* Premium Tier - $99/month */}
           <div className="pricing-card highlight">
             <p className="pricing-pill">Premium · Most popular</p>
             <h3>Blockchain-Verified Rewards</h3>
-            <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-price">$99<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
               <li>Everything in Basic</li>
@@ -103,7 +103,7 @@ export default function Pricing() {
           <div className="pricing-card highlight">
             <p className="pricing-pill">Growth · Most popular</p>
             <h3>For Growing Brands</h3>
-            <p className="pricing-price">$249<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup">+ $349 one-time setup</p>
             <ul className="pricing-list">
               <li>Up to 3 locations</li>
@@ -132,7 +132,7 @@ export default function Pricing() {
           <div className="pricing-card">
             <p className="pricing-pill">Pro / Brand</p>
             <h3>For Franchises & Launches</h3>
-            <p className="pricing-price">From $349<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-price">$199<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup">+ $449 setup (or custom quote if complex)</p>
             <ul className="pricing-list">
               <li>Everything in Growth</li>

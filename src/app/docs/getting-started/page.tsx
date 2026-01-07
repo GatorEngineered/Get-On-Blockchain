@@ -98,11 +98,11 @@ export default function GettingStartedPage() {
         Get On Blockchain offers several plans to fit your business needs:
       </p>
       <ul>
-        <li><strong>Starter (Free):</strong> Up to 100 members, basic features</li>
-        <li><strong>Basic ($19/mo):</strong> Up to 500 members, email marketing</li>
-        <li><strong>Premium ($39/mo):</strong> Up to 2,000 members, USDC payouts, priority support</li>
-        <li><strong>Growth ($79/mo):</strong> Up to 10,000 members, custom tiers, advanced analytics</li>
-        <li><strong>Pro ($149/mo):</strong> Unlimited members, white-label, API access</li>
+        <li><strong>Starter (Free):</strong> Up to 5 members, basic features</li>
+        <li><strong>Basic ($49/mo):</strong> Up to 1,000 members, QR-based loyalty</li>
+        <li><strong>Premium ($99/mo):</strong> Up to 5,000 members, USDC payouts, priority support</li>
+        <li><strong>Growth ($149/mo):</strong> Up to 15,000 members, multi-location, custom rules</li>
+        <li><strong>Pro ($199/mo):</strong> Up to 15 locations, white-label, API access</li>
       </ul>
 
       <p>

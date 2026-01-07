@@ -6,7 +6,7 @@ import styles from "../industry.module.css";
 export const metadata: Metadata = {
   title: "Retail Loyalty Program Software | Boost Customer Retention",
   description:
-    "Increase repeat purchases by 30% with our QR-based loyalty program for retail stores. Easy setup, instant rewards, proven ROI. Starting at $99/month.",
+    "Increase repeat purchases by 30% with our QR-based loyalty program for retail stores. Easy setup, instant rewards, proven ROI. Starting at $49/month.",
   keywords: [
     "retail loyalty program",
     "store rewards program",
@@ -88,7 +88,7 @@ export default function RetailPage() {
             </Link>
           </div>
           <p className={styles.heroCaption}>
-            ✓ No punch cards ✓ Setup in 30 minutes ✓ Starting at $99/month
+            ✓ No punch cards ✓ Setup in 30 minutes ✓ Starting at $49/month
           </p>
         </div>
       </section>
@@ -167,7 +167,7 @@ export default function RetailPage() {
               <p><strong>Your Math:</strong></p>
               <p>25 customers × 1 extra purchase/month = 25 extra sales</p>
               <p>25 sales × $50 average = <strong>$1,250/month in additional revenue</strong></p>
-              <p className={styles.roiHighlight}>12x return on a $99/month Basic plan</p>
+              <p className={styles.roiHighlight}>25x return on a $49/month Basic plan</p>
             </div>
             <div className={styles.calculatorCta}>
               <Link href="/roi-calculator?industry=retail" className={styles.calculatorButton}>
@@ -186,7 +186,7 @@ export default function RetailPage() {
           <h2>Ready to Compete with Big Box Retailers?</h2>
           <p>Join retail stores using loyalty rewards to keep customers coming back.</p>
           <Link href="/pricing" className={styles.ctaPrimary}>
-            Get Started - $99/month
+            Get Started - $49/month
           </Link>
           <p className={styles.ctaCaption}>
             Questions? <Link href="/faq">Read our FAQ</Link> or <Link href="/support">contact support</Link>

@@ -6,7 +6,7 @@ import styles from "../industry.module.css";
 export const metadata: Metadata = {
   title: "Restaurant Loyalty Program Software | Increase Repeat Customers",
   description:
-    "Boost repeat visits by 25% with our QR-based loyalty program for restaurants. Easy setup, no app required. Customers earn rewards, you see more regulars. Starting at $99/month.",
+    "Boost repeat visits by 25% with our QR-based loyalty program for restaurants. Easy setup, no app required. Customers earn rewards, you see more regulars. Starting at $49/month.",
   keywords: [
     "restaurant loyalty program",
     "cafe rewards program",
@@ -89,7 +89,7 @@ export default function RestaurantsPage() {
             </Link>
           </div>
           <p className={styles.heroCaption}>
-            ✓ No app required ✓ Setup in 30 minutes ✓ Starting at $99/month
+            ✓ No app required ✓ Setup in 30 minutes ✓ Starting at $49/month
           </p>
         </div>
       </section>
@@ -172,7 +172,7 @@ export default function RestaurantsPage() {
               <p><strong>Your Math:</strong></p>
               <p>10 extra visits/day × $20 average check = $200/day</p>
               <p>$200/day × 30 days = <strong>$6,000/month in additional revenue</strong></p>
-              <p className={styles.roiHighlight}>40x return on a $149/month Premium plan</p>
+              <p className={styles.roiHighlight}>60x return on a $99/month Premium plan</p>
             </div>
             <div className={styles.calculatorCta}>
               <Link href="/roi-calculator?industry=restaurants" className={styles.calculatorButton}>
@@ -192,7 +192,7 @@ export default function RestaurantsPage() {
           <h2>Ready to Fill Your Tables with Regulars?</h2>
           <p>Join restaurants and cafes using Get On Blockchain to boost repeat customers.</p>
           <Link href="/pricing" className={styles.ctaPrimary}>
-            Get Started - $99/month
+            Get Started - $49/month
           </Link>
           <p className={styles.ctaCaption}>
             Questions? <Link href="/faq">Read our FAQ</Link> or <Link href="/support">contact support</Link>

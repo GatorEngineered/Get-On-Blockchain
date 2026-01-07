@@ -10,31 +10,31 @@ const industryDefaults = {
     avgTransaction: 20,
     dailyCustomers: 50,
     repeatRate: 20,
-    planCost: 149,
+    planCost: 99,
   },
   retail: {
     avgTransaction: 50,
     dailyCustomers: 100,
     repeatRate: 25,
-    planCost: 99,
+    planCost: 49,
   },
   fitness: {
     avgTransaction: 150,
     dailyCustomers: 200,
     repeatRate: 15,
-    planCost: 149,
+    planCost: 99,
   },
   salons: {
     avgTransaction: 75,
     dailyCustomers: 150,
     repeatRate: 30,
-    planCost: 99,
+    planCost: 49,
   },
   default: {
     avgTransaction: 35,
     dailyCustomers: 100,
     repeatRate: 20,
-    planCost: 99,
+    planCost: 49,
   },
 };
 
@@ -139,17 +139,17 @@ export default function ROICalculatorPage() {
                 <div className={styles.planToggle}>
                   <button
                     type="button"
-                    className={planCost === 99 ? styles.planToggleActive : styles.planToggleInactive}
-                    onClick={() => setPlanCost(99)}
+                    className={planCost === 49 ? styles.planToggleActive : styles.planToggleInactive}
+                    onClick={() => setPlanCost(49)}
                   >
-                    Basic - $99/mo
+                    Basic - $49/mo
                   </button>
                   <button
                     type="button"
-                    className={planCost === 149 ? styles.planToggleActive : styles.planToggleInactive}
-                    onClick={() => setPlanCost(149)}
+                    className={planCost === 99 ? styles.planToggleActive : styles.planToggleInactive}
+                    onClick={() => setPlanCost(99)}
                   >
-                    Premium - $149/mo
+                    Premium - $99/mo
                   </button>
                 </div>
               </div>

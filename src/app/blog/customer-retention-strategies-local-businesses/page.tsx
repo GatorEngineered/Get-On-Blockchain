@@ -84,7 +84,7 @@ export default function CustomerRetentionArticle() {
             <li>Give instant gratification: Award points immediately after purchase</li>
           </ul>
           <p>
-            <strong>ROI Example:</strong> A <Link href="/industries/restaurants">restaurant</Link> with 200 monthly customers launches loyalty. 60 customers join, visit 40% more often. At $45/check, that's $1,080 extra monthly revenue for a $99/month program cost.
+            <strong>ROI Example:</strong> A <Link href="/industries/restaurants">restaurant</Link> with 200 monthly customers launches loyalty. 60 customers join, visit 40% more often. At $45/check, that's $1,080 extra monthly revenue for a $49/month program cost.
           </p>
 
           <h2>2. Personalize the Customer Experience</h2>

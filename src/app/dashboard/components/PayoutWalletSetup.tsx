@@ -124,7 +124,7 @@ export default function PayoutWalletSetup({ merchantSlug, merchantPlan }: Props)
             <strong>Upgrade to Premium</strong> to enable USDC payouts for your customers.
           </p>
           <p>
-            With Premium ($149/mo), customers can claim stablecoin rewards when they
+            With Premium ($99/mo), customers can claim stablecoin rewards when they
             reach point milestones.
           </p>
           <a href="/pricing" className="settings-upgrade-button">
