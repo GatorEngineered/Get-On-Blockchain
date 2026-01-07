@@ -1,4 +1,4 @@
-/* src/app/components/siteheader.module.css */
+/* src/app/styles/siteheader.module.css */
 
 .siteHeader {
   width: 100%;
@@ -128,67 +128,239 @@
   box-shadow: 0 6px 20px rgba(36, 75, 122, 0.35);
 }
 
-/* ------------------------- */
-/* MOBILE NAV FIX */
-/* ------------------------- */
-@media (max-width: 768px) {
+/* ---------------------------------------- */
+/* HAMBURGER BUTTON - Hidden on desktop    */
+/* ---------------------------------------- */
+.hamburgerBtn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  gap: 5px;
+  z-index: 60;
+}
+
+.hamburgerLine {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  background: #244b7a;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Hamburger to X animation */
+.hamburgerLineOpen1 {
+  transform: translateY(7.5px) rotate(45deg);
+}
+
+.hamburgerLineOpen2 {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburgerLineOpen3 {
+  transform: translateY(-7.5px) rotate(-45deg);
+}
+
+/* ---------------------------------------- */
+/* MOBILE MENU OVERLAY                      */
+/* ---------------------------------------- */
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 80%;
+  max-width: 320px;
+  height: 100vh;
+  background: linear-gradient(180deg, #f5f8ff 0%, #eef4ff 100%);
+  padding: 5rem 1.5rem 2rem;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  transition: right 0.3s ease;
+  z-index: 55;
+  overflow-y: auto;
+}
+
+.mobileMenuOpen {
+  right: 0;
+}
+
+.mobileNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.mobileNavLink {
+  display: block;
+  padding: 1rem 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #374151;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.mobileNavLink:hover {
+  background: rgba(36, 75, 122, 0.08);
+  color: #1f2f57;
+}
+
+.mobileNavLinkActive {
+  background: rgba(36, 75, 122, 0.1);
+  color: #244b7a;
+  font-weight: 600;
+}
+
+.mobileCta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(36, 75, 122, 0.1);
+}
+
+.mobileLoginBtn {
+  display: block;
+  padding: 1rem 1.5rem;
+  background: white;
+  border: 2px solid #244b7a;
+  border-radius: 12px;
+  color: #244b7a;
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.mobileLoginBtn:hover {
+  background: #244b7a;
+  color: white;
+}
+
+.mobileBusinessBtn {
+  display: block;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, #244b7a 0%, #8bbcff 100%);
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(36, 75, 122, 0.25);
+  transition: all 0.2s ease;
+}
+
+.mobileBusinessBtn:hover {
+  box-shadow: 0 6px 20px rgba(36, 75, 122, 0.35);
+}
+
+/* ---------------------------------------- */
+/* BACKDROP                                 */
+/* ---------------------------------------- */
+.mobileBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 54;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ---------------------------------------- */
+/* TABLET BREAKPOINT (1024px and below)    */
+/* ---------------------------------------- */
+@media (max-width: 1024px) {
   .siteHeaderInner {
-    padding: 0 1rem;
-    gap: 1rem;
+    padding: 0 1.5rem;
   }
 
-  /* Stack brand + menu + login vertically */
-  .siteHeader {
-    padding: 0.8rem 0;
-  }
-
-  .siteHeaderInner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  /* Center nav, reduce spacing */
-  .siteHeaderNav {
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    gap: 1rem;
-    margin-top: 0.75rem;
-  }
-
-  .siteHeaderNavLink {
-    font-size: 0.95rem;
-    padding: 0.3rem 0;
-  }
-
-  /* Put Login buttons full-width on mobile */
+  /* Hide desktop nav and CTA */
+  .siteHeaderNav,
   .siteHeaderCta {
-    width: 100%;
-    margin-top: 0.75rem;
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
+    display: none;
   }
 
-  .siteHeaderLoginBtn,
-  .siteHeaderBusinessBtn {
-    flex: 1;
-    text-align: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
+  /* Show hamburger button */
+  .hamburgerBtn {
+    display: flex;
   }
 }
 
-@media (max-width: 480px) {
-  .siteHeaderInner {
-    padding: 0.5rem 1rem !important; /* reduce vertical padding */
-  }
-
+/* ---------------------------------------- */
+/* MOBILE BREAKPOINT (768px and below)     */
+/* ---------------------------------------- */
+@media (max-width: 768px) {
   .siteHeader {
-    padding-bottom: 0 !important; /* remove extra bottom space */
+    padding: 0.9rem 0;
   }
 
-  .siteHeaderNav {
-    gap: 0.8rem;
+  .siteHeaderInner {
+    padding: 0 1rem;
+  }
+
+  .siteHeaderLogoText {
+    font-size: 1rem;
+  }
+
+  .mobileMenu {
+    width: 85%;
+    max-width: 300px;
+  }
+}
+
+/* ---------------------------------------- */
+/* SMALL MOBILE BREAKPOINT (480px and below) */
+/* ---------------------------------------- */
+@media (max-width: 480px) {
+  .siteHeader {
+    padding: 0.75rem 0;
+  }
+
+  .siteHeaderInner {
+    padding: 0 0.75rem;
+  }
+
+  .siteHeaderLogoIcon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .siteHeaderLogoText {
+    font-size: 0.95rem;
+  }
+
+  .mobileMenu {
+    width: 100%;
+    max-width: none;
+    padding: 4.5rem 1.25rem 2rem;
+  }
+
+  .mobileNavLink {
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+  }
+
+  .mobileLoginBtn,
+  .mobileBusinessBtn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
   }
 }
