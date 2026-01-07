@@ -178,20 +178,21 @@ export default function BillingSettings() {
         style={{
           background: 'linear-gradient(135deg, #244b7a 0%, #1e3a5f 100%)',
           borderRadius: '12px',
-          padding: '1.5rem',
+          padding: '1.25rem',
           color: 'white',
           marginBottom: '1.5rem',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
             <p style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.25rem' }}>Current Plan</p>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>{currentPlan.name}</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{currentPlan.name}</h3>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '2rem', fontWeight: '700', margin: 0 }}>
+            <p style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>
               ${currentPlan.price}
-              <span style={{ fontSize: '1rem', fontWeight: '400' }}>/mo</span>
+              <span style={{ fontSize: '0.875rem', fontWeight: '400' }}>/mo</span>
             </p>
           </div>
         </div>
@@ -215,7 +216,7 @@ export default function BillingSettings() {
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', opacity: 0.9 }}>
+        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', opacity: 0.9, flexWrap: 'wrap' }}>
           {subscription?.paypalSubscription?.nextBillingTime && (
             <div>
               <span style={{ opacity: 0.7 }}>Next billing: </span>
@@ -243,15 +244,15 @@ export default function BillingSettings() {
           background: '#f9fafb',
           border: '1px solid #e5e7eb',
           borderRadius: '12px',
-          padding: '1.5rem',
+          padding: '1rem',
           marginBottom: '1.5rem',
         }}
       >
-        <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Plan Features</h4>
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+        <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>Features included:</h4>
+        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {currentPlan.features.map((feature, i) => (
             <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#374151' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" style={{ flexShrink: 0 }}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               {feature}
@@ -267,29 +268,29 @@ export default function BillingSettings() {
             background: 'white',
             border: '1px solid #e5e7eb',
             borderRadius: '12px',
-            padding: '1.5rem',
+            padding: '1rem',
             marginBottom: '1.5rem',
           }}
         >
-          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem' }}>Payment Information</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>Payment Information</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div>
               <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Billing Email</p>
-              <p style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+              <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0, wordBreak: 'break-word' }}>
                 {subscription.paypalSubscription.subscriber?.email_address || 'N/A'}
               </p>
             </div>
             {subscription.paypalSubscription.lastPayment && (
               <div>
                 <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Last Payment</p>
-                <p style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0 }}>
                   ${subscription.paypalSubscription.lastPayment.amount.value} on {formatDate(subscription.paypalSubscription.lastPayment.time)}
                 </p>
               </div>
             )}
             <div>
               <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Subscription ID</p>
-              <p style={{ fontSize: '0.875rem', fontWeight: '500', fontFamily: 'monospace' }}>
+              <p style={{ fontSize: '0.75rem', fontWeight: '500', fontFamily: 'monospace', margin: 0, wordBreak: 'break-all' }}>
                 {subscription.paypalSubscription.id}
               </p>
             </div>
@@ -298,12 +299,12 @@ export default function BillingSettings() {
       )}
 
       {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flexDirection: 'column' }}>
         {subscription?.plan !== 'STARTER' && (
           <button
             onClick={() => window.location.href = '/pricing'}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: '0.75rem 1rem',
               background: '#244b7a',
               color: 'white',
               border: 'none',
@@ -311,6 +312,8 @@ export default function BillingSettings() {
               fontSize: '0.875rem',
               fontWeight: '600',
               cursor: 'pointer',
+              width: '100%',
+              textAlign: 'center',
             }}
           >
             Upgrade Plan
@@ -321,7 +324,7 @@ export default function BillingSettings() {
           <button
             onClick={() => window.location.href = '/pricing'}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: '0.75rem 1rem',
               background: '#244b7a',
               color: 'white',
               border: 'none',
@@ -329,6 +332,8 @@ export default function BillingSettings() {
               fontSize: '0.875rem',
               fontWeight: '600',
               cursor: 'pointer',
+              width: '100%',
+              textAlign: 'center',
             }}
           >
             Upgrade to Paid Plan
@@ -339,7 +344,7 @@ export default function BillingSettings() {
           <button
             onClick={() => setShowCancelModal(true)}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: '0.75rem 1rem',
               background: 'white',
               color: '#dc2626',
               border: '1px solid #dc2626',
@@ -347,6 +352,8 @@ export default function BillingSettings() {
               fontSize: '0.875rem',
               fontWeight: '600',
               cursor: 'pointer',
+              width: '100%',
+              textAlign: 'center',
             }}
           >
             Cancel Subscription
