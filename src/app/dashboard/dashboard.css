@@ -1530,3 +1530,137 @@
   }
 
 }
+
+/* =======================
+   MOBILE HAMBURGER MENU
+   ======================= */
+
+/* Mobile header - hidden on desktop */
+.dashboard-mobile-header {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 16px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Hamburger button */
+.dashboard-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  gap: 5px;
+  z-index: 60;
+}
+
+.dashboard-hamburger-line {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  background: #244b7a;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Hamburger to X animation */
+.dashboard-hamburger-line--open1 {
+  transform: translateY(7.5px) rotate(45deg);
+}
+
+.dashboard-hamburger-line--open2 {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.dashboard-hamburger-line--open3 {
+  transform: translateY(-7.5px) rotate(-45deg);
+}
+
+/* Mobile sidebar overlay */
+.dashboard-sidebar-mobile {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  max-width: 300px;
+  height: 100vh;
+  background: #ffffff;
+  padding: 24px 20px;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  transition: left 0.3s ease;
+  z-index: 55;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-sidebar-mobile--open {
+  left: 0;
+}
+
+/* Backdrop */
+.dashboard-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 54;
+  animation: dashboardFadeIn 0.3s ease;
+}
+
+@keyframes dashboardFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Desktop header - hidden on mobile */
+.dashboard-header-desktop {
+  display: block;
+}
+
+/* Desktop sidebar */
+.dashboard-sidebar-desktop {
+  display: flex;
+}
+
+/* Mobile responsive - show hamburger menu */
+@media (max-width: 900px) {
+  /* Show mobile header */
+  .dashboard-mobile-header {
+    display: flex;
+  }
+
+  /* Hide desktop sidebar */
+  .dashboard-sidebar-desktop {
+    display: none;
+  }
+
+  /* Hide desktop header title (shown in mobile header) */
+  .dashboard-header-desktop {
+    display: none;
+  }
+
+  /* Adjust shell to single column */
+  .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  /* Remove sidebar from grid */
+  .dashboard-sidebar {
+    display: none;
+  }
+}

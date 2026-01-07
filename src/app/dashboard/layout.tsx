@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react"; // ⬅️ updated
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "./dashboard.css";
@@ -27,6 +27,7 @@ type CurrentMerchant = {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [merchant, setMerchant] = useState<CurrentMerchant | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Skip layout for main dashboard, login, auth, and settings pages (they have their own layouts)
   const isDashboardHome = pathname === "/dashboard" || pathname === "/dashboard/";
@@ -52,6 +53,23 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     loadMerchant();
   }, [skipLayout]);
 
+  // Close menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   // Render pages without dashboard chrome (they have their own full layouts)
   if (skipLayout) {
     return <>{children}</>;
@@ -66,8 +84,81 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="dashboard-card">
       <div className="dashboard-shell">
 
-        {/* LEFT SIDEBAR */}
-        <aside className="dashboard-sidebar">
+        {/* MOBILE HEADER - Only visible on mobile */}
+        <header className="dashboard-mobile-header">
+          <div className="dashboard-brand">
+            <div className="dashboard-logo">⚡</div>
+            <div>
+              <div className="dashboard-brand-title">{merchantName}</div>
+            </div>
+          </div>
+          <button
+            className="dashboard-hamburger"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="dashboard-mobile-nav"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          >
+            <span className={`dashboard-hamburger-line ${mobileMenuOpen ? 'dashboard-hamburger-line--open1' : ''}`} />
+            <span className={`dashboard-hamburger-line ${mobileMenuOpen ? 'dashboard-hamburger-line--open2' : ''}`} />
+            <span className={`dashboard-hamburger-line ${mobileMenuOpen ? 'dashboard-hamburger-line--open3' : ''}`} />
+          </button>
+        </header>
+
+        {/* MOBILE SIDEBAR OVERLAY */}
+        <aside
+          id="dashboard-mobile-nav"
+          className={`dashboard-sidebar-mobile ${mobileMenuOpen ? 'dashboard-sidebar-mobile--open' : ''}`}
+          aria-hidden={!mobileMenuOpen}
+        >
+          <div className="dashboard-brand">
+            <div className="dashboard-logo">⚡</div>
+            <div>
+              <div className="dashboard-brand-title">{merchantName}</div>
+              <div className="dashboard-brand-subtitle">{merchantSubtitle}</div>
+            </div>
+          </div>
+
+          <nav className="dashboard-nav">
+            {navLinks.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                pathname.startsWith(link.href + "/");
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={
+                    "dashboard-nav-link" +
+                    (isActive ? " dashboard-nav-link--active" : "")
+                  }
+                  onClick={() => setMobileMenuOpen(false)}
+                  tabIndex={mobileMenuOpen ? 0 : -1}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="dashboard-sidebar-footer">
+            <span className="dashboard-foot-label">Environment</span>
+            <span className="dashboard-foot-tag">Demo / Local</span>
+          </div>
+        </aside>
+
+        {/* MOBILE BACKDROP */}
+        {mobileMenuOpen && (
+          <div
+            className="dashboard-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* LEFT SIDEBAR - Desktop only */}
+        <aside className="dashboard-sidebar dashboard-sidebar-desktop">
           <div className="dashboard-brand">
             <div className="dashboard-logo">⚡</div>
             <div>
@@ -107,7 +198,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* RIGHT MAIN CONTENT */}
         <main className="dashboard-main">
-          <header className="dashboard-header">
+          <header className="dashboard-header dashboard-header-desktop">
             <h1 className="dashboard-page-title">Merchant Dashboard</h1>
           </header>
 
