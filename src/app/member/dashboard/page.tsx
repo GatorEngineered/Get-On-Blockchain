@@ -97,6 +97,15 @@ export default function MemberDashboardPage() {
   const [claimingPayout, setClaimingPayout] = useState(false);
   const [payoutSuccess, setPayoutSuccess] = useState<string | null>(null);
   const [payoutError, setPayoutError] = useState<string | null>(null);
+  const [pendingVerification, setPendingVerification] = useState<{
+    merchantId: string;
+    merchantName: string;
+    pointsEarned: number;
+    payoutAmount: number;
+    canRequestNotification: boolean;
+    hasNotificationRequest: boolean;
+  } | null>(null);
+  const [requestingNotification, setRequestingNotification] = useState(false);
 
   useEffect(() => {
     loadMemberData();
@@ -176,6 +185,7 @@ export default function MemberDashboardPage() {
       setClaimingPayout(true);
       setPayoutError(null);
       setPayoutSuccess(null);
+      setPendingVerification(null);
 
       const res = await fetch("/api/member/claim-payout", {
         method: "POST",
@@ -188,6 +198,18 @@ export default function MemberDashboardPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        // Check if this is a pending verification (insufficient funds)
+        if (data.pendingVerification) {
+          setPendingVerification({
+            merchantId,
+            merchantName: data.merchantName,
+            pointsEarned: data.pointsEarned,
+            payoutAmount: data.payoutAmount,
+            canRequestNotification: data.canRequestNotification,
+            hasNotificationRequest: data.hasNotificationRequest,
+          });
+          return; // Don't throw error, show verification UI instead
+        }
         throw new Error(data.error || "Failed to claim payout");
       }
 
@@ -200,6 +222,40 @@ export default function MemberDashboardPage() {
       setPayoutError(err.message);
     } finally {
       setClaimingPayout(false);
+    }
+  }
+
+  async function handleRequestNotification(merchantId: string) {
+    try {
+      setRequestingNotification(true);
+
+      const res = await fetch("/api/member/payout-notify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ merchantId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to request notification");
+      }
+
+      // Update pending verification state
+      setPendingVerification(prev => prev ? {
+        ...prev,
+        canRequestNotification: false,
+        hasNotificationRequest: true,
+      } : null);
+
+      setPayoutSuccess("You'll be notified by email when your payout is ready!");
+    } catch (err: any) {
+      console.error("Notification request error:", err);
+      setPayoutError(err.message);
+    } finally {
+      setRequestingNotification(false);
     }
   }
 
@@ -267,7 +323,7 @@ export default function MemberDashboardPage() {
 
   return (
     <div className={styles.mockupContainer}>
-      {/* Header with Logout */}
+      {/* Header with Settings and Logout */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
         <div className={styles.customerWelcome}>
           <h1>Welcome back, {member.firstName}!</h1>
@@ -275,21 +331,45 @@ export default function MemberDashboardPage() {
             <span className={styles.tierIcon}>★</span> {tierLevel} Member
           </p>
         </div>
-        <button
-          onClick={handleLogout}
-          style={{
-            padding: "0.5rem 1rem",
-            background: "transparent",
-            border: "1px solid #d1d5db",
-            borderRadius: "6px",
-            color: "#6b7280",
-            cursor: "pointer",
-            fontSize: "0.875rem",
-            fontWeight: "500",
-          }}
-        >
-          Logout
-        </button>
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <button
+            onClick={() => router.push("/member/settings")}
+            style={{
+              padding: "0.5rem 1rem",
+              background: "transparent",
+              border: "1px solid #d1d5db",
+              borderRadius: "6px",
+              color: "#6b7280",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.375rem",
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Settings
+          </button>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "0.5rem 1rem",
+              background: "transparent",
+              border: "1px solid #d1d5db",
+              borderRadius: "6px",
+              color: "#6b7280",
+              cursor: "pointer",
+              fontSize: "0.875rem",
+              fontWeight: "500",
+            }}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* Points Balance Card */}
@@ -403,6 +483,108 @@ export default function MemberDashboardPage() {
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {/* Pending Verification Message (insufficient merchant funds - polite message) */}
+      {pendingVerification && (
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1.5rem',
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+          border: '2px solid #f59e0b',
+          borderRadius: '16px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: '#f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#92400e', margin: '0 0 0.5rem 0' }}>
+                Payout Under Verification
+              </h3>
+              <p style={{ fontSize: '0.9rem', color: '#78350f', margin: '0 0 1rem 0', lineHeight: 1.5 }}>
+                Your <strong>${pendingVerification.payoutAmount.toFixed(2)} USDC</strong> payout from <strong>{pendingVerification.merchantName}</strong> is currently being processed. The business has been notified and your reward will be available soon.
+              </p>
+              <div style={{
+                background: 'rgba(255,255,255,0.6)',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                marginBottom: '1rem'
+              }}>
+                <p style={{ fontSize: '0.85rem', color: '#78350f', margin: 0 }}>
+                  <strong>Your points:</strong> {pendingVerification.pointsEarned} pts
+                </p>
+              </div>
+
+              {pendingVerification.hasNotificationRequest ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1rem',
+                  background: 'rgba(255,255,255,0.8)',
+                  borderRadius: '8px'
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span style={{ fontSize: '0.9rem', color: '#065f46', fontWeight: '600' }}>
+                    We'll email you when your payout is ready!
+                  </span>
+                </div>
+              ) : pendingVerification.canRequestNotification ? (
+                <button
+                  onClick={() => handleRequestNotification(pendingVerification.merchantId)}
+                  disabled={requestingNotification}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    width: '100%',
+                    padding: '0.875rem',
+                    background: requestingNotification ? '#9ca3af' : '#f59e0b',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '0.95rem',
+                    fontWeight: '600',
+                    cursor: requestingNotification ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {requestingNotification ? 'Setting up...' : 'Notify Me When Ready'}
+                </button>
+              ) : null}
+            </div>
+            <button
+              onClick={() => setPendingVerification(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#92400e',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                alignSelf: 'flex-start'
+              }}
+            >
+              ✕
+            </button>
+          </div>
         </div>
       )}
 

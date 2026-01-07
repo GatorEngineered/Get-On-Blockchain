@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import crypto from "crypto";
+import { sendMerchantWelcomeEmail } from "@/lib/email/notifications";
+import { Plan, SubscriptionStatus } from "@prisma/client";
 
 /**
  * POST /api/merchant/register
@@ -16,9 +18,29 @@ import crypto from "crypto";
  *   ownerName: string;
  *   phone?: string;
  *   address: string;
- *   planType: 'BASIC_MONTHLY' | 'PREMIUM_MONTHLY' | 'BASIC_ANNUAL' | 'PREMIUM_ANNUAL';
+ *   planType: 'STARTER' | 'BASIC_MONTHLY' | 'PREMIUM_MONTHLY' | 'GROWTH_MONTHLY' | 'PRO_MONTHLY' | etc;
  * }
+ *
+ * Trial Logic:
+ * - STARTER ($0): No trial, immediately active on Starter plan
+ * - All paid plans: 7-day trial on selected plan, then downgrades to Starter if no payment
  */
+
+// Map planType to plan enum
+function getPlanFromPlanType(planType: string): Plan {
+  const planMap: Record<string, Plan> = {
+    'STARTER': Plan.STARTER,
+    'BASIC_MONTHLY': Plan.BASIC,
+    'BASIC_ANNUAL': Plan.BASIC,
+    'PREMIUM_MONTHLY': Plan.PREMIUM,
+    'PREMIUM_ANNUAL': Plan.PREMIUM,
+    'GROWTH_MONTHLY': Plan.GROWTH,
+    'GROWTH_ANNUAL': Plan.GROWTH,
+    'PRO_MONTHLY': Plan.PRO,
+    'PRO_ANNUAL': Plan.PRO,
+  };
+  return planMap[planType] || Plan.STARTER;
+}
 export async function POST(req: NextRequest) {
   try {
     const { name, slug, loginEmail, ownerName, phone, address, planType } = await req.json();
@@ -68,9 +90,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Determine initial subscription status based on plan
-    // All plans start with TRIAL status when created via signup
-    const subscriptionStatus = "TRIAL";
+    // Determine plan and trial status based on selected planType
+    const selectedPlan = getPlanFromPlanType(planType);
+    const isStarterPlan = selectedPlan === Plan.STARTER;
+
+    // Starter plan: No trial, immediately active
+    // All paid plans: 7-day trial, then downgrade to Starter if no payment
+    let subscriptionStatus: SubscriptionStatus;
+    let trialEndsAt: Date | null = null;
+
+    if (isStarterPlan) {
+      subscriptionStatus = SubscriptionStatus.ACTIVE; // Starter is free, always active
+    } else {
+      subscriptionStatus = SubscriptionStatus.TRIAL;
+      trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7); // 7-day trial
+    }
 
     // Create merchant and first business location
     // Password will be set later via setup-password flow
@@ -80,9 +115,10 @@ export async function POST(req: NextRequest) {
         slug,
         loginEmail,
         passwordHash: "", // Empty placeholder - will be set later via setup-password flow
-        // subscriptionStatus will be updated by PayPal webhook
+        plan: selectedPlan,
         subscriptionStatus,
-        paymentVerified: false,
+        trialEndsAt,
+        paymentVerified: isStarterPlan, // Starter doesn't need payment verification
         businesses: {
           create: {
             name: name, // Use merchant name for first location
@@ -97,13 +133,27 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Send welcome email (non-blocking)
+    sendMerchantWelcomeEmail(merchant.loginEmail, {
+      merchantName: ownerName || name,
+      businessName: name,
+      plan: selectedPlan,
+      trialDays: isStarterPlan ? 0 : 7,
+      trialEndsAt: trialEndsAt || new Date(),
+    }).catch((err) => {
+      console.error('[Merchant Register] Failed to send welcome email:', err);
+    });
+
     return NextResponse.json({
       merchant: {
         id: merchant.id,
         name: merchant.name,
         slug: merchant.slug,
         loginEmail: merchant.loginEmail,
+        plan: merchant.plan,
         subscriptionStatus: merchant.subscriptionStatus,
+        trialEndsAt: merchant.trialEndsAt,
+        isTrialing: !isStarterPlan,
       },
     });
   } catch (error: any) {

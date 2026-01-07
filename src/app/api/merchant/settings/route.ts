@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { cookies } from 'next/headers';
+import { checkAndUpdateTrialStatus, getTrialDaysRemaining } from '@/app/lib/trial';
+import { getMemberLimitStatus, MEMBER_ADDON, getLocationLimit, getRewardLimit } from '@/app/lib/plan-limits';
 
 /**
  * GET /api/merchant/settings
@@ -26,7 +28,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
     }
 
-    // Fetch merchant with all businesses
+    // Check and update trial status (downgrades to Starter if trial expired)
+    await checkAndUpdateTrialStatus(merchantId);
+
+    // Fetch merchant with all businesses (after trial check)
     const merchant = await prisma.merchant.findUnique({
       where: { id: merchantId },
       include: {
@@ -44,6 +49,36 @@ export async function GET(req: NextRequest) {
     const mainBusiness = merchant.businesses[0];
     const additionalLocations = merchant.businesses.slice(1);
 
+    // Calculate trial info
+    const isTrialing = merchant.subscriptionStatus === 'TRIAL';
+    const trialDaysRemaining = getTrialDaysRemaining(merchant.trialEndsAt);
+
+    // Get member limit status with warnings
+    const memberLimitStatus = await getMemberLimitStatus(merchantId);
+
+    // Get plan limits
+    const locationLimit = getLocationLimit(merchant.plan);
+    const rewardLimit = getRewardLimit(merchant.plan);
+
+    // Build warnings array
+    const warnings: string[] = [];
+
+    if (memberLimitStatus) {
+      if (memberLimitStatus.isAtLimit) {
+        warnings.push(`You've reached your member limit (${memberLimitStatus.effectiveLimit.toLocaleString()}). New members cannot join until you upgrade or purchase additional slots.`);
+      } else if (memberLimitStatus.isNearLimit) {
+        warnings.push(`You're approaching your member limit (${memberLimitStatus.percentUsed.toFixed(0)}% used). Consider upgrading or purchasing additional member slots.`);
+      }
+
+      if (memberLimitStatus.inGracePeriod) {
+        warnings.push(`You have ${memberLimitStatus.gracePeriodDaysRemaining} days left in your grace period before new restrictions take effect.`);
+      }
+    }
+
+    if (merchant.businesses.length >= locationLimit) {
+      warnings.push(`You've reached your location limit (${locationLimit}). Upgrade to add more locations.`);
+    }
+
     return NextResponse.json({
       id: merchant.id,
       name: merchant.name,
@@ -52,6 +87,40 @@ export async function GET(req: NextRequest) {
       plan: merchant.plan,
       subscriptionStatus: merchant.subscriptionStatus,
       paymentVerified: merchant.paymentVerified,
+      // Trial info
+      isTrialing,
+      trialEndsAt: merchant.trialEndsAt,
+      trialDaysRemaining,
+      // Plan limits
+      planLimits: {
+        members: memberLimitStatus?.effectiveLimit || 0,
+        locations: locationLimit,
+        rewards: rewardLimit,
+      },
+      // Member limit status with warnings
+      memberLimitStatus: memberLimitStatus ? {
+        currentCount: memberLimitStatus.currentCount,
+        baseLimit: memberLimitStatus.baseLimit,
+        addonSlots: memberLimitStatus.addonSlots,
+        addonMembers: memberLimitStatus.addonMembers,
+        totalLimit: memberLimitStatus.totalLimit,
+        effectiveLimit: memberLimitStatus.effectiveLimit,
+        remaining: memberLimitStatus.remaining,
+        percentUsed: memberLimitStatus.percentUsed,
+        isAtLimit: memberLimitStatus.isAtLimit,
+        isNearLimit: memberLimitStatus.isNearLimit,
+        inGracePeriod: memberLimitStatus.inGracePeriod,
+        gracePeriodDaysRemaining: memberLimitStatus.gracePeriodDaysRemaining,
+        canAddMembers: memberLimitStatus.canAddMembers,
+      } : null,
+      // Addon purchase info
+      memberAddon: {
+        pricePerSlot: MEMBER_ADDON.price,
+        membersPerSlot: MEMBER_ADDON.membersPerSlot,
+        canPurchase: merchant.plan !== 'STARTER',
+      },
+      // System warnings
+      warnings,
       mainBusiness: mainBusiness ? {
         id: mainBusiness.id,
         name: mainBusiness.name,

@@ -1,6 +1,11 @@
 // src/lib/email/notifications.ts
 
 import nodemailer from 'nodemailer';
+import { sendEmail } from './resend';
+import { generateTrialExpiringEmail, type TrialExpiringEmailParams } from './templates/trial-expiring';
+import { generateMerchantWelcomeEmail, type MerchantWelcomeEmailParams } from './templates/merchant-welcome';
+import { generatePaymentFailedEmail, type PaymentFailedEmailParams } from './templates/payment-failed';
+import { generateStaffInviteEmail, type StaffInviteEmailParams } from './templates/staff-invite';
 
  
 
@@ -834,4 +839,129 @@ If you didn't request this email, you can safely ignore it.
 
 }
 
- 
+// =============================================================================
+// Template-based emails using Resend
+// =============================================================================
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.getonblockchain.com';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL || 'support@getonblockchain.com';
+
+/**
+ * Send trial expiring notification email
+ */
+export async function sendTrialExpiringEmail(
+  email: string,
+  params: Omit<TrialExpiringEmailParams, 'upgradeUrl' | 'dashboardUrl'>
+): Promise<boolean> {
+  try {
+    const html = generateTrialExpiringEmail({
+      ...params,
+      upgradeUrl: `${APP_URL}/dashboard/settings?tab=plans`,
+      dashboardUrl: `${APP_URL}/dashboard`,
+    });
+
+    const daysText = params.daysRemaining === 1 ? '1 day' : `${params.daysRemaining} days`;
+    await sendEmail({
+      to: email,
+      subject: `Your ${params.currentPlan} trial expires in ${daysText}`,
+      html,
+    });
+
+    console.log(`[Email] Trial expiring notification sent to ${email}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send trial expiring email:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send merchant welcome email after registration
+ */
+export async function sendMerchantWelcomeEmail(
+  email: string,
+  params: Omit<MerchantWelcomeEmailParams, 'dashboardUrl' | 'qrCodeUrl' | 'supportEmail'>
+): Promise<boolean> {
+  try {
+    const html = generateMerchantWelcomeEmail({
+      ...params,
+      dashboardUrl: `${APP_URL}/dashboard`,
+      qrCodeUrl: `${APP_URL}/dashboard/settings?tab=qr`,
+      supportEmail: SUPPORT_EMAIL,
+    });
+
+    await sendEmail({
+      to: email,
+      subject: `Welcome to Get On Blockchain, ${params.merchantName}!`,
+      html,
+    });
+
+    console.log(`[Email] Welcome email sent to ${email}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send welcome email:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send payment failed notification email
+ */
+export async function sendPaymentFailedNotification(
+  email: string,
+  params: Omit<PaymentFailedEmailParams, 'updatePaymentUrl' | 'dashboardUrl' | 'supportEmail'>
+): Promise<boolean> {
+  try {
+    const html = generatePaymentFailedEmail({
+      ...params,
+      updatePaymentUrl: `${APP_URL}/dashboard/settings?tab=plans`,
+      dashboardUrl: `${APP_URL}/dashboard`,
+      supportEmail: SUPPORT_EMAIL,
+    });
+
+    await sendEmail({
+      to: email,
+      subject: `Payment failed for ${params.businessName} - Action required`,
+      html,
+    });
+
+    console.log(`[Email] Payment failed notification sent to ${email}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send payment failed email:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send staff invitation email
+ */
+export async function sendStaffInviteEmail(
+  params: Omit<StaffInviteEmailParams, 'inviteUrl'> & { inviteToken: string }
+): Promise<boolean> {
+  try {
+    const inviteUrl = `${APP_URL}/dashboard/accept-invite?token=${params.inviteToken}`;
+
+    const html = generateStaffInviteEmail({
+      staffName: params.staffName,
+      staffEmail: params.staffEmail,
+      merchantName: params.merchantName,
+      inviterName: params.inviterName,
+      inviteUrl,
+      expiresAt: params.expiresAt,
+      permissions: params.permissions,
+    });
+
+    await sendEmail({
+      to: params.staffEmail,
+      subject: `You're invited to join ${params.merchantName} on Get On Blockchain`,
+      html,
+    });
+
+    console.log(`[Email] Staff invitation sent to ${params.staffEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send staff invitation:', error.message);
+    return false;
+  }
+}

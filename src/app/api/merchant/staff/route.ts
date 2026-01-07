@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
-import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
+import { sendStaffInviteEmail } from "@/lib/email/notifications";
 
+/**
+ * GET /api/merchant/staff
+ * Get all staff members for the current merchant
+ */
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -45,11 +50,24 @@ export async function GET() {
         isActive: true,
         createdAt: true,
         lastLoginAt: true,
+        inviteSentAt: true,
+        inviteAcceptedAt: true,
+        inviteExpiresAt: true,
       },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ staff });
+    // Add status field for UI display
+    const staffWithStatus = staff.map((s) => ({
+      ...s,
+      status: s.inviteAcceptedAt
+        ? "active"
+        : s.inviteExpiresAt && new Date() > s.inviteExpiresAt
+        ? "expired"
+        : "pending",
+    }));
+
+    return NextResponse.json({ staff: staffWithStatus });
   } catch (error: any) {
     console.error("Get staff error:", error);
     return NextResponse.json(
@@ -59,6 +77,10 @@ export async function GET() {
   }
 }
 
+/**
+ * POST /api/merchant/staff
+ * Create a new staff member and send email invitation
+ */
 export async function POST(req: NextRequest) {
   try {
     const cookieStore = await cookies();
@@ -89,6 +111,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Get merchant info for the invitation email
+    const merchant = await prisma.merchant.findUnique({
+      where: { id: merchantId },
+      select: { name: true, loginEmail: true },
+    });
+
+    if (!merchant) {
+      return NextResponse.json(
+        { error: "Merchant not found" },
+        { status: 404 }
+      );
+    }
+
     const { fullName, email, canManageMembers, canViewReports, canManageSettings } = await req.json();
 
     if (!fullName || !email) {
@@ -98,6 +133,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check for existing staff
     const existing = await prisma.staff.findUnique({
       where: { email },
     });
@@ -109,34 +145,67 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Generate a temporary password hash
-    // TODO: In future phase, send email invite for staff to set their own password
-    const tempPassword = Math.random().toString(36).slice(-12);
-    const passwordHash = await bcrypt.hash(tempPassword, 10);
+    // Generate secure invite token
+    const inviteToken = randomBytes(32).toString("hex");
+    const inviteExpiresAt = new Date();
+    inviteExpiresAt.setDate(inviteExpiresAt.getDate() + 7); // 7 days to accept
 
+    // Create staff record with pending invitation
     const staff = await prisma.staff.create({
       data: {
         merchantId,
         fullName,
         email,
-        passwordHash,
-        canManageMembers: canManageMembers || false,
-        canViewReports: canViewReports !== undefined ? canViewReports : true,
-        canManageSettings: canManageSettings || false,
+        passwordHash: null, // Will be set when invite is accepted
+        canManageMembers: canManageMembers ?? false,
+        canViewReports: canViewReports ?? true,
+        canManageSettings: canManageSettings ?? false,
+        inviteToken,
+        inviteExpiresAt,
+        inviteSentAt: new Date(),
+        invitedById: merchantId, // Track who invited them
       },
     });
 
-    // TODO Phase: Email Invitation System
-    // - Send email to staff member with secure invite link
-    // - Link should allow staff to set their own password
-    // - Staff login uses same merchant dashboard at /dashboard/login
-    // - Add 'role' field to distinguish merchant owner vs staff
-    // - Temporary password approach is placeholder only
+    // Send invitation email
+    const emailSent = await sendStaffInviteEmail({
+      staffName: fullName,
+      staffEmail: email,
+      merchantName: merchant.name,
+      inviterName: merchant.name, // Could be the merchant owner name
+      inviteToken,
+      expiresAt: inviteExpiresAt,
+      permissions: {
+        canManageMembers: canManageMembers ?? false,
+        canViewReports: canViewReports ?? true,
+        canManageSettings: canManageSettings ?? false,
+      },
+    });
 
-    return NextResponse.json({ success: true, staff });
+    if (!emailSent) {
+      console.warn(`[Staff] Email failed to send for ${email}, but invite was created`);
+    }
+
+    return NextResponse.json({
+      success: true,
+      staff: {
+        id: staff.id,
+        email: staff.email,
+        fullName: staff.fullName,
+        canManageMembers: staff.canManageMembers,
+        canViewReports: staff.canViewReports,
+        canManageSettings: staff.canManageSettings,
+        isActive: staff.isActive,
+        createdAt: staff.createdAt,
+        inviteSentAt: staff.inviteSentAt,
+        inviteExpiresAt: staff.inviteExpiresAt,
+        status: "pending",
+      },
+      emailSent,
+    });
   } catch (error: any) {
     console.error("Add staff error:", error);
-    
+
     let errorMessage = "Failed to add staff member";
     if (error.code === 'P2002') errorMessage = "Email already exists";
     else if (error.code === 'P2003') errorMessage = "Invalid merchant";

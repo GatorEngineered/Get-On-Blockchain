@@ -20,6 +20,31 @@ export default function Pricing() {
         </div>
 
         <div className="pricing-grid">
+          {/* Starter Tier - $0/month */}
+          <div className="pricing-card">
+            <p className="pricing-pill">Starter</p>
+            <h3>Try It Free</h3>
+            <p className="pricing-price">$0<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-setup"></p>
+            <ul className="pricing-list">
+              <li>QR-based loyalty with points & rewards</li>
+              <li>Redeem for free products/discounts</li>
+              <li>1 merchant claim page</li>
+              <li>Basic dashboard</li>
+              <li>Up to 5 active members</li>
+              <li>1 reward in catalog</li>
+            </ul>
+            <button
+              className="btn btn-secondary btn-full"
+              onClick={() => {
+                window.location.href = "/merchant/signup";
+              }}
+            >
+              Start Free
+            </button>
+            <p className="pricing-footnote">Perfect for testing the waters before you commit.</p>
+          </div>
+
           {/* Basic Tier - $99/month */}
           <div className="pricing-card">
             <p className="pricing-pill">Basic</p>
@@ -33,6 +58,7 @@ export default function Pricing() {
               <li>Basic dashboard & analytics</li>
               <li>Simple POS receipt QR (just print the URL)</li>
               <li>Up to 1,000 active members</li>
+              <li>Unlimited rewards in catalog</li>
             </ul>
             <button
               className="btn btn-primary btn-full"
@@ -56,8 +82,9 @@ export default function Pricing() {
               <li>Stablecoin rewards (your unique angle)</li>
               <li>&quot;Give your customers REAL money, not just points&quot;</li>
               <li>Blockchain-verified rewards</li>
-              <li>Customer wallet setup (MetaMask, Trust Wallet, Coinbase Wallet, etc.)</li>
+              <li>Customer wallet setup (MetaMask, Trust Wallet, etc.)</li>
               <li>Milestone-based payouts (100 points = $5 USDC)</li>
+              <li>Configure payout wallet</li>
               <li>Up to 5,000 active members & priority support</li>
             </ul>
             <button
@@ -127,12 +154,6 @@ export default function Pricing() {
         </div>
 
         <div className="pricing-extra">
-          <p>
-            Need something lighter?{" "}
-            <span className="pricing-extra-highlight">
-              Per-claim pricing is available for micro-shops on request.
-            </span>
-          </p>
           <p className="pricing-extra-note">
             Taxes, card/processor fees, and any on-chain gas costs (when used) are separate.
           </p>

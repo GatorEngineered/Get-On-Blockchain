@@ -25,16 +25,22 @@ const prisma = new PrismaClient();
  */
 export async function GET(req: NextRequest) {
   try {
-    // Optional: Verify cron secret token
-    const { searchParams } = new URL(req.url);
-    const providedToken = searchParams.get('token');
+    // Verify cron secret - supports both header (Vercel Cron) and query param
     const expectedToken = process.env.CRON_SECRET;
+    if (expectedToken) {
+      const authHeader = req.headers.get('authorization');
+      const { searchParams } = new URL(req.url);
+      const queryToken = searchParams.get('token');
 
-    if (expectedToken && providedToken !== expectedToken) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      const isValidHeader = authHeader === `Bearer ${expectedToken}`;
+      const isValidQuery = queryToken === expectedToken;
+
+      if (!isValidHeader && !isValidQuery) {
+        return NextResponse.json(
+          { error: 'Unauthorized' },
+          { status: 401 }
+        );
+      }
     }
 
     console.log('[Cron] Starting wallet balance check...');
@@ -125,6 +131,90 @@ export async function GET(req: NextRequest) {
                 },
               },
             });
+          }
+        }
+
+        // Check if balance is now sufficient for waiting members
+        if (balance.usdcBalance >= merchant.payoutAmountUSD) {
+          // Find members waiting for notification
+          const waitingMembers = await prisma.payoutNotificationRequest.findMany({
+            where: {
+              merchantId: merchant.id,
+              notified: false,
+            },
+            include: {
+              member: {
+                select: { firstName: true },
+              },
+            },
+          });
+
+          // Notify waiting members
+          for (const request of waitingMembers) {
+            try {
+              await sendEmail({
+                to: request.memberEmail,
+                subject: `🎉 Your ${merchant.name} payout is ready to claim!`,
+                html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }
+    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+    .amount { font-size: 2.5em; font-weight: bold; color: #10b981; margin: 20px 0; text-align: center; }
+    .button { display: inline-block; background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 1.1em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Great News!</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${request.member.firstName || 'there'}!</p>
+      <p>Your <strong>${merchant.name}</strong> payout is now ready to claim!</p>
+
+      <div class="amount">$${request.payoutAmount.toFixed(2)} USDC</div>
+
+      <p>You earned this with your <strong>${request.pointsEarned} points</strong>. Head to your dashboard to claim it now!</p>
+
+      <center>
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://app.getonblockchain.com'}/member/dashboard" class="button">
+          Claim Your Reward →
+        </a>
+      </center>
+
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+      <p style="font-size: 0.9em; color: #6b7280;">
+        You received this because you requested to be notified when your payout was ready.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+                `,
+              });
+
+              // Mark as notified
+              await prisma.payoutNotificationRequest.update({
+                where: { id: request.id },
+                data: {
+                  notified: true,
+                  notifiedAt: new Date(),
+                },
+              });
+
+              console.log(`[Cron] Notified ${request.memberEmail} - payout ready for ${merchant.slug}`);
+            } catch (notifyError) {
+              console.error(`[Cron] Failed to notify ${request.memberEmail}:`, notifyError);
+            }
+          }
+
+          if (waitingMembers.length > 0) {
+            console.log(`[Cron] Notified ${waitingMembers.length} waiting members for ${merchant.slug}`);
           }
         }
 

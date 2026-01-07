@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import styles from './settings.module.css';
 import AccountSettings from './components/AccountSettings';
+import BillingSettings from './components/BillingSettings';
 import PayoutWalletSettings from './components/PayoutWalletSettings';
 import PlansSettings from './components/PlansSettings';
 import RewardTiersSettings from './components/RewardTiersSettings';
@@ -11,8 +12,9 @@ import RewardsSettings from './components/RewardsSettings';
 import EmailMarketingSettings from './components/EmailMarketingSettings';
 import SupportSettings from './components/SupportSettings';
 import QRCodesSettings from './components/QRCodesSettings';
+import POSIntegrationSettings from './components/POSIntegrationSettings';
 
-type SettingsTab = 'account' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'email-marketing' | 'support';
+type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'pos-integrations' | 'email-marketing' | 'support';
 
 export default function MerchantSettingsPage() {
   const router = useRouter();
@@ -106,6 +108,16 @@ export default function MerchantSettingsPage() {
             </button>
 
             <button
+              className={`${styles.navItem} ${activeTab === 'billing' ? styles.active : ''}`}
+              onClick={() => handleTabChange('billing')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              Billing
+            </button>
+
+            <button
               className={`${styles.navItem} ${activeTab === 'payout-wallet' ? styles.active : ''}`}
               onClick={() => handleTabChange('payout-wallet')}
             >
@@ -156,6 +168,16 @@ export default function MerchantSettingsPage() {
             </button>
 
             <button
+              className={`${styles.navItem} ${activeTab === 'pos-integrations' ? styles.active : ''}`}
+              onClick={() => handleTabChange('pos-integrations')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              </svg>
+              POS Integrations
+            </button>
+
+            <button
               className={`${styles.navItem} ${activeTab === 'email-marketing' ? styles.active : ''}`}
               onClick={() => handleTabChange('email-marketing')}
             >
@@ -186,6 +208,9 @@ export default function MerchantSettingsPage() {
               onRefresh={fetchMerchantData}
             />
           )}
+          {activeTab === 'billing' && (
+            <BillingSettings />
+          )}
           {activeTab === 'payout-wallet' && (
             <PayoutWalletSettings
               merchantData={merchantData}
@@ -213,6 +238,12 @@ export default function MerchantSettingsPage() {
           {activeTab === 'qr-codes' && (
             <QRCodesSettings
               merchantData={merchantData}
+            />
+          )}
+          {activeTab === 'pos-integrations' && (
+            <POSIntegrationSettings
+              merchantData={merchantData}
+              onUpdate={handleDataUpdate}
             />
           )}
           {activeTab === 'email-marketing' && (

@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import styles from "./pricing.module.css";
 
-type PlanId = "BASIC" | "PREMIUM"; // | "GROWTH" | "PRO"; // Commented out for Phase 1
+type PlanId = "STARTER" | "BASIC" | "PREMIUM"; // | "GROWTH" | "PRO"; // Commented out for Phase 1
 
 type Plan = {
     id: PlanId;
@@ -13,7 +13,9 @@ type Plan = {
     priceLabel?: string;
     description: string;
     features: string[];
-    bookingLink: string;
+    bookingLink?: string;
+    ctaText?: string;
+    ctaLink?: string;
 };
 
 
@@ -24,6 +26,24 @@ export const metadata: Metadata = {
 };
 
 const plans: Plan[] = [
+    {
+        id: "STARTER",
+        name: "Starter",
+        priceMonthly: 0,
+        priceLabel: "Free",
+        description:
+            "Try our loyalty platform with no commitment. Perfect for testing the waters before you upgrade.",
+        features: [
+            "QR-based loyalty with points & rewards",
+            "Redeem for free products/discounts",
+            "1 merchant claim page",
+            "Basic dashboard",
+            "Up to 5 active members",
+            "1 reward in catalog",
+        ],
+        ctaText: "Start Free",
+        ctaLink: "/merchant/signup",
+    },
     {
         id: "BASIC",
         name: "Basic",
@@ -37,6 +57,7 @@ const plans: Plan[] = [
             "Basic dashboard & analytics",
             "Simple POS receipt QR (just print the URL)",
             "Up to 1,000 active members",
+            "Unlimited rewards in catalog",
             "Email support",
         ],
         bookingLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/yPu7yBfQtE2IJIoMETcTxQ2?ismsaljsauthenabled",
@@ -53,8 +74,9 @@ const plans: Plan[] = [
             "Stablecoin rewards (your unique angle)",
             "\"Give your customers REAL money, not just points\"",
             "Blockchain-verified rewards",
-            "Customer wallet setup (MetaMask, Trust Wallet, Coinbase Wallet, etc.)",
+            "Customer wallet setup (MetaMask, Trust Wallet, etc.)",
             "Milestone-based payouts (100 points = $5 USDC)",
+            "Configure payout wallet",
             "Up to 5,000 active members",
             "Priority email support",
         ],
@@ -189,14 +211,23 @@ export default function PricingPage() {
               </ul>
 
               <div className={styles.cardActions}>
-                <Link
-                  href={plan.bookingLink}
-                  className={styles.primaryBtn}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Get Started
-                </Link>
+                {plan.ctaLink ? (
+                  <Link
+                    href={plan.ctaLink}
+                    className={styles.primaryBtn}
+                  >
+                    {plan.ctaText || "Get Started"}
+                  </Link>
+                ) : (
+                  <Link
+                    href={plan.bookingLink || "#"}
+                    className={styles.primaryBtn}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Get Started
+                  </Link>
+                )}
 
                 <Link href="/support" className={styles.secondaryBtn}>
                   Talk to sales
@@ -212,20 +243,12 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* FOOTNOTES & LIGHTER OPTION */}
+      {/* FOOTNOTES */}
       <section className={styles.footnoteSection}>
-        <p className={styles.footnoteMain}>
-          Need something lighter?{" "}
-          <strong>
-            Per-claim pricing is available for micro-shops on request.
-          </strong>
-        </p>
         <p className={styles.footnoteSub}>
           * Higher volumes, more locations, or very complex setups may require a
-          custom quote. NFT options can include additional fees if we need to
-          bring in a designer or implement advanced custom designs. Taxes,
-          card / processor fees, and any on-chain gas costs (when used) are
-          separate.
+          custom quote. Taxes, card/processor fees, and any on-chain gas costs
+          (when used) are separate.
         </p>
       </section>
     </div>

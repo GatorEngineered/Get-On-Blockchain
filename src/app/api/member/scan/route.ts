@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/app/lib/prisma";
 import crypto from "crypto";
 import { generateWallet } from "@/app/lib/blockchain/wallet";
+import { canAddNewMember } from "@/app/lib/plan-limits";
 
 const QR_SECRET = process.env.QR_SECRET || "default-secret-change-in-production";
 
@@ -199,21 +200,18 @@ export async function POST(req: NextRequest) {
     const isNewMember = !merchantMember;
 
     if (!merchantMember) {
-      // Check Starter plan limit (max 5 customers)
-      if (merchant.plan === "STARTER") {
-        const currentMemberCount = await prisma.merchantMember.count({
-          where: { merchantId: merchant.id },
-        });
+      // Check plan member limits using centralized utility
+      const memberCheck = await canAddNewMember(merchant.id);
 
-        if (currentMemberCount >= 5) {
-          return NextResponse.json(
-            {
-              error: "This merchant's plan doesn't support additional customers. Please ask them to upgrade their plan.",
-              planLimited: true,
-            },
-            { status: 403 }
-          );
-        }
+      if (!memberCheck.allowed) {
+        return NextResponse.json(
+          {
+            error: memberCheck.reason,
+            planLimited: true,
+            memberLimitStatus: memberCheck.memberLimitStatus,
+          },
+          { status: 403 }
+        );
       }
 
       // Create new merchant member with welcome points

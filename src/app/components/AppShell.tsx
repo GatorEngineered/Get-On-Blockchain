@@ -27,18 +27,19 @@ export function SiteHeader() {
   };
 
   return (
-    <header className={styles.siteHeader}>
+    <header className={styles.siteHeader} role="banner">
       <div className={styles.siteHeaderInner}>
         {/* LEFT SIDE LOGO */}
         <div className={styles.siteHeaderBrand}>
-          <Link href="/" className={styles.siteHeaderLogo}>
+          <Link href="/" className={styles.siteHeaderLogo} aria-label="Get On Blockchain - Go to homepage">
             <Image
               src="/getonblockchain-favicon-resized.png"
-              alt="Get On Blockchain logo"
+              alt=""
               width={36}
               height={36}
               className={styles.siteHeaderLogoIcon}
               priority
+              aria-hidden="true"
             />
 
             <span className={styles.siteHeaderLogoText}>
@@ -48,7 +49,7 @@ export function SiteHeader() {
         </div>
 
         {/* CENTER NAV */}
-        <nav className={styles.siteHeaderNav}>
+        <nav className={styles.siteHeaderNav} aria-label="Main navigation">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -58,6 +59,7 @@ export function SiteHeader() {
                 " " +
                 (isActive(link.href) ? styles.isActive : "")
               }
+              aria-current={isActive(link.href) ? "page" : undefined}
             >
               {link.label}
             </Link>
@@ -65,7 +67,7 @@ export function SiteHeader() {
         </nav>
 
         {/* RIGHT CTA */}
-        <div className={styles.siteHeaderCta}>
+        <div className={styles.siteHeaderCta} role="group" aria-label="Account actions">
           <Link
             href="/member/login"
             className={styles.siteHeaderLoginBtn}
@@ -78,7 +80,9 @@ export function SiteHeader() {
             className={styles.siteHeaderBusinessBtn}
             onClick={(e) => handleNavigation(e, '/dashboard/login')}
           >
-            For Businesses →
+            <span className="sr-only">Business dashboard - </span>
+            For Businesses
+            <span aria-hidden="true"> →</span>
           </Link>
         </div>
       </div>
@@ -90,7 +94,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="site-page">
       <SiteHeader />
-      <main className="site-main">{children}</main>
+      <main
+        id="main-content"
+        className="site-main"
+        tabIndex={-1}
+        role="main"
+        aria-label="Main content"
+      >
+        {children}
+      </main>
     </div>
   );
 }

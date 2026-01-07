@@ -39,6 +39,28 @@ interface SubscriptionDetails {
   };
 }
 
+interface MemberLimitStatus {
+  currentCount: number;
+  baseLimit: number;
+  addonSlots: number;
+  addonMembers: number;
+  totalLimit: number;
+  effectiveLimit: number;
+  remaining: number;
+  percentUsed: number;
+  isAtLimit: boolean;
+  isNearLimit: boolean;
+  inGracePeriod: boolean;
+  gracePeriodDaysRemaining: number;
+  canAddMembers: boolean;
+}
+
+interface MemberAddonInfo {
+  pricePerSlot: number;
+  membersPerSlot: number;
+  canPurchase: boolean;
+}
+
 const PLAN_DETAILS = {
   STARTER: {
     name: 'Starter',
@@ -112,8 +134,15 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
 
+  // Member limit state
+  const [memberLimitStatus, setMemberLimitStatus] = useState<MemberLimitStatus | null>(null);
+  const [memberAddonInfo, setMemberAddonInfo] = useState<MemberAddonInfo | null>(null);
+  const [addonSlots, setAddonSlots] = useState(1);
+  const [purchasingAddon, setPurchasingAddon] = useState(false);
+
   useEffect(() => {
     fetchSubscriptionDetails();
+    fetchMemberLimitStatus();
   }, []);
 
   async function fetchSubscriptionDetails() {
@@ -131,6 +160,66 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
       setError(err.message || 'Failed to load subscription details');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchMemberLimitStatus() {
+    try {
+      const res = await fetch('/api/merchant/member-addon');
+      if (!res.ok) {
+        console.error('Failed to fetch member limit status');
+        return;
+      }
+      const data = await res.json();
+      if (data.status) {
+        setMemberLimitStatus(data.status);
+      }
+      if (data.addon) {
+        setMemberAddonInfo(data.addon);
+      }
+    } catch (err) {
+      console.error('Error fetching member limit status:', err);
+    }
+  }
+
+  async function handlePurchaseAddon() {
+    if (!memberAddonInfo?.canPurchase || addonSlots < 1) return;
+
+    try {
+      setPurchasingAddon(true);
+      setError('');
+      setSuccess('');
+
+      // For now, we simulate a successful purchase
+      // In production, this would integrate with PayPal
+      const res = await fetch('/api/merchant/member-addon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          slots: addonSlots,
+          // paymentIntentId would come from PayPal in production
+          paymentIntentId: `demo_${Date.now()}`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to purchase addon');
+      }
+
+      if (data.action === 'PAYMENT_REQUIRED') {
+        // In production, redirect to PayPal payment
+        setSuccess(`Ready to add ${data.purchase.membersAdded.toLocaleString()} members for $${data.purchase.cost}. Payment integration coming soon.`);
+      } else {
+        setSuccess(data.message);
+        // Refresh member limit status
+        await fetchMemberLimitStatus();
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to purchase addon');
+    } finally {
+      setPurchasingAddon(false);
     }
   }
 
@@ -201,6 +290,12 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
     }
   }
 
+  function getProgressBarClass(percentUsed: number): string {
+    if (percentUsed >= 100) return styles.progressFillDanger;
+    if (percentUsed >= 80) return styles.progressFillWarning;
+    return styles.progressFillNormal;
+  }
+
   if (loading) {
     return (
       <div>
@@ -259,6 +354,125 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
           </ul>
         </div>
       </div>
+
+      {/* Member Limits */}
+      {memberLimitStatus && (
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Member Limits</h3>
+
+          {/* Grace Period Warning */}
+          {memberLimitStatus.inGracePeriod && (
+            <div className={styles.gracePeriodBanner}>
+              <div className={styles.gracePeriodTitle}>Grace Period Active</div>
+              <p className={styles.gracePeriodText}>
+                You have {memberLimitStatus.gracePeriodDaysRemaining} days remaining in your grace period.
+                After this period, new member restrictions will take effect based on your current plan limits.
+              </p>
+            </div>
+          )}
+
+          {/* Near Limit Warning */}
+          {memberLimitStatus.isNearLimit && !memberLimitStatus.isAtLimit && (
+            <div className={styles.warningBanner}>
+              <span className={styles.warningIcon}>⚠️</span>
+              <span className={styles.warningText}>
+                You're approaching your member limit ({memberLimitStatus.percentUsed.toFixed(0)}% used).
+                Consider upgrading or purchasing additional member slots to avoid disruption.
+              </span>
+            </div>
+          )}
+
+          {/* At Limit Warning */}
+          {memberLimitStatus.isAtLimit && (
+            <div className={styles.warningBanner}>
+              <span className={styles.warningIcon}>🚫</span>
+              <span className={styles.warningText}>
+                You've reached your member limit. New members cannot join until you upgrade or purchase additional slots.
+              </span>
+            </div>
+          )}
+
+          {/* Progress Bar */}
+          <div className={styles.memberLimitSection}>
+            <div className={styles.progressContainer}>
+              <div className={styles.progressHeader}>
+                <span className={styles.progressLabel}>Members</span>
+                <span className={styles.progressCount}>
+                  {memberLimitStatus.currentCount.toLocaleString()} / {memberLimitStatus.effectiveLimit.toLocaleString()}
+                </span>
+              </div>
+              <div className={styles.progressBar}>
+                <div
+                  className={`${styles.progressFill} ${getProgressBarClass(memberLimitStatus.percentUsed)}`}
+                  style={{ width: `${Math.min(100, memberLimitStatus.percentUsed)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Limit Details */}
+            <div className={styles.limitInfo}>
+              <div className={styles.limitItem}>
+                <span className={styles.limitItemLabel}>Base Limit</span>
+                <span className={styles.limitItemValue}>{memberLimitStatus.baseLimit.toLocaleString()}</span>
+              </div>
+              {memberLimitStatus.addonSlots > 0 && (
+                <div className={styles.limitItem}>
+                  <span className={styles.limitItemLabel}>Addon Slots</span>
+                  <span className={styles.limitItemValue}>+{memberLimitStatus.addonMembers.toLocaleString()}</span>
+                </div>
+              )}
+              <div className={styles.limitItem}>
+                <span className={styles.limitItemLabel}>Remaining</span>
+                <span className={styles.limitItemValue}>{memberLimitStatus.remaining.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Addon Purchase Section */}
+            {memberAddonInfo?.canPurchase && (
+              <div className={styles.addonSection}>
+                <div className={styles.addonTitle}>Need More Members?</div>
+                <p className={styles.addonDescription}>
+                  Purchase additional member slots at ${memberAddonInfo.pricePerSlot} per {memberAddonInfo.membersPerSlot.toLocaleString()} members.
+                </p>
+                <div className={styles.addonControls}>
+                  <div className={styles.addonInput}>
+                    <label>Slots:</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={addonSlots}
+                      onChange={(e) => setAddonSlots(Math.max(1, parseInt(e.target.value) || 1))}
+                      className={styles.addonInputField}
+                    />
+                  </div>
+                  <span className={styles.addonCost}>
+                    = {(addonSlots * memberAddonInfo.membersPerSlot).toLocaleString()} members for ${addonSlots * memberAddonInfo.pricePerSlot}
+                  </span>
+                  <button
+                    onClick={handlePurchaseAddon}
+                    disabled={purchasingAddon}
+                    className={styles.addonButton}
+                  >
+                    {purchasingAddon ? 'Processing...' : 'Purchase'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Starter Plan Message */}
+            {!memberAddonInfo?.canPurchase && details?.plan === 'STARTER' && (
+              <div className={styles.addonSection}>
+                <div className={styles.addonTitle}>Upgrade to Add More Members</div>
+                <p className={styles.addonDescription}>
+                  The Starter plan is limited to {memberLimitStatus.baseLimit} members.
+                  Upgrade to a paid plan to unlock more members and additional features.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Subscription Details */}
       {details.hasSubscription && details.paypalSubscription && (

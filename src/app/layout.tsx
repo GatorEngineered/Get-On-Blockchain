@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import AppShell from "@/app/components/AppShell"; // 🔹 new
-import  SmoothScroll  from "@/app/components/SmoothScroll";
+import AppShell from "@/app/components/AppShell";
+import SmoothScroll from "@/app/components/SmoothScroll";
 import Reveal from "@/app/components/Reveal";
 import ClientProviders from "@/app/providers/ClientProviders";
 import Footer from "@/app/components/Footer";
 import CookieBanner from "@/app/components/CookieBanner";
 import ErrorSuppressor from "@/app/components/ErrorSuppressor";
+import SkipLink from "@/app/components/SkipLink";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -166,6 +167,15 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ErrorSuppressor />
+        {/* Skip navigation for keyboard users - WCAG 2.4.1 */}
+        <SkipLink />
+        {/* Live region for screen reader announcements - WCAG 4.1.3 */}
+        <div
+          id="live-announcements"
+          className="live-region"
+          aria-live="polite"
+          aria-atomic="true"
+        />
         <ClientProviders>
           <SmoothScroll>
             <Reveal selector=".reveal">
@@ -174,7 +184,7 @@ export default function RootLayout({
           </SmoothScroll>
         </ClientProviders>
         <CookieBanner />
-        <Footer/>
+        <Footer />
       </body>
     </html>
   );

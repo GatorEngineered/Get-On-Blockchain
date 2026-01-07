@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { verifyWebhookSignature, getSubscription } from '@/app/lib/paypal/subscriptions';
+import { getPlanMemberLimit, GRACE_PERIOD_DAYS } from '@/app/lib/plan-limits';
+import { sendPaymentFailedNotification } from '@/lib/email/notifications';
 
 const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID;
 
@@ -161,14 +163,75 @@ async function handleSubscriptionUpdated(resource: any) {
   // Get full details
   const subscription = await getSubscription(subscriptionId);
 
-  // Sync status
+  // Get current merchant to check for plan change
+  const merchant = await prisma.merchant.findUnique({
+    where: { paypalSubscriptionId: subscriptionId },
+    select: { id: true, plan: true },
+  });
+
+  if (!merchant) {
+    console.error(`[PayPal] Merchant not found for subscription: ${subscriptionId}`);
+    return;
+  }
+
+  // Detect plan change from PayPal plan ID
+  const newPlan = getPlanFromPayPalPlanId(subscription.plan_id);
+  const oldPlan = merchant.plan;
+
+  // Check if this is a downgrade
+  const oldLimit = getPlanMemberLimit(oldPlan);
+  const newLimit = getPlanMemberLimit(newPlan);
+  const isDowngrade = newLimit < oldLimit;
+  const isUpgrade = newLimit > oldLimit;
+
+  // Prepare update data
+  const updateData: any = {
+    subscriptionStatus: mapPayPalStatus(subscription.status),
+  };
+
+  // If plan changed
+  if (newPlan !== oldPlan) {
+    updateData.plan = newPlan;
+
+    if (isDowngrade) {
+      // Set grace period for downgrade
+      const gracePeriodEndsAt = new Date();
+      gracePeriodEndsAt.setDate(gracePeriodEndsAt.getDate() + GRACE_PERIOD_DAYS);
+      updateData.previousPlan = oldPlan;
+      updateData.downgradeGracePeriodEndsAt = gracePeriodEndsAt;
+      console.log(`[PayPal] Plan downgrade detected: ${oldPlan} -> ${newPlan}, grace period until ${gracePeriodEndsAt}`);
+    } else if (isUpgrade) {
+      // Clear grace period on upgrade
+      updateData.previousPlan = null;
+      updateData.downgradeGracePeriodEndsAt = null;
+      console.log(`[PayPal] Plan upgrade detected: ${oldPlan} -> ${newPlan}`);
+    }
+  }
+
+  // Sync status and plan
   await prisma.merchant.update({
     where: { paypalSubscriptionId: subscriptionId },
-    data: {
-      // Map PayPal status to our status
-      subscriptionStatus: mapPayPalStatus(subscription.status),
-    },
+    data: updateData,
   });
+}
+
+/**
+ * Map PayPal plan ID to our plan enum
+ */
+function getPlanFromPayPalPlanId(planId: string): string {
+  // Map PayPal plan IDs to our plan names
+  const planMap: Record<string, string> = {
+    [process.env.PAYPAL_PLAN_BASIC_MONTHLY || '']: 'BASIC',
+    [process.env.PAYPAL_PLAN_BASIC_ANNUAL || '']: 'BASIC',
+    [process.env.PAYPAL_PLAN_PREMIUM_MONTHLY || '']: 'PREMIUM',
+    [process.env.PAYPAL_PLAN_PREMIUM_ANNUAL || '']: 'PREMIUM',
+    [process.env.PAYPAL_PLAN_GROWTH_MONTHLY || '']: 'GROWTH',
+    [process.env.PAYPAL_PLAN_GROWTH_ANNUAL || '']: 'GROWTH',
+    [process.env.PAYPAL_PLAN_PRO_MONTHLY || '']: 'PRO',
+    [process.env.PAYPAL_PLAN_PRO_ANNUAL || '']: 'PRO',
+  };
+
+  return planMap[planId] || 'STARTER';
 }
 
 /**
@@ -201,6 +264,12 @@ async function handleSubscriptionSuspended(resource: any) {
 
   console.log(`[PayPal] Subscription suspended: ${subscriptionId}`);
 
+  // Get merchant to send email
+  const merchant = await prisma.merchant.findUnique({
+    where: { paypalSubscriptionId: subscriptionId },
+    include: { businesses: { take: 1 } },
+  });
+
   await prisma.merchant.update({
     where: { paypalSubscriptionId: subscriptionId },
     data: {
@@ -208,8 +277,21 @@ async function handleSubscriptionSuspended(resource: any) {
     },
   });
 
-  // TODO: Send payment failed email
-  console.log(`[PayPal] TODO: Send payment failed email for subscription ${subscriptionId}`);
+  // Send payment failed email
+  if (merchant && merchant.loginEmail) {
+    const subscription = await getSubscription(subscriptionId);
+    const amount = subscription.billing_info?.last_payment?.amount?.value || '0';
+
+    sendPaymentFailedNotification(merchant.loginEmail, {
+      merchantName: merchant.name,
+      businessName: merchant.businesses[0]?.name || merchant.name,
+      currentPlan: merchant.plan,
+      amount: `$${amount}`,
+      failureReason: 'Payment was suspended by PayPal. Please check your payment method.',
+    }).catch((err) => {
+      console.error('[PayPal] Failed to send payment failed email:', err);
+    });
+  }
 }
 
 /**
@@ -263,6 +345,12 @@ async function handlePaymentFailed(resource: any) {
 
   console.log(`[PayPal] Payment failed/refunded for subscription: ${billingAgreementId}`);
 
+  // Get merchant to send email
+  const merchant = await prisma.merchant.findUnique({
+    where: { paypalSubscriptionId: billingAgreementId },
+    include: { businesses: { take: 1 } },
+  });
+
   // Mark as past due
   await prisma.merchant.update({
     where: { paypalSubscriptionId: billingAgreementId },
@@ -271,8 +359,23 @@ async function handlePaymentFailed(resource: any) {
     },
   });
 
-  // TODO: Send payment failed email
-  console.log(`[PayPal] TODO: Send payment failed email for subscription ${billingAgreementId}`);
+  // Send payment failed email
+  if (merchant && merchant.loginEmail) {
+    const amount = resource.amount?.total || '0';
+    const failureReason = resource.state === 'refunded'
+      ? 'Your payment was refunded.'
+      : 'Your payment was declined. Please update your payment method.';
+
+    sendPaymentFailedNotification(merchant.loginEmail, {
+      merchantName: merchant.name,
+      businessName: merchant.businesses[0]?.name || merchant.name,
+      currentPlan: merchant.plan,
+      amount: `$${amount}`,
+      failureReason,
+    }).catch((err) => {
+      console.error('[PayPal] Failed to send payment failed email:', err);
+    });
+  }
 }
 
 /**

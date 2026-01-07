@@ -74,6 +74,12 @@ model Merchant {
   lowBalanceThreshold   Float     @default(50.0)
   notificationEmail     String?
 
+  // Member Limit Addons & Grace Period
+  additionalMemberSlots     Int       @default(0) // Each slot = 500 members ($10 per slot)
+  downgradeGracePeriodEndsAt DateTime? // 15-day grace period after downgrade
+  previousPlan              String?   // Track what plan they downgraded from
+  lastTrialEmailSent        Int?      // Track last trial expiring email sent (days remaining)
+
   // POS Integration (Secure OAuth Storage)
   squareAccessToken   String? // Encrypted Square OAuth token
   squareRefreshToken  String? // Encrypted refresh token
@@ -94,6 +100,10 @@ model Merchant {
   staff           Staff[]
   merchantMembers MerchantMember[] // NEW: Merchant-level member relationships
   rewards         Reward[]         // Customizable rewards catalog
+  tierConfigs     MemberTierConfig[] // Custom tier configurations (Growth/Pro)
+  payoutMilestones PayoutMilestone[] // Multiple payout milestones (Growth/Pro)
+  pointsConfigs   PointsConfig[]     // Custom points rules (Growth/Pro)
+  payoutNotificationRequests PayoutNotificationRequest[] // Members waiting for funds
 }
 
 /// *
@@ -129,6 +139,7 @@ model Member {
   scans              Scan[]
   memberWallet       MemberWallet?
   merchantMembers    MerchantMember[] // NEW: Merchant-level memberships
+  payoutNotificationRequests PayoutNotificationRequest[] // Waiting for merchant funds
 }
 
 /// *
@@ -284,7 +295,7 @@ model BlogPost {
 model Staff {
   id                String    @id @default(cuid())
   email             String    @unique
-  passwordHash      String
+  passwordHash      String?   // Null until invite is accepted
   fullName          String
   merchantId        String
   canManageMembers  Boolean   @default(true)
@@ -295,7 +306,15 @@ model Staff {
   lastLoginAt       DateTime?
   merchant          Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
 
+  // Invitation system
+  inviteToken       String?   @unique // Secure token for email invite link
+  inviteExpiresAt   DateTime? // When the invite expires (7 days)
+  inviteSentAt      DateTime? // When the invite email was sent
+  inviteAcceptedAt  DateTime? // When staff accepted and set password
+  invitedById       String?   // Merchant user who sent the invite
+
   @@index([merchantId])
+  @@index([inviteToken])
 }
 
 /// *
@@ -400,6 +419,67 @@ model Reward {
   @@index([merchantId])
 }
 
+/// *
+///  * Custom member tier configurations per merchant (Growth/Pro plans)
+///  * Allows adding more than 3 tiers with custom thresholds
+model MemberTierConfig {
+  id          String   @id @default(cuid())
+  merchantId  String
+  name        String   // "BASE", "SILVER", "GOLD", "PLATINUM", etc.
+  displayName String   // "Base Member", "Silver Member", etc.
+  description String?  // "Starter level", "Unlocked after 10 visits"
+  threshold   Int      // Points required to reach this tier
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  merchant    Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, name])
+  @@index([merchantId])
+}
+
+/// *
+///  * Multiple payout milestones per merchant (Growth/Pro plans)
+///  * Allows different USDC amounts at different point thresholds
+///  * Future: support multiple stablecoins and blockchain networks
+model PayoutMilestone {
+  id             String   @id @default(cuid())
+  merchantId     String
+  name           String   // "$5 USDC Payout", "$10 USDC Payout"
+  pointsRequired Int      // Points needed to claim this milestone
+  usdcAmount     Float    // Amount in USDC to pay out
+  stablecoin     String   @default("USDC") // Future: USDT, DAI, etc.
+  network        String   @default("polygon") // Future: eth, sol, xrp, base, etc.
+  sortOrder      Int      @default(0)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  merchant       Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+}
+
+/// *
+///  * Custom points configuration per merchant (Growth/Pro plans)
+///  * Allows custom earn rules beyond basic visit points
+model PointsConfig {
+  id           String   @id @default(cuid())
+  merchantId   String
+  name         String   // "Visit Bonus", "Referral Bonus", "Birthday Bonus"
+  triggerType  String   // "VISIT", "REFERRAL", "SPEND", "BIRTHDAY", "CUSTOM"
+  pointsAmount Int      // Base points to award
+  multiplier   Float    @default(1.0) // Optional multiplier
+  conditions   Json?    // {"minSpend": 50, "dayOfWeek": "MONDAY"}
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  merchant     Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+}
+
 enum RewardKind {
   TRADITIONAL // Redeemed in-store (free item, discount, etc.)
   USDC_PAYOUT // Crypto payout to member wallet
@@ -431,6 +511,25 @@ enum MerchantPlan {
   PREMIUM
   GROWTH
   PRO
+}
+
+// Track members who want to be notified when merchant has funds for payout
+model PayoutNotificationRequest {
+  id              String   @id @default(cuid())
+  merchantId      String
+  memberId        String
+  memberEmail     String   // Store email for notification
+  pointsEarned    Int      // Points they had when requesting
+  payoutAmount    Float    // Amount they were trying to claim
+  notified        Boolean  @default(false) // Has been notified
+  notifiedAt      DateTime? // When notification was sent
+  createdAt       DateTime @default(now())
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  member          Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, memberId]) // One request per member per merchant
+  @@index([merchantId])
+  @@index([memberId])
 }
 
 enum MemberTier {
