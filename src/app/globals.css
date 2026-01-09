@@ -6,11 +6,17 @@
   --color-text: #111827;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
+  overflow-x: hidden;
+  position: relative;
 }
 
 main {
