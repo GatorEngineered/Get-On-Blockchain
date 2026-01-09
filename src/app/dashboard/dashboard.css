@@ -969,91 +969,35 @@
 @media (max-width: 900px) {
 
   /* Make dashboard card full width on mobile */
-
   .dashboard-card {
-
-    margin: 20px 10px;
-
-    border-radius: 20px;
-
+    margin: 0;
+    border-radius: 0;
   }
-
- 
 
   /* Stack sidebar and main content vertically */
-
   .dashboard-shell {
-
     grid-template-columns: 1fr;
-
     min-height: auto;
-
   }
 
- 
-
-  /* Make sidebar horizontal on tablet */
-
-  .dashboard-sidebar {
-
-    border-right: none;
-
-    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
-
-    padding: 20px;
-
+  /* HIDE desktop sidebar completely on mobile - use hamburger menu instead */
+  .dashboard-sidebar,
+  .dashboard-sidebar-desktop {
+    display: none !important;
   }
-
- 
-
-  /* Horizontal nav on mobile/tablet */
-
-  .dashboard-nav {
-
-    flex-direction: row;
-
-    flex-wrap: wrap;
-
-    gap: 8px;
-
-  }
-
- 
-
-  .dashboard-nav-link {
-
-    padding: 8px 14px;
-
-    font-size: 14px;
-
-  }
-
- 
 
   /* Hide sidebar footer on mobile */
-
   .dashboard-sidebar-footer {
-
     display: none;
-
   }
-
- 
 
   /* Adjust main content padding */
-
   .dashboard-main {
-
     padding: 20px 18px;
-
   }
 
- 
-
   .dashboard-page-title {
-
     font-size: 22px;
-
   }
 
  
@@ -1644,23 +1588,8 @@
     display: flex;
   }
 
-  /* Hide desktop sidebar */
-  .dashboard-sidebar-desktop {
-    display: none;
-  }
-
   /* Hide desktop header title (shown in mobile header) */
   .dashboard-header-desktop {
-    display: none;
-  }
-
-  /* Adjust shell to single column */
-  .dashboard-shell {
-    grid-template-columns: 1fr;
-  }
-
-  /* Remove sidebar from grid */
-  .dashboard-sidebar {
     display: none;
   }
 }
