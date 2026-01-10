@@ -198,6 +198,35 @@
   visibility: visible;
 }
 
+/* Close button inside mobile menu */
+.mobileCloseBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 10;
+}
+
+.closeIcon {
+  font-size: 2rem;
+  font-weight: 300;
+  color: #374151;
+  line-height: 1;
+}
+
+.mobileCloseBtn:hover .closeIcon,
+.mobileCloseBtn:focus .closeIcon {
+  color: #244b7a;
+}
+
 .mobileNav {
   display: flex;
   flex-direction: column;

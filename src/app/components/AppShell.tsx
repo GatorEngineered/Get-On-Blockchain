@@ -146,6 +146,16 @@ export function SiteHeader() {
         className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ''}`}
         aria-hidden={!mobileMenuOpen}
       >
+        {/* Close button inside menu */}
+        <button
+          className={styles.mobileCloseBtn}
+          onClick={() => setMobileMenuOpen(false)}
+          aria-label="Close menu"
+          tabIndex={mobileMenuOpen ? 0 : -1}
+        >
+          <span className={styles.closeIcon} aria-hidden="true">×</span>
+        </button>
+
         <nav className={styles.mobileNav} aria-label="Mobile navigation">
           {navLinks.map((link) => (
             <Link
