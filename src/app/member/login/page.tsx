@@ -206,7 +206,7 @@ export default function MemberLoginPage() {
 
               <div className="login-field">
                 <label htmlFor="password">Password</label>
-                <div className="password-input-wrapper">
+                <div className="password-field">
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -216,14 +216,12 @@ export default function MemberLoginPage() {
                     required
                     disabled={loading}
                   />
-                  <button
-                    type="button"
+                  <span
                     className="password-toggle"
                     onClick={() => setShowPassword(!showPassword)}
-                    tabIndex={-1}
                   >
                     {showPassword ? "Hide" : "Show"}
-                  </button>
+                  </span>
                 </div>
                 <p className="login-hint">
                   <a href="/member/forgot-password" className="forgot-link">
@@ -419,34 +417,6 @@ export default function MemberLoginPage() {
         .login-field input:disabled {
           opacity: 0.5;
           cursor: not-allowed;
-        }
-
-        .password-input-wrapper {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          grid-template-rows: 1fr;
-        }
-
-        .password-input-wrapper input {
-          grid-column: 1 / -1;
-          grid-row: 1;
-          width: 100%;
-          padding-right: 3.5rem;
-        }
-
-        .password-toggle {
-          grid-column: 2;
-          grid-row: 1;
-          align-self: center;
-          margin-right: 12px;
-          background: none;
-          border: none;
-          color: #667;
-          cursor: pointer;
-          font-size: 0.85rem;
-          font-weight: 500;
-          padding: 0;
-          margin-left: 0;
         }
 
         .login-hint {
