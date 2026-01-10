@@ -57,79 +57,90 @@ export function SiteHeader() {
   }, [mobileMenuOpen]);
 
   return (
-    <header className={styles.siteHeader} role="banner">
-      <div className={styles.siteHeaderInner}>
-        {/* LEFT SIDE LOGO */}
-        <div className={styles.siteHeaderBrand}>
-          <Link href="/" className={styles.siteHeaderLogo} aria-label="Get On Blockchain - Go to homepage">
-            <Image
-              src="/getonblockchain-favicon-resized.png"
-              alt=""
-              width={36}
-              height={36}
-              className={styles.siteHeaderLogoIcon}
-              priority
-              aria-hidden="true"
-            />
-            <span className={styles.siteHeaderLogoText}>
-              Get On Blockchain
-            </span>
-          </Link>
-        </div>
-
-        {/* DESKTOP NAV - Hidden on mobile */}
-        <nav className={styles.siteHeaderNav} aria-label="Main navigation">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={
-                styles.siteHeaderNavLink +
-                " " +
-                (isActive(link.href) ? styles.isActive : "")
-              }
-              aria-current={isActive(link.href) ? "page" : undefined}
-            >
-              {link.label}
+    <>
+      <header className={styles.siteHeader} role="banner">
+        <div className={styles.siteHeaderInner}>
+          {/* LEFT SIDE LOGO */}
+          <div className={styles.siteHeaderBrand}>
+            <Link href="/" className={styles.siteHeaderLogo} aria-label="Get On Blockchain - Go to homepage">
+              <Image
+                src="/getonblockchain-favicon-resized.png"
+                alt=""
+                width={36}
+                height={36}
+                className={styles.siteHeaderLogoIcon}
+                priority
+                aria-hidden="true"
+              />
+              <span className={styles.siteHeaderLogoText}>
+                Get On Blockchain
+              </span>
             </Link>
-          ))}
-        </nav>
+          </div>
 
-        {/* DESKTOP CTA - Hidden on mobile */}
-        <div className={styles.siteHeaderCta} role="group" aria-label="Account actions">
-          <Link
-            href="/member/login"
-            className={styles.siteHeaderLoginBtn}
-            onClick={(e) => handleNavigation(e, '/member/login')}
+          {/* DESKTOP NAV - Hidden on mobile */}
+          <nav className={styles.siteHeaderNav} aria-label="Main navigation">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={
+                  styles.siteHeaderNavLink +
+                  " " +
+                  (isActive(link.href) ? styles.isActive : "")
+                }
+                aria-current={isActive(link.href) ? "page" : undefined}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          {/* DESKTOP CTA - Hidden on mobile */}
+          <div className={styles.siteHeaderCta} role="group" aria-label="Account actions">
+            <Link
+              href="/member/login"
+              className={styles.siteHeaderLoginBtn}
+              onClick={(e) => handleNavigation(e, '/member/login')}
+            >
+              Member Login
+            </Link>
+            <Link
+              href="/dashboard/login"
+              className={styles.siteHeaderBusinessBtn}
+              onClick={(e) => handleNavigation(e, '/dashboard/login')}
+            >
+              <span className="sr-only">Business dashboard - </span>
+              For Businesses
+              <span aria-hidden="true"> →</span>
+            </Link>
+          </div>
+
+          {/* HAMBURGER BUTTON - Visible on mobile/tablet */}
+          <button
+            className={styles.hamburgerBtn}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            Member Login
-          </Link>
-          <Link
-            href="/dashboard/login"
-            className={styles.siteHeaderBusinessBtn}
-            onClick={(e) => handleNavigation(e, '/dashboard/login')}
-          >
-            <span className="sr-only">Business dashboard - </span>
-            For Businesses
-            <span aria-hidden="true"> →</span>
-          </Link>
+            <span className={`${styles.hamburgerLine} ${mobileMenuOpen ? styles.hamburgerLineOpen1 : ''}`} />
+            <span className={`${styles.hamburgerLine} ${mobileMenuOpen ? styles.hamburgerLineOpen2 : ''}`} />
+            <span className={`${styles.hamburgerLine} ${mobileMenuOpen ? styles.hamburgerLineOpen3 : ''}`} />
+          </button>
         </div>
+      </header>
 
-        {/* HAMBURGER BUTTON - Visible on mobile/tablet */}
-        <button
-          className={styles.hamburgerBtn}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-expanded={mobileMenuOpen}
-          aria-controls="mobile-menu"
-          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          <span className={`${styles.hamburgerLine} ${mobileMenuOpen ? styles.hamburgerLineOpen1 : ''}`} />
-          <span className={`${styles.hamburgerLine} ${mobileMenuOpen ? styles.hamburgerLineOpen2 : ''}`} />
-          <span className={`${styles.hamburgerLine} ${mobileMenuOpen ? styles.hamburgerLineOpen3 : ''}`} />
-        </button>
-      </div>
+      {/* BACKDROP - Rendered outside header for proper stacking */}
+      {mobileMenuOpen && (
+        <div
+          className={styles.mobileBackdrop}
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* MOBILE MENU OVERLAY */}
+      {/* MOBILE MENU OVERLAY - Rendered outside header for proper stacking */}
       <div
         id="mobile-menu"
         className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.mobileMenuOpen : ''}`}
@@ -169,16 +180,7 @@ export function SiteHeader() {
           </Link>
         </div>
       </div>
-
-      {/* BACKDROP */}
-      {mobileMenuOpen && (
-        <div
-          className={styles.mobileBackdrop}
-          onClick={() => setMobileMenuOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-    </header>
+    </>
   );
 }
 
