@@ -433,8 +433,6 @@ export default function MemberLoginPage() {
 
         .password-input-wrapper {
           position: relative;
-          display: flex;
-          align-items: center;
         }
 
         .password-input-wrapper input {
@@ -445,15 +443,18 @@ export default function MemberLoginPage() {
         .password-toggle {
           position: absolute;
           right: 0.75rem;
+          top: 50%;
+          transform: translateY(-50%);
           background: none;
           border: none;
-          padding: 0.25rem;
+          padding: 0.5rem;
           cursor: pointer;
           color: #6b7280;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: color 0.2s ease;
+          width: 32px;
+          height: 32px;
         }
 
         .password-toggle:hover {
