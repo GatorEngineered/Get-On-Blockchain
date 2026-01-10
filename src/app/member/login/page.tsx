@@ -442,23 +442,16 @@ export default function MemberLoginPage() {
 
         .password-toggle {
           position: absolute;
-          right: 0.75rem;
+          right: 12px;
           top: 50%;
           transform: translateY(-50%);
           background: none;
           border: none;
-          padding: 0.5rem;
+          padding: 0;
+          margin: 0;
           cursor: pointer;
           color: #6b7280;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-        }
-
-        .password-toggle:hover {
-          color: #244b7a;
+          line-height: 0;
         }
 
         .login-hint {
