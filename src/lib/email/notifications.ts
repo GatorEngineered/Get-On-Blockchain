@@ -1054,3 +1054,316 @@ export async function sendAdminNewMerchantNotification(
     return false;
   }
 }
+
+// =============================================================================
+// Referral System Emails
+// =============================================================================
+
+type ReferralInviteParams = {
+  referredEmail: string;
+  referrerName: string;
+  merchantName: string;
+  merchantSlug: string;
+};
+
+/**
+ * Send referral invitation email to the referred friend
+ */
+export async function sendReferralInviteEmail(params: ReferralInviteParams): Promise<boolean> {
+  const { referredEmail, referrerName, merchantName, merchantSlug } = params;
+  const signupUrl = `${APP_URL}/member/register?merchant=${merchantSlug}&ref=invite`;
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #244b7a, #8bbcff); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }
+    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+    .highlight { background: #e0f2fe; border-left: 4px solid #0284c7; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .button { display: inline-block; background: linear-gradient(to right, #244b7a, #8bbcff); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; margin: 20px 0; }
+    .button:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎁 You've Been Invited!</h1>
+    </div>
+    <div class="content">
+      <p>Hi there!</p>
+
+      <p><strong>${referrerName}</strong> thinks you'd love the rewards program at <strong>${merchantName}</strong> and wanted to share it with you!</p>
+
+      <div class="highlight">
+        <strong>What you'll get:</strong>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li>Earn points on every visit</li>
+          <li>Redeem rewards and exclusive offers</li>
+          <li>Get real crypto payouts to your wallet</li>
+        </ul>
+      </div>
+
+      <center>
+        <a href="${signupUrl}" class="button">
+          Join ${merchantName} Rewards →
+        </a>
+      </center>
+
+      <p style="color: #6b7280; font-size: 0.9em; margin-top: 20px;">
+        Simply sign up with this email address to start earning rewards!
+      </p>
+
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+      <p style="font-size: 0.85em; color: #6b7280;">
+        This invitation was sent by ${referrerName} via Get On Blockchain.
+        <br>If you didn't expect this email, you can safely ignore it.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: referredEmail,
+      subject: `${referrerName} invited you to join ${merchantName} Rewards!`,
+      html,
+    });
+
+    console.log(`[Email] Referral invite sent to ${referredEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send referral invite:', error.message);
+    return false;
+  }
+}
+
+type MerchantReferralSentParams = {
+  merchantEmail: string;
+  merchantName: string;
+  referrerName: string;
+  referrerEmail: string;
+  referredEmail: string;
+};
+
+/**
+ * Notify merchant when a member sends a referral
+ */
+export async function sendMerchantReferralSentNotification(params: MerchantReferralSentParams): Promise<boolean> {
+  const { merchantEmail, merchantName, referrerName, referrerEmail, referredEmail } = params;
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #244b7a, #8bbcff); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .label { color: #6b7280; font-size: 0.9em; }
+    .value { font-weight: 600; color: #111827; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">📤 New Referral Sent</h2>
+    </div>
+    <div class="content">
+      <p>Great news! A member just sent a referral invitation for <strong>${merchantName}</strong>.</p>
+
+      <div class="details">
+        <p><span class="label">Referrer:</span><br><span class="value">${referrerName}</span></p>
+        <p><span class="label">Referrer Email:</span><br><span class="value">${referrerEmail}</span></p>
+        <p><span class="label">Invited Friend:</span><br><span class="value">${referredEmail}</span></p>
+      </div>
+
+      <p style="color: #6b7280;">
+        If the invited friend signs up with the same email, ${referrerName} will automatically earn referral points!
+      </p>
+
+      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
+        This is an automated notification from Get On Blockchain.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: merchantEmail,
+      subject: `📤 ${referrerName} sent a referral for ${merchantName}`,
+      html,
+    });
+
+    console.log(`[Email] Merchant notified of referral sent: ${merchantEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send merchant referral notification:', error.message);
+    return false;
+  }
+}
+
+type ReferralConvertedMemberParams = {
+  referrerEmail: string;
+  referrerName: string;
+  merchantName: string;
+  referredEmail: string;
+  pointsAwarded: number;
+};
+
+/**
+ * Notify member when their referral converts (friend signed up)
+ */
+export async function sendReferralConvertedEmail(params: ReferralConvertedMemberParams): Promise<boolean> {
+  const { referrerEmail, referrerName, merchantName, referredEmail, pointsAwarded } = params;
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }
+    .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
+    .points { font-size: 3em; font-weight: bold; color: #10b981; text-align: center; margin: 20px 0; }
+    .success { background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .button { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Referral Bonus Earned!</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${referrerName}!</p>
+
+      <div class="success">
+        <strong>Great news!</strong> Your friend (<strong>${referredEmail}</strong>) just signed up for <strong>${merchantName}</strong> using your referral!
+      </div>
+
+      <p style="text-align: center;">You've earned:</p>
+      <div class="points">+${pointsAwarded} pts</div>
+
+      <p style="text-align: center; color: #6b7280;">These points have been added to your account!</p>
+
+      <center>
+        <a href="${APP_URL}/member/dashboard" class="button">
+          View Your Points →
+        </a>
+      </center>
+
+      <p style="margin-top: 30px;">Keep sharing! The more friends you refer, the more points you earn.</p>
+
+      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+      <p style="font-size: 0.85em; color: #6b7280;">
+        This is an automated notification from Get On Blockchain.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: referrerEmail,
+      subject: `🎉 You earned ${pointsAwarded} points! Your friend joined ${merchantName}`,
+      html,
+    });
+
+    console.log(`[Email] Referral converted notification sent to ${referrerEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send referral converted email:', error.message);
+    return false;
+  }
+}
+
+type MerchantReferralConvertedParams = {
+  merchantEmail: string;
+  merchantName: string;
+  referrerName: string;
+  referrerEmail: string;
+  newMemberEmail: string;
+  pointsAwarded: number;
+};
+
+/**
+ * Notify merchant when a referral converts (new member signed up via referral)
+ */
+export async function sendMerchantReferralConvertedNotification(params: MerchantReferralConvertedParams): Promise<boolean> {
+  const { merchantEmail, merchantName, referrerName, referrerEmail, newMemberEmail, pointsAwarded } = params;
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #10b981, #34d399); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .label { color: #6b7280; font-size: 0.9em; }
+    .value { font-weight: 600; color: #111827; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; background: #d1fae5; color: #065f46; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">✅ Referral Converted!</h2>
+    </div>
+    <div class="content">
+      <p>A referral just converted into a new member for <strong>${merchantName}</strong>!</p>
+
+      <div class="details">
+        <p><span class="label">New Member:</span><br><span class="value">${newMemberEmail}</span></p>
+        <p><span class="label">Referred By:</span><br><span class="value">${referrerName} (${referrerEmail})</span></p>
+        <p><span class="label">Referral Bonus:</span><br><span class="badge">+${pointsAwarded} points awarded to ${referrerName}</span></p>
+      </div>
+
+      <p style="color: #059669; font-weight: 500;">
+        🎉 Your loyalty program is growing through word-of-mouth!
+      </p>
+
+      <a href="${APP_URL}/dashboard/members" style="display: inline-block; background: #244b7a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 15px;">
+        View Members →
+      </a>
+
+      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
+        This is an automated notification from Get On Blockchain.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: merchantEmail,
+      subject: `✅ New member from referral: ${newMemberEmail} joined ${merchantName}`,
+      html,
+    });
+
+    console.log(`[Email] Merchant notified of referral conversion: ${merchantEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send merchant referral converted notification:', error.message);
+    return false;
+  }
+}

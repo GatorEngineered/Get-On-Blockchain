@@ -8,6 +8,10 @@ import {
   hashPassword,
   validatePasswordStrength,
 } from '@/app/lib/passwordUtils';
+import {
+  sendReferralConvertedEmail,
+  sendMerchantReferralConvertedNotification,
+} from '@/lib/email/notifications';
 
 const prisma = new PrismaClient();
 
@@ -164,6 +168,137 @@ export async function POST(req: NextRequest) {
     console.log(
       `[Member Registration] Member ${member.id} registered successfully`
     );
+
+    // =========================================================================
+    // REFERRAL CONVERSION: Check if any pending referrals exist for this email
+    // =========================================================================
+    const pendingReferrals = await prisma.referral.findMany({
+      where: {
+        referredEmail: normalizedEmail,
+        status: 'PENDING',
+      },
+      include: {
+        referrer: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        merchant: {
+          select: {
+            id: true,
+            name: true,
+            loginEmail: true,
+            referralPointsValue: true,
+            referralEnabled: true,
+          },
+        },
+      },
+    });
+
+    // Process each pending referral
+    for (const referral of pendingReferrals) {
+      // Skip if referrals are disabled for this merchant
+      if (!referral.merchant.referralEnabled) continue;
+
+      const pointsToAward = referral.merchant.referralPointsValue;
+
+      try {
+        // Check if MerchantMember exists for the referrer
+        let merchantMember = await prisma.merchantMember.findUnique({
+          where: {
+            merchantId_memberId: {
+              merchantId: referral.merchantId,
+              memberId: referral.referrerId,
+            },
+          },
+        });
+
+        // Create MerchantMember if it doesn't exist
+        if (!merchantMember) {
+          merchantMember = await prisma.merchantMember.create({
+            data: {
+              merchantId: referral.merchantId,
+              memberId: referral.referrerId,
+              points: 0,
+              tier: 'BASE',
+            },
+          });
+        }
+
+        // Award points to referrer and update referral status
+        await prisma.$transaction([
+          // Update referrer's points
+          prisma.merchantMember.update({
+            where: { id: merchantMember.id },
+            data: {
+              points: {
+                increment: pointsToAward,
+              },
+            },
+          }),
+          // Mark referral as converted
+          prisma.referral.update({
+            where: { id: referral.id },
+            data: {
+              status: 'CONVERTED',
+              pointsAwarded: pointsToAward,
+              convertedAt: new Date(),
+            },
+          }),
+          // Log the conversion event
+          prisma.event.create({
+            data: {
+              merchantId: referral.merchantId,
+              memberId: referral.referrerId,
+              type: 'REFERRAL_CONVERTED',
+              metadata: {
+                referralId: referral.id,
+                newMemberEmail: normalizedEmail,
+                newMemberId: member.id,
+                pointsAwarded: pointsToAward,
+              },
+            },
+          }),
+        ]);
+
+        const referrerName = referral.referrer.firstName && referral.referrer.lastName
+          ? `${referral.referrer.firstName} ${referral.referrer.lastName}`
+          : referral.referrer.firstName || referral.referrer.email.split('@')[0];
+
+        // Send notification to referrer (non-blocking)
+        sendReferralConvertedEmail({
+          referrerEmail: referral.referrer.email,
+          referrerName,
+          merchantName: referral.merchant.name,
+          referredEmail: normalizedEmail,
+          pointsAwarded: pointsToAward,
+        }).catch((err) => {
+          console.error('[Referral] Failed to send converted email to referrer:', err);
+        });
+
+        // Notify merchant (non-blocking)
+        sendMerchantReferralConvertedNotification({
+          merchantEmail: referral.merchant.loginEmail,
+          merchantName: referral.merchant.name,
+          referrerName,
+          referrerEmail: referral.referrer.email,
+          newMemberEmail: normalizedEmail,
+          pointsAwarded: pointsToAward,
+        }).catch((err) => {
+          console.error('[Referral] Failed to send converted notification to merchant:', err);
+        });
+
+        console.log(
+          `[Referral Conversion] Referral ${referral.id} converted: ${referrerName} earned ${pointsToAward} pts for referring ${normalizedEmail}`
+        );
+      } catch (refError: any) {
+        console.error(`[Referral Conversion] Error processing referral ${referral.id}:`, refError);
+        // Continue processing other referrals even if one fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

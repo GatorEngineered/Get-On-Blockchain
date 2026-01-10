@@ -38,6 +38,12 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
     isActive: true,
   });
 
+  // Referral settings state
+  const [referralEnabled, setReferralEnabled] = useState(merchantData?.referralEnabled ?? true);
+  const [referralPointsValue, setReferralPointsValue] = useState(merchantData?.referralPointsValue ?? 50);
+  const [savingReferral, setSavingReferral] = useState(false);
+  const [referralSuccess, setReferralSuccess] = useState('');
+
   useEffect(() => {
     fetchRewards();
   }, []);
@@ -180,6 +186,42 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
     }
   }
 
+  async function handleSaveReferralSettings() {
+    try {
+      setSavingReferral(true);
+      setError('');
+      setReferralSuccess('');
+
+      const res = await fetch('/api/merchant/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referralEnabled,
+          referralPointsValue,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to save referral settings');
+      }
+
+      setReferralSuccess('Referral settings saved!');
+      // Update parent component
+      onUpdate({
+        ...merchantData,
+        referralEnabled,
+        referralPointsValue,
+      });
+
+      setTimeout(() => setReferralSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSavingReferral(false);
+    }
+  }
+
   if (loading) {
     return (
       <div>
@@ -286,6 +328,133 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
           ))}
         </div>
       )}
+
+      {/* Referral Settings Section */}
+      <div className={styles.infoCard} style={{ marginTop: '2rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+          <div>
+            <h4 className={styles.infoTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.25rem' }}>🎁</span>
+              Referral Program
+            </h4>
+            <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
+              Let members earn points by referring friends to your loyalty program
+            </p>
+          </div>
+        </div>
+
+        {referralSuccess && (
+          <div className={styles.successAlert} style={{ marginBottom: '1rem' }}>
+            {referralSuccess}
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '1rem',
+            background: '#f9fafb',
+            borderRadius: '8px',
+          }}>
+            <div>
+              <label style={{ fontWeight: '600', color: '#1f2937' }}>
+                Enable Referrals
+              </label>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#6b7280' }}>
+                Show referral option in member dashboard
+              </p>
+            </div>
+            <button
+              onClick={() => setReferralEnabled(!referralEnabled)}
+              style={{
+                width: '50px',
+                height: '28px',
+                borderRadius: '14px',
+                border: 'none',
+                background: referralEnabled ? '#10b981' : '#d1d5db',
+                cursor: 'pointer',
+                position: 'relative',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  left: referralEnabled ? '24px' : '2px',
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  background: 'white',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  transition: 'left 0.2s ease',
+                }}
+              />
+            </button>
+          </div>
+
+          {referralEnabled && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '1rem',
+              background: '#fffbeb',
+              border: '1px solid #fcd34d',
+              borderRadius: '8px',
+            }}>
+              <div>
+                <label style={{ fontWeight: '600', color: '#92400e' }}>
+                  Points Per Referral
+                </label>
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#78350f' }}>
+                  Points awarded when referred friend signs up
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input
+                  type="number"
+                  value={referralPointsValue}
+                  onChange={(e) => setReferralPointsValue(parseInt(e.target.value) || 0)}
+                  min="1"
+                  max="1000"
+                  style={{
+                    width: '80px',
+                    padding: '0.5rem 0.75rem',
+                    border: '1px solid #fcd34d',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    fontWeight: '600',
+                    textAlign: 'center',
+                    background: 'white',
+                  }}
+                />
+                <span style={{ color: '#92400e', fontWeight: '500' }}>pts</span>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={handleSaveReferralSettings}
+            disabled={savingReferral}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: savingReferral ? '#9ca3af' : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: savingReferral ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              alignSelf: 'flex-start',
+            }}
+          >
+            {savingReferral ? 'Saving...' : 'Save Referral Settings'}
+          </button>
+        </div>
+      </div>
 
       {/* Info Box */}
       <div className={styles.infoCard}>

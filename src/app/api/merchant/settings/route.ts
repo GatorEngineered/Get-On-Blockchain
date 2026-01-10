@@ -164,11 +164,84 @@ export async function GET(req: NextRequest) {
       superThreshold: merchant.superThreshold,
       // Email settings
       notificationEmail: merchant.notificationEmail,
+      // Referral settings
+      referralEnabled: merchant.referralEnabled,
+      referralPointsValue: merchant.referralPointsValue,
     });
   } catch (error: any) {
     console.error('[Merchant Settings] Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch settings', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PUT /api/merchant/settings
+ *
+ * Update merchant settings (referral settings, etc.)
+ */
+export async function PUT(req: NextRequest) {
+  try {
+    // Get merchant session
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('gob_merchant_session');
+
+    if (!sessionCookie) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const session = JSON.parse(sessionCookie.value);
+    const merchantId = session.merchantId;
+
+    if (!merchantId) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { referralEnabled, referralPointsValue } = body;
+
+    // Build update data (only include fields that are provided)
+    const updateData: any = {};
+
+    if (typeof referralEnabled === 'boolean') {
+      updateData.referralEnabled = referralEnabled;
+    }
+
+    if (typeof referralPointsValue === 'number') {
+      // Validate points value
+      if (referralPointsValue < 1 || referralPointsValue > 1000) {
+        return NextResponse.json(
+          { error: 'Referral points value must be between 1 and 1000' },
+          { status: 400 }
+        );
+      }
+      updateData.referralPointsValue = referralPointsValue;
+    }
+
+    // Update merchant settings
+    const merchant = await prisma.merchant.update({
+      where: { id: merchantId },
+      data: updateData,
+      select: {
+        id: true,
+        referralEnabled: true,
+        referralPointsValue: true,
+      },
+    });
+
+    console.log(`[Merchant Settings] Updated referral settings for merchant ${merchantId}`);
+
+    return NextResponse.json({
+      success: true,
+      referralEnabled: merchant.referralEnabled,
+      referralPointsValue: merchant.referralPointsValue,
+    });
+  } catch (error: any) {
+    console.error('[Merchant Settings] Error updating settings:', error);
+    return NextResponse.json(
+      { error: 'Failed to update settings', details: error.message },
       { status: 500 }
     );
   }

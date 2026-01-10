@@ -93,6 +93,10 @@ model Merchant {
   shopifyShopDomain   String?
   posPointsPerDollar  Float   @default(1.0) // Configurable points ratio
 
+  // Referral settings
+  referralEnabled     Boolean @default(true)
+  referralPointsValue Int     @default(50) // Points awarded when referral converts
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   businesses      Business[]
@@ -104,6 +108,7 @@ model Merchant {
   payoutMilestones PayoutMilestone[] // Multiple payout milestones (Growth/Pro)
   pointsConfigs   PointsConfig[]     // Custom points rules (Growth/Pro)
   payoutNotificationRequests PayoutNotificationRequest[] // Members waiting for funds
+  referrals       Referral[]       // Member referrals for this merchant
 }
 
 /// *
@@ -140,6 +145,7 @@ model Member {
   memberWallet       MemberWallet?
   merchantMembers    MerchantMember[] // NEW: Merchant-level memberships
   payoutNotificationRequests PayoutNotificationRequest[] // Waiting for merchant funds
+  referralsSent      Referral[]       // Referrals this member has sent
 }
 
 /// *
@@ -480,6 +486,35 @@ model PointsConfig {
   @@index([merchantId])
 }
 
+/// *
+///  * Referral - track member referrals for earning bonus points
+///  * Member enters friend's email, gets points when friend signs up
+model Referral {
+  id            String         @id @default(cuid())
+  referrerId    String         // Member who sent the referral
+  merchantId    String         // Merchant context for the referral
+  referredEmail String         // Email address of referred friend
+  status        ReferralStatus @default(PENDING)
+  pointsAwarded Int?           // Points given when converted (null until converted)
+  createdAt     DateTime       @default(now())
+  convertedAt   DateTime?      // When the referral was converted (friend signed up)
+
+  referrer Member   @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([referrerId, merchantId, referredEmail]) // One referral per email per merchant per member
+  @@index([referrerId])
+  @@index([merchantId])
+  @@index([referredEmail])
+  @@index([status])
+}
+
+enum ReferralStatus {
+  PENDING   // Waiting for friend to sign up
+  CONVERTED // Friend signed up, points awarded
+  EXPIRED   // Referral expired (optional: can add expiry logic later)
+}
+
 enum RewardKind {
   TRADITIONAL // Redeemed in-store (free item, discount, etc.)
   USDC_PAYOUT // Crypto payout to member wallet
@@ -503,6 +538,8 @@ enum EventType {
   EMAIL_SENT
   LOW_BALANCE_ALERT
   PAYOUT_SUCCESS_NOTIFY
+  REFERRAL_SENT
+  REFERRAL_CONVERTED
 }
 
 enum MerchantPlan {

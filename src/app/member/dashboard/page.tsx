@@ -84,6 +84,8 @@ type MerchantRewards = {
   merchantSlug: string;
   rewards: Reward[];
   memberPoints: number;
+  referralEnabled?: boolean;
+  referralPointsValue?: number;
 };
 
 export default function MemberDashboardPage() {
@@ -106,6 +108,20 @@ export default function MemberDashboardPage() {
     hasNotificationRequest: boolean;
   } | null>(null);
   const [requestingNotification, setRequestingNotification] = useState(false);
+
+  // Referral state
+  const [referralModal, setReferralModal] = useState<{
+    isOpen: boolean;
+    merchantId: string;
+    merchantName: string;
+    pointsValue: number;
+  } | null>(null);
+  const [referralEmail, setReferralEmail] = useState("");
+  const [sendingReferral, setSendingReferral] = useState(false);
+  const [referralMessage, setReferralMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     loadMemberData();
@@ -137,31 +153,52 @@ export default function MemberDashboardPage() {
       setMember(data.member);
       setTransactions(data.transactions || []);
 
-      // Fetch rewards for each merchant the member is connected to
+      // Fetch rewards and referral settings for each merchant the member is connected to
       if (data.member?.merchants?.length > 0) {
         const rewardsPromises = data.member.merchants.map(async (mm: MerchantMember) => {
           try {
-            const rewardsRes = await fetch(`/api/merchant/${mm.merchant.slug}/rewards`);
+            // Fetch rewards and referral settings in parallel
+            const [rewardsRes, referralRes] = await Promise.all([
+              fetch(`/api/merchant/${mm.merchant.slug}/rewards`),
+              fetch(`/api/member/referral/send?merchantId=${mm.merchantId}`)
+            ]);
+
+            let rewards: Reward[] = [];
+            let referralEnabled = false;
+            let referralPointsValue = 50;
+
             if (rewardsRes.ok) {
               const rewardsData = await rewardsRes.json();
-              return {
-                merchantId: mm.merchantId,
-                merchantName: mm.merchant.name,
-                merchantSlug: mm.merchant.slug,
-                rewards: rewardsData.rewards || [],
-                memberPoints: mm.points,
-              };
+              rewards = rewardsData.rewards || [];
             }
+
+            if (referralRes.ok) {
+              const referralData = await referralRes.json();
+              referralEnabled = referralData.settings?.enabled ?? false;
+              referralPointsValue = referralData.settings?.pointsValue ?? 50;
+            }
+
+            return {
+              merchantId: mm.merchantId,
+              merchantName: mm.merchant.name,
+              merchantSlug: mm.merchant.slug,
+              rewards,
+              memberPoints: mm.points,
+              referralEnabled,
+              referralPointsValue,
+            };
           } catch (e) {
-            console.error(`Failed to fetch rewards for ${mm.merchant.slug}:`, e);
+            console.error(`Failed to fetch data for ${mm.merchant.slug}:`, e);
+            return {
+              merchantId: mm.merchantId,
+              merchantName: mm.merchant.name,
+              merchantSlug: mm.merchant.slug,
+              rewards: [],
+              memberPoints: mm.points,
+              referralEnabled: false,
+              referralPointsValue: 50,
+            };
           }
-          return {
-            merchantId: mm.merchantId,
-            merchantName: mm.merchant.name,
-            merchantSlug: mm.merchant.slug,
-            rewards: [],
-            memberPoints: mm.points,
-          };
         });
 
         const allRewards = await Promise.all(rewardsPromises);
@@ -257,6 +294,64 @@ export default function MemberDashboardPage() {
     } finally {
       setRequestingNotification(false);
     }
+  }
+
+  async function handleSendReferral(e: React.FormEvent) {
+    e.preventDefault();
+    if (!referralModal) return;
+
+    try {
+      setSendingReferral(true);
+      setReferralMessage(null);
+
+      const res = await fetch("/api/member/referral/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          referredEmail: referralEmail,
+          merchantId: referralModal.merchantId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send referral");
+      }
+
+      setReferralMessage({
+        type: "success",
+        text: `Invitation sent to ${referralEmail}! You'll earn ${referralModal.pointsValue} points when they sign up.`,
+      });
+      setReferralEmail("");
+
+      // Close modal after a brief delay to show success
+      setTimeout(() => {
+        setReferralModal(null);
+        setReferralMessage(null);
+      }, 2000);
+    } catch (err: any) {
+      console.error("Referral send error:", err);
+      setReferralMessage({
+        type: "error",
+        text: err.message,
+      });
+    } finally {
+      setSendingReferral(false);
+    }
+  }
+
+  function openReferralModal(merchantId: string, merchantName: string, pointsValue: number) {
+    setReferralModal({
+      isOpen: true,
+      merchantId,
+      merchantName,
+      pointsValue,
+    });
+    setReferralEmail("");
+    setReferralMessage(null);
   }
 
   if (loading) {
@@ -769,58 +864,94 @@ export default function MemberDashboardPage() {
                   </span>
                 </h4>
               )}
-              {mr.rewards.length > 0 ? (
-                <div className={styles.rewardsGrid}>
-                  {mr.rewards.map((reward) => {
-                    const canRedeem = mr.memberPoints >= reward.pointsCost;
-                    return (
-                      <div
-                        key={reward.id}
-                        className={`${styles.rewardCard} ${
-                          canRedeem ? styles.rewardCardActive : styles.rewardCardInactive
-                        }`}
-                      >
-                        <div className={styles.rewardHeader}>
-                          <h4 className={styles.rewardName}>{reward.name}</h4>
-                          <span className={styles.rewardPoints}>{reward.pointsCost} pts</span>
-                        </div>
-                        <p className={styles.rewardDescription}>
-                          {reward.description || (reward.rewardType === 'USDC_PAYOUT'
-                            ? `$${reward.usdcAmount?.toFixed(2)} USDC payout`
-                            : 'Redeem at checkout')}
-                        </p>
-                        {reward.rewardType === 'USDC_PAYOUT' && (
-                          <span style={{
-                            display: "inline-block",
-                            fontSize: "0.7rem",
-                            fontWeight: "600",
-                            color: "#1e40af",
-                            background: "#dbeafe",
-                            padding: "0.2rem 0.5rem",
-                            borderRadius: "9999px",
-                            marginBottom: "0.5rem"
-                          }}>
-                            USDC Payout
-                          </span>
-                        )}
-                        <button
-                          className={`${styles.redeemButton} ${
-                            canRedeem ? "" : styles.redeemButtonDisabled
-                          }`}
-                          disabled={!canRedeem}
-                          onClick={() => {
-                            if (canRedeem) {
-                              alert("Redeem feature coming soon! Show this at checkout.");
-                            }
-                          }}
-                        >
-                          {canRedeem ? "Redeem Now" : "Not Enough Points"}
-                        </button>
+              <div className={styles.rewardsGrid}>
+                {/* Referral Card - Shows first if enabled */}
+                {mr.referralEnabled && (
+                  <div
+                    className={`${styles.rewardCard} ${styles.rewardCardActive}`}
+                    style={{
+                      background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                      border: "2px solid #f59e0b",
+                    }}
+                  >
+                    <div className={styles.rewardHeader}>
+                      <h4 className={styles.rewardName} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span style={{ fontSize: "1.25rem" }}>🎁</span>
+                        Refer a Friend
+                      </h4>
+                      <span className={styles.rewardPoints} style={{ background: "#f59e0b", color: "white" }}>
+                        +{mr.referralPointsValue} pts
+                      </span>
+                    </div>
+                    <p className={styles.rewardDescription} style={{ color: "#78350f" }}>
+                      Invite friends to join {mr.merchantName} and earn points when they sign up!
+                    </p>
+                    <button
+                      className={styles.redeemButton}
+                      style={{
+                        background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                        border: "none",
+                      }}
+                      onClick={() => openReferralModal(mr.merchantId, mr.merchantName, mr.referralPointsValue || 50)}
+                    >
+                      Send Invite
+                    </button>
+                  </div>
+                )}
+
+                {/* Regular Rewards */}
+                {mr.rewards.map((reward) => {
+                  const canRedeem = mr.memberPoints >= reward.pointsCost;
+                  return (
+                    <div
+                      key={reward.id}
+                      className={`${styles.rewardCard} ${
+                        canRedeem ? styles.rewardCardActive : styles.rewardCardInactive
+                      }`}
+                    >
+                      <div className={styles.rewardHeader}>
+                        <h4 className={styles.rewardName}>{reward.name}</h4>
+                        <span className={styles.rewardPoints}>{reward.pointsCost} pts</span>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
+                      <p className={styles.rewardDescription}>
+                        {reward.description || (reward.rewardType === 'USDC_PAYOUT'
+                          ? `$${reward.usdcAmount?.toFixed(2)} USDC payout`
+                          : 'Redeem at checkout')}
+                      </p>
+                      {reward.rewardType === 'USDC_PAYOUT' && (
+                        <span style={{
+                          display: "inline-block",
+                          fontSize: "0.7rem",
+                          fontWeight: "600",
+                          color: "#1e40af",
+                          background: "#dbeafe",
+                          padding: "0.2rem 0.5rem",
+                          borderRadius: "9999px",
+                          marginBottom: "0.5rem"
+                        }}>
+                          USDC Payout
+                        </span>
+                      )}
+                      <button
+                        className={`${styles.redeemButton} ${
+                          canRedeem ? "" : styles.redeemButtonDisabled
+                        }`}
+                        disabled={!canRedeem}
+                        onClick={() => {
+                          if (canRedeem) {
+                            alert("Redeem feature coming soon! Show this at checkout.");
+                          }
+                        }}
+                      >
+                        {canRedeem ? "Redeem Now" : "Not Enough Points"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* No rewards message - only show if no referrals and no rewards */}
+              {!mr.referralEnabled && mr.rewards.length === 0 && (
                 <p style={{ color: "#6b7280", fontSize: "0.9rem", padding: "1rem", background: "#f9fafb", borderRadius: "8px" }}>
                   No rewards available from {mr.merchantName} yet.
                 </p>
@@ -957,6 +1088,187 @@ export default function MemberDashboardPage() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Referral Modal */}
+      {referralModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "1rem",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setReferralModal(null);
+              setReferralMessage(null);
+            }
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              borderRadius: "20px",
+              padding: "2rem",
+              maxWidth: "420px",
+              width: "100%",
+              boxShadow: "0 24px 60px rgba(15, 23, 42, 0.25)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: "1.5rem", color: "#1f2937", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span>🎁</span> Refer a Friend
+                </h2>
+                <p style={{ margin: "0.5rem 0 0", color: "#6b7280", fontSize: "0.9rem" }}>
+                  Invite friends to {referralModal.merchantName}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setReferralModal(null);
+                  setReferralMessage(null);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  color: "#9ca3af",
+                  cursor: "pointer",
+                  padding: "0.25rem",
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div
+              style={{
+                background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+                padding: "1rem",
+                borderRadius: "12px",
+                marginBottom: "1.5rem",
+                textAlign: "center",
+              }}
+            >
+              <p style={{ margin: 0, color: "#92400e", fontWeight: "600" }}>
+                Earn <span style={{ fontSize: "1.25rem", fontWeight: "700" }}>+{referralModal.pointsValue} points</span>
+              </p>
+              <p style={{ margin: "0.25rem 0 0", color: "#78350f", fontSize: "0.85rem" }}>
+                when your friend signs up!
+              </p>
+            </div>
+
+            {referralMessage && (
+              <div
+                style={{
+                  padding: "1rem",
+                  borderRadius: "12px",
+                  marginBottom: "1rem",
+                  background: referralMessage.type === "success" ? "#d1fae5" : "#fee2e2",
+                  border: `1px solid ${referralMessage.type === "success" ? "#6ee7b7" : "#fecaca"}`,
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    color: referralMessage.type === "success" ? "#065f46" : "#991b1b",
+                    fontSize: "0.9rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  {referralMessage.type === "success" ? "✓" : "!"} {referralMessage.text}
+                </p>
+              </div>
+            )}
+
+            <form onSubmit={handleSendReferral}>
+              <div style={{ marginBottom: "1.25rem" }}>
+                <label
+                  htmlFor="referral-email"
+                  style={{
+                    display: "block",
+                    marginBottom: "0.5rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  Friend's Email Address
+                </label>
+                <input
+                  id="referral-email"
+                  type="email"
+                  value={referralEmail}
+                  onChange={(e) => setReferralEmail(e.target.value)}
+                  placeholder="friend@example.com"
+                  required
+                  disabled={sendingReferral}
+                  style={{
+                    width: "100%",
+                    padding: "0.875rem 1rem",
+                    borderRadius: "12px",
+                    border: "1px solid #d1d5db",
+                    background: "#f9fafb",
+                    fontSize: "1rem",
+                    outline: "none",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#f59e0b";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(245, 158, 11, 0.1)";
+                    e.target.style.background = "white";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                    e.target.style.background = "#f9fafb";
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={sendingReferral || !referralEmail}
+                style={{
+                  width: "100%",
+                  padding: "0.875rem 1.5rem",
+                  borderRadius: "999px",
+                  border: "none",
+                  background: sendingReferral || !referralEmail
+                    ? "#d1d5db"
+                    : "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+                  color: "white",
+                  fontWeight: "600",
+                  fontSize: "1rem",
+                  cursor: sendingReferral || !referralEmail ? "not-allowed" : "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {sendingReferral ? "Sending..." : "Send Invitation"}
+              </button>
+            </form>
+
+            <p
+              style={{
+                margin: "1rem 0 0",
+                color: "#9ca3af",
+                fontSize: "0.8rem",
+                textAlign: "center",
+              }}
+            >
+              We'll send your friend an email invitation to join.
+            </p>
           </div>
         </div>
       )}
