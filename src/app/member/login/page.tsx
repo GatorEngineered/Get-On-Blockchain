@@ -432,26 +432,29 @@ export default function MemberLoginPage() {
         }
 
         .password-input-wrapper {
-          position: relative;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: center;
         }
 
         .password-input-wrapper input {
+          grid-column: 1 / -1;
+          grid-row: 1;
           width: 100%;
-          padding-right: 3rem;
+          padding-right: 4rem;
         }
 
         .password-toggle {
-          position: absolute;
-          right: 12px;
-          top: 50%;
-          transform: translateY(-50%);
+          grid-column: 2;
+          grid-row: 1;
+          justify-self: end;
+          margin-right: 0.75rem;
           background: none;
           border: none;
-          padding: 0;
-          margin: 0;
-          cursor: pointer;
           color: #6b7280;
-          line-height: 0;
+          cursor: pointer;
+          padding: 0.25rem 0.5rem;
+          z-index: 1;
         }
 
         .login-hint {
