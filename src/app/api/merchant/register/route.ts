@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
 import crypto from "crypto";
-import { sendMerchantWelcomeEmail } from "@/lib/email/notifications";
+import { sendMerchantWelcomeEmail, sendAdminNewMerchantNotification } from "@/lib/email/notifications";
 import { Plan, SubscriptionStatus } from "@prisma/client";
 
 /**
@@ -142,6 +142,18 @@ export async function POST(req: NextRequest) {
       trialEndsAt: trialEndsAt || new Date(),
     }).catch((err) => {
       console.error('[Merchant Register] Failed to send welcome email:', err);
+    });
+
+    // Send admin notification (non-blocking)
+    sendAdminNewMerchantNotification({
+      merchantName: ownerName || name,
+      businessName: name,
+      ownerEmail: merchant.loginEmail,
+      plan: selectedPlan,
+      isTrialing: !isStarterPlan,
+      trialEndsAt: trialEndsAt || undefined,
+    }).catch((err) => {
+      console.error('[Merchant Register] Failed to send admin notification:', err);
     });
 
     return NextResponse.json({

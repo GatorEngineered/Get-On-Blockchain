@@ -965,3 +965,92 @@ export async function sendStaffInviteEmail(
     return false;
   }
 }
+
+/**
+ * Send admin notification when a new merchant registers
+ */
+type AdminNewMerchantParams = {
+  merchantName: string;
+  businessName: string;
+  ownerEmail: string;
+  plan: string;
+  isTrialing: boolean;
+  trialEndsAt?: Date;
+};
+
+export async function sendAdminNewMerchantNotification(
+  params: AdminNewMerchantParams
+): Promise<boolean> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+  if (!adminEmail) {
+    console.log('[Email] ADMIN_NOTIFICATION_EMAIL not set, skipping admin notification');
+    return false;
+  }
+
+  try {
+    const trialInfo = params.isTrialing && params.trialEndsAt
+      ? `Trial ends: ${params.trialEndsAt.toLocaleDateString()}`
+      : 'No trial (Starter plan)';
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #244b7a, #8bbcff); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .details p { margin: 8px 0; }
+    .label { color: #6b7280; font-size: 0.9em; }
+    .value { font-weight: 600; color: #111827; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
+    .badge-trial { background: #fef3c7; color: #92400e; }
+    .badge-starter { background: #e0e7ff; color: #3730a3; }
+    .button { display: inline-block; background: #244b7a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">🎉 New Merchant Registration</h2>
+    </div>
+    <div class="content">
+      <p>A new merchant has signed up for Get On Blockchain!</p>
+
+      <div class="details">
+        <p><span class="label">Business Name:</span><br><span class="value">${params.businessName}</span></p>
+        <p><span class="label">Owner/Contact:</span><br><span class="value">${params.merchantName}</span></p>
+        <p><span class="label">Email:</span><br><span class="value">${params.ownerEmail}</span></p>
+        <p><span class="label">Plan:</span><br>
+          <span class="badge ${params.isTrialing ? 'badge-trial' : 'badge-starter'}">${params.plan}${params.isTrialing ? ' (Trial)' : ''}</span>
+        </p>
+        <p><span class="label">Status:</span><br><span class="value">${trialInfo}</span></p>
+      </div>
+
+      <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
+
+      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
+        This is an automated notification from Get On Blockchain.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: adminEmail,
+      subject: `🆕 New Merchant: ${params.businessName} signed up for ${params.plan}`,
+      html,
+    });
+
+    console.log(`[Email] Admin notification sent for new merchant: ${params.businessName}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send admin notification:', error.message);
+    return false;
+  }
+}
