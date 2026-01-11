@@ -41,15 +41,14 @@ const plans: Plan[] = [
     id: 'BASIC',
     name: 'Basic',
     priceMonthly: 49,
-    priceAnnual: 490, // 2 months free
+    priceAnnual: 490,
     description:
       'Points & rewards only. Redeem for free products/discounts. Simple for businesses who don\'t want crypto complexity.',
     features: [
       'QR-based loyalty with points & rewards',
       'Redeem for free products/discounts',
-      '1 merchant claim page (yourbrand.getonblockchain.com)',
+      '1 merchant claim page',
       'Basic dashboard & analytics',
-      'Simple POS receipt QR (just print the URL)',
       'Up to 1,000 active members',
       'Unlimited rewards in catalog',
       'Email support',
@@ -61,17 +60,15 @@ const plans: Plan[] = [
     name: 'Premium',
     badge: 'Most Popular',
     priceMonthly: 99,
-    priceAnnual: 990, // 2 months free
+    priceAnnual: 990,
     description:
-      'Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.',
+      'Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points.',
     features: [
       'Everything in Basic',
-      'Stablecoin rewards (your unique angle)',
-      '"Give your customers REAL money, not just points"',
+      'Stablecoin rewards (USDC)',
       'Blockchain-verified rewards',
-      'Customer wallet setup (MetaMask, Trust Wallet, etc.)',
-      'Milestone-based payouts (100 points = $5 USDC)',
-      'Configure payout wallet',
+      'Customer wallet setup',
+      'Milestone-based payouts',
       'Up to 5,000 active members',
       'Priority email support',
       '7-day free trial',
@@ -93,7 +90,6 @@ export default function PricingCards() {
   const [merchant, setMerchant] = useState<MerchantSession>(null);
   const [checkingSession, setCheckingSession] = useState(true);
 
-  // Check if merchant is logged in
   useEffect(() => {
     async function checkSession() {
       try {
@@ -119,20 +115,16 @@ export default function PricingCards() {
   }, []);
 
   async function handleGetStarted(plan: Plan) {
-    // Starter plan - redirect to signup
     if (plan.id === 'STARTER') {
       router.push('/merchant/signup');
       return;
     }
 
-    // Paid plans - check if logged in
     if (!merchant) {
-      // Not logged in - redirect to signup with plan info
       router.push(`/merchant/signup?plan=${plan.id}&billing=${billingCycle}`);
       return;
     }
 
-    // Logged in - create subscription
     setLoading(plan.id);
     setError('');
 
@@ -161,7 +153,6 @@ export default function PricingCards() {
         throw new Error(data.error || 'Failed to create subscription');
       }
 
-      // Redirect to PayPal for approval
       if (data.approvalUrl) {
         window.location.href = data.approvalUrl;
       } else {
@@ -186,72 +177,31 @@ export default function PricingCards() {
   }
 
   return (
-    <>
-      {/* Billing Toggle */}
-      <div className={styles.billingToggle} style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem', gap: '0.5rem' }}>
-        <button
-          type="button"
-          onClick={() => setBillingCycle('monthly')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            borderRadius: '9999px',
-            border: 'none',
-            background: billingCycle === 'monthly' ? '#244b7a' : '#e5e7eb',
-            color: billingCycle === 'monthly' ? 'white' : '#374151',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          Monthly
-        </button>
-        <button
-          type="button"
-          onClick={() => setBillingCycle('annual')}
-          style={{
-            padding: '0.75rem 1.5rem',
-            borderRadius: '9999px',
-            border: 'none',
-            background: billingCycle === 'annual' ? '#244b7a' : '#e5e7eb',
-            color: billingCycle === 'annual' ? 'white' : '#374151',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          Annual
-          <span
-            style={{
-              background: billingCycle === 'annual' ? 'rgba(255,255,255,0.2)' : '#d1fae5',
-              color: billingCycle === 'annual' ? 'white' : '#065f46',
-              padding: '0.25rem 0.5rem',
-              borderRadius: '9999px',
-              fontSize: '0.75rem',
-              fontWeight: '700',
-            }}
+    <div className={styles.pricingContainer}>
+      {/* Billing Toggle - Centered at top */}
+      <div className={styles.billingToggleWrapper}>
+        <div className={styles.billingToggle}>
+          <button
+            type="button"
+            onClick={() => setBillingCycle('monthly')}
+            className={`${styles.billingToggleBtn} ${billingCycle === 'monthly' ? styles.billingToggleBtnActive : ''}`}
           >
-            2 months free
-          </span>
-        </button>
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillingCycle('annual')}
+            className={`${styles.billingToggleBtn} ${billingCycle === 'annual' ? styles.billingToggleBtnActive : ''}`}
+          >
+            Annual
+            <span className={styles.billingToggleBadge}>2 months free</span>
+          </button>
+        </div>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div
-          style={{
-            maxWidth: '600px',
-            margin: '0 auto 2rem',
-            padding: '1rem',
-            background: '#fee2e2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            color: '#991b1b',
-            textAlign: 'center',
-          }}
-        >
+        <div className={styles.errorMessage}>
           {error}
         </div>
       )}
@@ -272,7 +222,7 @@ export default function PricingCards() {
                 <span className={styles.cardPriceTerm}>{getPriceTerm(plan)}</span>
               </p>
               {plan.id !== 'STARTER' && billingCycle === 'annual' && (
-                <p style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: '600', margin: '0.25rem 0 0' }}>
+                <p className={styles.savingsText}>
                   Save ${plan.priceMonthly * 2}/year
                 </p>
               )}
@@ -290,52 +240,31 @@ export default function PricingCards() {
                 onClick={() => handleGetStarted(plan)}
                 disabled={loading === plan.id || checkingSession}
                 className={styles.primaryBtn}
-                style={{
-                  width: '100%',
-                  border: 'none',
-                  cursor: loading === plan.id ? 'not-allowed' : 'pointer',
-                  opacity: loading === plan.id ? 0.7 : 1,
-                }}
               >
                 {loading === plan.id
                   ? 'Processing...'
                   : plan.id === 'STARTER'
                   ? 'Start Free'
-                  : merchant
-                  ? 'Subscribe Now'
-                  : 'Get Started'}
+                  : 'Subscribe Now'}
               </button>
-
-              <Link href="/support" className={styles.secondaryBtn}>
-                Talk to sales
-              </Link>
             </div>
 
             <p className={styles.cardNote}>
               {plan.id === 'STARTER'
                 ? 'No credit card required'
-                : 'You can upgrade or pause your plan before the next billing cycle.'}
+                : '7-day free trial included'}
             </p>
           </article>
         ))}
       </div>
 
-      {/* Logged In Status */}
+      {/* Logged In Status - subtle at bottom */}
       {merchant && (
-        <p
-          style={{
-            textAlign: 'center',
-            marginTop: '1.5rem',
-            fontSize: '0.9rem',
-            color: '#6b7280',
-          }}
-        >
-          Logged in as <strong>{merchant.email}</strong>.{' '}
-          <Link href="/dashboard" style={{ color: '#244b7a', textDecoration: 'underline' }}>
-            Go to Dashboard
-          </Link>
+        <p className={styles.loggedInStatus}>
+          Logged in as {merchant.email}.{' '}
+          <Link href="/dashboard">Go to Dashboard</Link>
         </p>
       )}
-    </>
+    </div>
   );
 }
