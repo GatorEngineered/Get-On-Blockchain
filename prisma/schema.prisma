@@ -6,8 +6,9 @@ datasource db {
   // Using PostgreSQL for both local dev and production
   // DATABASE_URL should be set in .env.local and Vercel environment variables
 
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Business {
