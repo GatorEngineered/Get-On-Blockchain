@@ -4,9 +4,23 @@ import styles from "./pricing.module.css";
 import PricingCards from "./PricingCards";
 
 export const metadata: Metadata = {
-  title: "Pricing – Get On Blockchain",
+  title: "Pricing - Loyalty Program Plans Starting at $49/month | Get On Blockchain",
   description:
-    "Subscription plans for Web3-powered loyalty and rewards for local businesses.",
+    "Affordable loyalty program software for local businesses. QR-based rewards, USDC payments, real-time analytics. Plans from $49-199/month. 7-day free trial, no credit card required.",
+  keywords: [
+    "loyalty program pricing",
+    "customer rewards software cost",
+    "loyalty program plans",
+    "affordable loyalty software",
+    "small business rewards program",
+    "loyalty program free trial",
+    "QR rewards pricing",
+  ],
+  openGraph: {
+    title: "Loyalty Program Pricing - Plans for Every Business Size",
+    description: "Choose a plan that matches your business. QR-based rewards, USDC payments, analytics dashboard. Start free, upgrade anytime.",
+    url: "https://getonblockchain.com/pricing",
+  },
 };
 
 export default function PricingPage() {

@@ -5,9 +5,23 @@ import type { Metadata } from "next";
 
 
 export const metadata: Metadata = {
-  title: "About – Get On Blockchain",
+  title: "About Us - Modern Loyalty Programs for Local Businesses | Get On Blockchain",
   description:
-    "Why Get On Blockchain exists and how it helps local businesses modernize their rewards.",
+    "Get On Blockchain helps local businesses increase repeat customers with QR-based loyalty rewards. Built on blockchain for transparency, but simple enough for any business to use.",
+  keywords: [
+    "about Get On Blockchain",
+    "loyalty program company",
+    "customer rewards platform",
+    "blockchain loyalty",
+    "local business loyalty",
+    "modern rewards system",
+    "small business loyalty software",
+  ],
+  openGraph: {
+    title: "About Get On Blockchain - Loyalty That Feels Modern",
+    description: "We help local businesses turn first-time visitors into regulars. QR-based rewards, blockchain transparency, simple setup.",
+    url: "https://getonblockchain.com/about",
+  },
 };
 
 export default function AboutPage() {

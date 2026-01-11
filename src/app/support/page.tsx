@@ -5,9 +5,22 @@ import SupportForm from "@/app/components/SupportForm";
 import styles from "./support.module.css";
 
 export const metadata: Metadata = {
-  title: "Support – Get On Blockchain",
+  title: "Support & Help Center | Get On Blockchain",
   description:
-    "Support for merchants and customers using Get On Blockchain rewards.",
+    "Get help with your Get On Blockchain loyalty program. Support for merchants setting up rewards and customers using the platform. Contact our team.",
+  keywords: [
+    "Get On Blockchain support",
+    "loyalty program help",
+    "customer support",
+    "merchant support",
+    "rewards program help",
+    "contact support",
+  ],
+  openGraph: {
+    title: "Support - Get Help with Your Loyalty Program",
+    description: "Need help with your rewards program? Contact our support team for assistance with setup, rewards, or account issues.",
+    url: "https://getonblockchain.com/support",
+  },
 };
 
 export default function SupportPage() {
