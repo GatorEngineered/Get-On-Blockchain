@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './PlansSettings.module.css';
 
 interface PlansSettingsProps {
@@ -16,27 +16,6 @@ interface SubscriptionDetails {
   cancelAtPeriodEnd: boolean;
   paymentVerified: boolean;
   hasSubscription: boolean;
-  paypalSubscription?: {
-    id: string;
-    status: string;
-    planId: string;
-    startTime: string;
-    nextBillingTime?: string;
-    lastPayment?: {
-      amount: {
-        currency_code: string;
-        value: string;
-      };
-      time: string;
-    };
-    subscriber: {
-      email_address: string;
-      name?: {
-        given_name: string;
-        surname: string;
-      };
-    };
-  };
 }
 
 interface MemberLimitStatus {
@@ -67,7 +46,7 @@ const PLAN_DETAILS = {
     price: 0,
     interval: 'Free',
     description: 'Trial plan with basic features',
-    features: ['Basic loyalty features', 'Limited members', '7-day trial'],
+    features: ['5 active members', '1 reward tier', 'Basic dashboard'],
   },
   BASIC: {
     name: 'Basic',
@@ -75,11 +54,9 @@ const PLAN_DETAILS = {
     interval: 'month',
     description: 'Points & rewards only',
     features: [
-      'QR-based loyalty with points & rewards',
-      'Redeem for free products/discounts',
-      '1 merchant claim page',
-      'Basic dashboard & analytics',
       'Up to 1,000 active members',
+      '3 rewards',
+      'Full dashboard & analytics',
       'Email support',
     ],
   },
@@ -89,12 +66,10 @@ const PLAN_DETAILS = {
     interval: 'month',
     description: 'Everything in Basic + stablecoin rewards',
     features: [
-      'Everything in Basic',
-      'Stablecoin rewards (USDC)',
-      'Blockchain-verified rewards',
-      'Customer wallet setup',
-      'Milestone-based payouts',
       'Up to 5,000 active members',
+      '4 rewards',
+      'USDC stablecoin payouts',
+      'Blockchain-verified rewards',
       'Priority email support',
     ],
   },
@@ -104,11 +79,11 @@ const PLAN_DETAILS = {
     interval: 'month',
     description: 'For growing brands with multi-location support',
     features: [
+      'Up to 15,000 active members',
+      '5 rewards',
       'Up to 3 locations',
       'Custom points rules',
       'Advanced reporting',
-      'Up to 15,000 active members',
-      'Priority support',
     ],
   },
   PRO: {
@@ -117,6 +92,8 @@ const PLAN_DETAILS = {
     interval: 'month',
     description: 'High-volume businesses with custom workflows',
     features: [
+      'Up to 35,000 active members',
+      '6 rewards',
       'Up to 15 locations',
       'Custom workflows',
       'NFT access',
@@ -130,9 +107,6 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [canceling, setCanceling] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
 
   // Member limit state
   const [memberLimitStatus, setMemberLimitStatus] = useState<MemberLimitStatus | null>(null);
@@ -194,14 +168,11 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
       setError('');
       setSuccess('');
 
-      // For now, we simulate a successful purchase
-      // In production, this would integrate with PayPal
       const res = await fetch('/api/merchant/member-addon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           slots: addonSlots,
-          // paymentIntentId would come from PayPal in production
           paymentIntentId: `demo_${Date.now()}`,
         }),
       });
@@ -213,11 +184,9 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
       }
 
       if (data.action === 'PAYMENT_REQUIRED') {
-        // In production, redirect to PayPal payment
         setSuccess(`Ready to add ${data.purchase.membersAdded.toLocaleString()} members for $${data.purchase.cost}. Payment integration coming soon.`);
       } else {
         setSuccess(data.message);
-        // Refresh member limit status
         await fetchMemberLimitStatus();
       }
     } catch (err: any) {
@@ -227,52 +196,12 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
     }
   }
 
-  async function handleCancelSubscription() {
-    if (!cancelReason.trim()) {
-      setError('Please provide a reason for cancellation');
-      return;
-    }
-
-    try {
-      setCanceling(true);
-      setError('');
-      setSuccess('');
-
-      const res = await fetch('/api/merchant/subscription/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: cancelReason }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to cancel subscription');
-      }
-
-      const data = await res.json();
-      setSuccess(data.message);
-      setShowCancelConfirm(false);
-      setCancelReason('');
-
-      // Refresh subscription details
-      await fetchSubscriptionDetails();
-
-      // Update parent component
-      onUpdate({ subscriptionStatus: 'CANCELED', cancelAtPeriodEnd: true });
-    } catch (err: any) {
-      setError(err.message || 'Failed to cancel subscription');
-    } finally {
-      setCanceling(false);
-    }
-  }
-
   async function handleUpgrade(targetPlan: 'BASIC' | 'PREMIUM') {
     if (!merchantData?.id || !merchantData?.loginEmail) {
       setError('Session expired. Please refresh the page.');
       return;
     }
 
-    // Don't allow upgrade to same or lower plan
     const planHierarchy = ['STARTER', 'BASIC', 'PREMIUM', 'GROWTH', 'PRO'];
     const currentPlanIndex = planHierarchy.indexOf(details?.plan || 'STARTER');
     const targetPlanIndex = planHierarchy.indexOf(targetPlan);
@@ -310,7 +239,6 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
         throw new Error(data.error || 'Failed to create subscription');
       }
 
-      // Redirect to PayPal for approval
       if (data.approvalUrl) {
         window.location.href = data.approvalUrl;
       } else {
@@ -360,8 +288,8 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
   if (loading) {
     return (
       <div>
-        <h2 className={styles.title}>Plans & Billing</h2>
-        <p className={styles.subtitle}>Manage your subscription and billing</p>
+        <h2 className={styles.title}>Plan</h2>
+        <p className={styles.subtitle}>Manage your plan and member limits</p>
         <div className={styles.loading}>Loading...</div>
       </div>
     );
@@ -370,9 +298,9 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
   if (!details) {
     return (
       <div>
-        <h2 className={styles.title}>Plans & Billing</h2>
-        <p className={styles.subtitle}>Manage your subscription and billing</p>
-        <div className={styles.errorAlert}>Failed to load subscription details</div>
+        <h2 className={styles.title}>Plan</h2>
+        <p className={styles.subtitle}>Manage your plan and member limits</p>
+        <div className={styles.errorAlert}>Failed to load plan details</div>
       </div>
     );
   }
@@ -381,8 +309,8 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
 
   return (
     <div>
-      <h2 className={styles.title}>Plans & Billing</h2>
-      <p className={styles.subtitle}>Manage your subscription and billing</p>
+      <h2 className={styles.title}>Plan</h2>
+      <p className={styles.subtitle}>Manage your plan and member limits</p>
 
       {error && <div className={styles.errorAlert}>{error}</div>}
       {success && <div className={styles.successAlert}>{success}</div>}
@@ -435,10 +363,10 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
           {/* Near Limit Warning */}
           {memberLimitStatus.isNearLimit && !memberLimitStatus.isAtLimit && (
             <div className={styles.warningBanner}>
-              <span className={styles.warningIcon}>⚠️</span>
+              <span className={styles.warningIcon}>Warning</span>
               <span className={styles.warningText}>
                 You're approaching your member limit ({memberLimitStatus.percentUsed.toFixed(0)}% used).
-                Consider upgrading or purchasing additional member slots to avoid disruption.
+                Consider upgrading or purchasing additional member slots.
               </span>
             </div>
           )}
@@ -446,7 +374,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
           {/* At Limit Warning */}
           {memberLimitStatus.isAtLimit && (
             <div className={styles.warningBanner}>
-              <span className={styles.warningIcon}>🚫</span>
+              <span className={styles.warningIcon}>Limit Reached</span>
               <span className={styles.warningText}>
                 You've reached your member limit. New members cannot join until you upgrade or purchase additional slots.
               </span>
@@ -535,51 +463,6 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
         </div>
       )}
 
-      {/* Subscription Details */}
-      {details.hasSubscription && details.paypalSubscription && (
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Billing Information</h3>
-
-          <div className={styles.detailsGrid}>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Subscription ID:</span>
-              <span className={styles.detailValue}>{details.paypalSubscription.id}</span>
-            </div>
-
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Started:</span>
-              <span className={styles.detailValue}>{formatDate(details.paypalSubscription.startTime)}</span>
-            </div>
-
-            {details.paypalSubscription.nextBillingTime && !details.cancelAtPeriodEnd && (
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Next Billing Date:</span>
-                <span className={styles.detailValue}>
-                  {formatDate(details.paypalSubscription.nextBillingTime)}
-                </span>
-              </div>
-            )}
-
-            {details.paypalSubscription.lastPayment && (
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Last Payment:</span>
-                <span className={styles.detailValue}>
-                  ${details.paypalSubscription.lastPayment.amount.value} on{' '}
-                  {formatDate(details.paypalSubscription.lastPayment.time)}
-                </span>
-              </div>
-            )}
-
-            {details.cancelAtPeriodEnd && details.subscriptionEndsAt && (
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Access Ends:</span>
-                <span className={styles.detailValue}>{formatDate(details.subscriptionEndsAt)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Trial Information */}
       {details.subscriptionStatus === 'TRIAL' && details.trialEndsAt && (
         <div className={styles.card}>
@@ -592,7 +475,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
       )}
 
       {/* Upgrade Options */}
-      {(details.plan === 'STARTER' || details.plan === 'BASIC') && !details.hasSubscription && (
+      {(details.plan === 'STARTER' || details.plan === 'BASIC') && (
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Upgrade Your Plan</h3>
           <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
@@ -667,7 +550,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
                 </p>
                 <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#4b5563' }}>
                   <li>Up to 1,000 members</li>
-                  <li>Unlimited rewards</li>
+                  <li>3 rewards</li>
                   <li>Email support</li>
                 </ul>
                 <button
@@ -748,85 +631,17 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
         </div>
       )}
 
-      {/* Already subscribed - link to pricing */}
-      {details.hasSubscription && (
+      {/* Already on higher plan */}
+      {(details.plan === 'PREMIUM' || details.plan === 'GROWTH' || details.plan === 'PRO') && (
         <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Change Plan</h3>
+          <h3 className={styles.cardTitle}>Plan Changes</h3>
           <p className={styles.upgradeText}>
-            Want to change your plan? Visit our{' '}
+            Need to change your plan? Visit our{' '}
             <a href="/pricing" className={styles.link} target="_blank">
               pricing page
             </a>{' '}
-            or contact support for assistance.
+            or contact support for assistance with upgrades or custom plans.
           </p>
-        </div>
-      )}
-
-      {/* Cancellation */}
-      {details.subscriptionStatus === 'ACTIVE' && !details.cancelAtPeriodEnd && (
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>Cancel Subscription</h3>
-
-          {!showCancelConfirm ? (
-            <div>
-              <p className={styles.cancelWarning}>
-                Canceling your subscription will take effect at the end of your current billing period.
-              </p>
-              <button
-                onClick={() => setShowCancelConfirm(true)}
-                className={styles.cancelButton}
-              >
-                Cancel Subscription
-              </button>
-            </div>
-          ) : (
-            <div className={styles.cancelConfirm}>
-              <p className={styles.cancelPolicyTitle}>
-                <strong>Cancellation Policy:</strong>
-              </p>
-              <ul className={styles.cancelPolicy}>
-                <li>Your data will be retained for 12 months</li>
-                <li>All points and USDC earned by your customers will remain with them (not refunded)</li>
-                <li>Cancellation takes effect at the end of your current billing period</li>
-                <li>
-                  For example: If you paid on January 3rd and cancel on January 4th, your subscription will
-                  not renew on February 3rd
-                </li>
-              </ul>
-
-              <div className={styles.cancelForm}>
-                <label className={styles.label}>
-                  Please tell us why you're canceling (required):
-                </label>
-                <textarea
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                  className={styles.textarea}
-                  rows={4}
-                  placeholder="Your feedback helps us improve..."
-                />
-              </div>
-
-              <div className={styles.cancelButtons}>
-                <button
-                  onClick={handleCancelSubscription}
-                  disabled={canceling || !cancelReason.trim()}
-                  className={styles.confirmCancelButton}
-                >
-                  {canceling ? 'Canceling...' : 'Confirm Cancellation'}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCancelConfirm(false);
-                    setCancelReason('');
-                  }}
-                  className={styles.keepSubscriptionButton}
-                >
-                  Keep Subscription
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -836,10 +651,12 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
           <h3 className={styles.cardTitle}>Subscription Canceled</h3>
           <div className={styles.canceledInfo}>
             <p>
-              Your subscription has been canceled and will not renew. You can continue to access all features
+              Your subscription has been canceled. You can continue to access all features
               until <strong>{formatDate(details.subscriptionEndsAt)}</strong>.
             </p>
-            <p>Want to reactivate? Contact support or subscribe again from our pricing page.</p>
+            <p>
+              <a href="/pricing" className={styles.link}>Resubscribe</a> to continue using premium features.
+            </p>
           </div>
         </div>
       )}

@@ -3,33 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../settings.module.css';
 
-type BillingCycle = 'monthly' | 'annual';
-
-type UpgradePlan = {
-  id: 'BASIC' | 'PREMIUM';
-  name: string;
-  priceMonthly: number;
-  priceAnnual: number;
-  description: string;
-};
-
-const upgradePlans: UpgradePlan[] = [
-  {
-    id: 'BASIC',
-    name: 'Basic',
-    priceMonthly: 49,
-    priceAnnual: 490,
-    description: 'Points & rewards, up to 1,000 members',
-  },
-  {
-    id: 'PREMIUM',
-    name: 'Premium',
-    priceMonthly: 99,
-    priceAnnual: 990,
-    description: 'Everything in Basic + stablecoin rewards',
-  },
-];
-
 type SubscriptionDetails = {
   plan: string;
   subscriptionStatus: string;
@@ -54,32 +27,20 @@ type SubscriptionDetails = {
   };
 };
 
-const planDetails: Record<string, { name: string; price: number; features: string[] }> = {
-  STARTER: {
-    name: 'Starter',
-    price: 0,
-    features: ['5 active members', '1 reward', 'Basic dashboard'],
-  },
-  BASIC: {
-    name: 'Basic',
-    price: 49,
-    features: ['1,000 active members', '3 rewards', 'Full dashboard', 'Email support'],
-  },
-  PREMIUM: {
-    name: 'Premium',
-    price: 99,
-    features: ['5,000 active members', '4 rewards', 'USDC payouts', 'Priority support'],
-  },
-  GROWTH: {
-    name: 'Growth',
-    price: 149,
-    features: ['15,000 active members', '5 rewards', 'Multiple milestones', 'Custom tiers'],
-  },
-  PRO: {
-    name: 'Pro',
-    price: 199,
-    features: ['35,000 active members', '6 rewards', 'Advanced features', 'Dedicated support'],
-  },
+const PLAN_NAMES: Record<string, string> = {
+  STARTER: 'Starter (Free)',
+  BASIC: 'Basic',
+  PREMIUM: 'Premium',
+  GROWTH: 'Growth',
+  PRO: 'Enterprise',
+};
+
+const PLAN_PRICES: Record<string, number> = {
+  STARTER: 0,
+  BASIC: 49,
+  PREMIUM: 99,
+  GROWTH: 149,
+  PRO: 199,
 };
 
 export default function BillingSettings() {
@@ -89,9 +50,6 @@ export default function BillingSettings() {
   const [canceling, setCanceling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
-  const [upgrading, setUpgrading] = useState<string | null>(null);
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
-  const [upgradeError, setUpgradeError] = useState('');
 
   useEffect(() => {
     fetchSubscriptionDetails();
@@ -124,7 +82,6 @@ export default function BillingSettings() {
         throw new Error(data.error || 'Failed to cancel subscription');
       }
 
-      // Refresh subscription details
       await fetchSubscriptionDetails();
       setShowCancelModal(false);
       setCancelReason('');
@@ -132,56 +89,6 @@ export default function BillingSettings() {
       setError(err.message);
     } finally {
       setCanceling(false);
-    }
-  }
-
-  async function handleUpgrade(plan: UpgradePlan) {
-    setUpgrading(plan.id);
-    setUpgradeError('');
-
-    try {
-      // Get merchant session info
-      const sessionRes = await fetch('/api/merchant/session');
-      const sessionData = await sessionRes.json();
-
-      if (!sessionData.authenticated) {
-        throw new Error('Please log in to upgrade your plan');
-      }
-
-      const planType = `${plan.id}_${billingCycle.toUpperCase()}` as
-        | 'BASIC_MONTHLY'
-        | 'BASIC_ANNUAL'
-        | 'PREMIUM_MONTHLY'
-        | 'PREMIUM_ANNUAL';
-
-      const res = await fetch('/api/merchant/subscription/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          merchantId: sessionData.merchantId,
-          planType,
-          email: sessionData.email,
-          firstName: sessionData.name?.split(' ')[0] || '',
-          lastName: sessionData.name?.split(' ').slice(1).join(' ') || '',
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create subscription');
-      }
-
-      // Redirect to PayPal for approval
-      if (data.approvalUrl) {
-        window.location.href = data.approvalUrl;
-      } else {
-        throw new Error('No approval URL returned');
-      }
-    } catch (err: any) {
-      console.error('Upgrade error:', err);
-      setUpgradeError(err.message);
-      setUpgrading(null);
     }
   }
 
@@ -226,7 +133,7 @@ export default function BillingSettings() {
   if (loading) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-        Loading subscription details...
+        Loading billing details...
       </div>
     );
   }
@@ -239,21 +146,19 @@ export default function BillingSettings() {
     );
   }
 
-  const currentPlan = planDetails[subscription?.plan || 'STARTER'];
-  const isTrialing = subscription?.subscriptionStatus === 'TRIAL';
+  const planName = PLAN_NAMES[subscription?.plan || 'STARTER'];
+  const planPrice = PLAN_PRICES[subscription?.plan || 'STARTER'];
   const isCanceled = subscription?.subscriptionStatus === 'CANCELED';
-  const trialDaysRemaining = subscription?.trialEndsAt
-    ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
+  const hasActiveSubscription = subscription?.hasSubscription && !isCanceled;
 
   return (
     <div>
-      <h2 className={styles.sectionTitle}>Billing & Subscription</h2>
+      <h2 className={styles.sectionTitle}>Billing</h2>
       <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-        Manage your subscription, view billing history, and update payment methods.
+        View your payment details, billing history, and manage your subscription.
       </p>
 
-      {/* Current Plan Card */}
+      {/* Subscription Summary Card */}
       <div
         style={{
           background: 'linear-gradient(135deg, #244b7a 0%, #1e3a5f 100%)',
@@ -261,125 +166,135 @@ export default function BillingSettings() {
           padding: '1.25rem',
           color: 'white',
           marginBottom: '1.5rem',
-          overflow: 'hidden',
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
             <p style={{ fontSize: '0.875rem', opacity: 0.8, marginBottom: '0.25rem' }}>Current Plan</p>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{currentPlan.name}</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '700', margin: 0 }}>{planName}</h3>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>
-              ${currentPlan.price}
-              <span style={{ fontSize: '0.875rem', fontWeight: '400' }}>/mo</span>
-            </p>
+          <div>
+            {getStatusBadge(subscription?.subscriptionStatus || 'TRIAL')}
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-          {getStatusBadge(subscription?.subscriptionStatus || 'TRIAL')}
-          {isTrialing && trialDaysRemaining > 0 && (
-            <span
-              style={{
-                display: 'inline-block',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '999px',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                background: 'rgba(255,255,255,0.2)',
-                color: 'white',
-              }}
-            >
-              {trialDaysRemaining} days left in trial
-            </span>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', opacity: 0.9, flexWrap: 'wrap' }}>
-          {subscription?.paypalSubscription?.nextBillingTime && (
+        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.875rem' }}>
+          {planPrice > 0 && (
             <div>
-              <span style={{ opacity: 0.7 }}>Next billing: </span>
-              {formatDate(subscription.paypalSubscription.nextBillingTime)}
+              <span style={{ opacity: 0.7 }}>Monthly Rate: </span>
+              <span style={{ fontWeight: '600' }}>${planPrice}/mo</span>
             </div>
           )}
-          {subscription?.trialEndsAt && isTrialing && (
+          {subscription?.paypalSubscription?.nextBillingTime && !isCanceled && (
             <div>
-              <span style={{ opacity: 0.7 }}>Trial ends: </span>
-              {formatDate(subscription.trialEndsAt)}
+              <span style={{ opacity: 0.7 }}>Next Payment: </span>
+              <span style={{ fontWeight: '600' }}>{formatDate(subscription.paypalSubscription.nextBillingTime)}</span>
+            </div>
+          )}
+          {subscription?.trialEndsAt && subscription?.subscriptionStatus === 'TRIAL' && (
+            <div>
+              <span style={{ opacity: 0.7 }}>Trial Ends: </span>
+              <span style={{ fontWeight: '600' }}>{formatDate(subscription.trialEndsAt)}</span>
             </div>
           )}
           {isCanceled && subscription?.subscriptionEndsAt && (
             <div>
-              <span style={{ opacity: 0.7 }}>Access until: </span>
-              {formatDate(subscription.subscriptionEndsAt)}
+              <span style={{ opacity: 0.7 }}>Access Until: </span>
+              <span style={{ fontWeight: '600' }}>{formatDate(subscription.subscriptionEndsAt)}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Plan Features */}
-      <div
-        style={{
-          background: '#f9fafb',
-          border: '1px solid #e5e7eb',
-          borderRadius: '12px',
-          padding: '1rem',
-          marginBottom: '1.5rem',
-        }}
-      >
-        <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>Features included:</h4>
-        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {currentPlan.features.map((feature, i) => (
-            <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: '#374151' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" style={{ flexShrink: 0 }}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              {feature}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Payment Info */}
+      {/* Payment Method */}
       {subscription?.paypalSubscription && (
         <div
           style={{
             background: 'white',
             border: '1px solid #e5e7eb',
             borderRadius: '12px',
-            padding: '1rem',
+            padding: '1.25rem',
             marginBottom: '1.5rem',
           }}
         >
-          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem' }}>Payment Information</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div>
-              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Billing Email</p>
-              <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0, wordBreak: 'break-word' }}>
-                {subscription.paypalSubscription.subscriber?.email_address || 'N/A'}
-              </p>
+          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#244b7a" strokeWidth="2">
+              <rect x="2" y="5" width="20" height="14" rx="2" />
+              <line x1="2" y1="10" x2="22" y2="10" />
+            </svg>
+            Payment Method
+          </h4>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.75rem', background: '#f9fafb', borderRadius: '8px' }}>
+            <div style={{
+              width: '48px',
+              height: '32px',
+              background: '#003087',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: '0.65rem',
+              fontWeight: '700',
+            }}>
+              PayPal
             </div>
-            {subscription.paypalSubscription.lastPayment && (
-              <div>
-                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Last Payment</p>
-                <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0 }}>
-                  ${subscription.paypalSubscription.lastPayment.amount.value} on {formatDate(subscription.paypalSubscription.lastPayment.time)}
-                </p>
-              </div>
-            )}
             <div>
-              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Subscription ID</p>
-              <p style={{ fontSize: '0.75rem', fontWeight: '500', fontFamily: 'monospace', margin: 0, wordBreak: 'break-all' }}>
-                {subscription.paypalSubscription.id}
+              <p style={{ margin: 0, fontWeight: '500', fontSize: '0.9rem' }}>
+                {subscription.paypalSubscription.subscriber?.email_address || 'PayPal Account'}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>
+                Subscription ID: {subscription.paypalSubscription.id}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Upgrade Section */}
-      {(subscription?.plan === 'STARTER' || subscription?.plan === 'BASIC') && !isCanceled && (
+      {/* Last Payment */}
+      {subscription?.paypalSubscription?.lastPayment && (
+        <div
+          style={{
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '1.25rem',
+            marginBottom: '1.5rem',
+          }}
+        >
+          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#244b7a" strokeWidth="2">
+              <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+            Last Payment
+          </h4>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div>
+              <p style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: '#15803d' }}>
+                ${subscription.paypalSubscription.lastPayment.amount.value}
+              </p>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#6b7280' }}>
+                Paid on {formatDate(subscription.paypalSubscription.lastPayment.time)}
+              </p>
+            </div>
+            <div style={{
+              padding: '0.25rem 0.5rem',
+              background: '#dcfce7',
+              color: '#15803d',
+              borderRadius: '999px',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+            }}>
+              Successful
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No Subscription Yet */}
+      {!subscription?.hasSubscription && subscription?.plan === 'STARTER' && (
         <div
           style={{
             background: '#f0f9ff',
@@ -387,173 +302,81 @@ export default function BillingSettings() {
             borderRadius: '12px',
             padding: '1.25rem',
             marginBottom: '1.5rem',
+            textAlign: 'center',
           }}
         >
-          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.75rem', color: '#0c4a6e' }}>
-            Upgrade Your Plan
+          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem', color: '#0c4a6e' }}>
+            No Payment Method Required Yet
           </h4>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
-            Get more features and higher limits with a paid plan.
+          <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 1rem' }}>
+            You're on the free Starter plan. Upgrade to a paid plan to add a payment method.
           </p>
-
-          {/* Billing Toggle */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-            <button
-              type="button"
-              onClick={() => setBillingCycle('monthly')}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '9999px',
-                border: 'none',
-                background: billingCycle === 'monthly' ? '#244b7a' : '#e5e7eb',
-                color: billingCycle === 'monthly' ? 'white' : '#374151',
-                fontWeight: '600',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-              }}
-            >
-              Monthly
-            </button>
-            <button
-              type="button"
-              onClick={() => setBillingCycle('annual')}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '9999px',
-                border: 'none',
-                background: billingCycle === 'annual' ? '#244b7a' : '#e5e7eb',
-                color: billingCycle === 'annual' ? 'white' : '#374151',
-                fontWeight: '600',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              Annual
-              <span
-                style={{
-                  background: billingCycle === 'annual' ? 'rgba(255,255,255,0.2)' : '#d1fae5',
-                  color: billingCycle === 'annual' ? 'white' : '#065f46',
-                  padding: '0.125rem 0.375rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.65rem',
-                  fontWeight: '700',
-                }}
-              >
-                Save 2mo
-              </span>
-            </button>
-          </div>
-
-          {/* Upgrade Error */}
-          {upgradeError && (
-            <div
-              style={{
-                padding: '0.75rem',
-                background: '#fee2e2',
-                border: '1px solid #fecaca',
-                borderRadius: '8px',
-                color: '#991b1b',
-                fontSize: '0.8rem',
-                marginBottom: '1rem',
-              }}
-            >
-              {upgradeError}
-            </div>
-          )}
-
-          {/* Upgrade Plan Cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {upgradePlans
-              .filter((plan) => {
-                // Show Basic only for Starter users
-                if (plan.id === 'BASIC' && subscription?.plan !== 'STARTER') return false;
-                // Show Premium for both Starter and Basic users
-                return true;
-              })
-              .map((plan) => (
-                <div
-                  key={plan.id}
-                  style={{
-                    background: 'white',
-                    border: plan.id === 'PREMIUM' ? '2px solid #244b7a' : '1px solid #e5e7eb',
-                    borderRadius: '10px',
-                    padding: '1rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '0.75rem',
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: '150px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <h5 style={{ fontSize: '1rem', fontWeight: '600', margin: 0 }}>{plan.name}</h5>
-                      {plan.id === 'PREMIUM' && (
-                        <span
-                          style={{
-                            background: '#244b7a',
-                            color: 'white',
-                            padding: '0.125rem 0.5rem',
-                            borderRadius: '9999px',
-                            fontSize: '0.65rem',
-                            fontWeight: '700',
-                          }}
-                        >
-                          Popular
-                        </span>
-                      )}
-                    </div>
-                    <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: 0 }}>{plan.description}</p>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <p style={{ fontSize: '1.125rem', fontWeight: '700', margin: 0 }}>
-                        ${billingCycle === 'annual' ? plan.priceAnnual : plan.priceMonthly}
-                        <span style={{ fontSize: '0.75rem', fontWeight: '400', color: '#6b7280' }}>
-                          /{billingCycle === 'annual' ? 'yr' : 'mo'}
-                        </span>
-                      </p>
-                      {billingCycle === 'annual' && (
-                        <p style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: '600', margin: 0 }}>
-                          Save ${plan.priceMonthly * 2}/yr
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleUpgrade(plan)}
-                      disabled={upgrading === plan.id}
-                      style={{
-                        padding: '0.625rem 1rem',
-                        background: plan.id === 'PREMIUM' ? '#244b7a' : 'white',
-                        color: plan.id === 'PREMIUM' ? 'white' : '#244b7a',
-                        border: plan.id === 'PREMIUM' ? 'none' : '1px solid #244b7a',
-                        borderRadius: '8px',
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
-                        cursor: upgrading === plan.id ? 'not-allowed' : 'pointer',
-                        opacity: upgrading === plan.id ? 0.7 : 1,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {upgrading === plan.id ? 'Processing...' : 'Upgrade'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-          </div>
+          <a
+            href="/dashboard/settings?tab=plans"
+            style={{
+              display: 'inline-block',
+              padding: '0.75rem 1.5rem',
+              background: '#244b7a',
+              color: 'white',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              fontWeight: '600',
+              fontSize: '0.875rem',
+            }}
+          >
+            View Plans
+          </a>
         </div>
       )}
 
-      {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flexDirection: 'column' }}>
-        {subscription?.hasSubscription && !isCanceled && subscription?.plan !== 'STARTER' && (
+      {/* Canceled Notice */}
+      {isCanceled && (
+        <div
+          style={{
+            padding: '1rem',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            marginBottom: '1.5rem',
+          }}
+        >
+          <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+            Your subscription has been canceled. You will have access until {formatDate(subscription?.subscriptionEndsAt || null)}.
+            {' '}
+            <a
+              href="/pricing"
+              style={{
+                color: '#244b7a',
+                textDecoration: 'underline',
+                fontWeight: '500',
+              }}
+            >
+              Resubscribe
+            </a>
+          </p>
+        </div>
+      )}
+
+      {/* Cancel Subscription */}
+      {hasActiveSubscription && subscription?.plan !== 'STARTER' && (
+        <div
+          style={{
+            background: 'white',
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            padding: '1.25rem',
+          }}
+        >
+          <h4 style={{ fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+            Cancel Subscription
+          </h4>
+          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1rem' }}>
+            Cancel your subscription. You'll retain access until the end of your current billing period.
+          </p>
           <button
             onClick={() => setShowCancelModal(true)}
             style={{
-              padding: '0.75rem 1rem',
+              padding: '0.75rem 1.25rem',
               background: 'white',
               color: '#dc2626',
               border: '1px solid #dc2626',
@@ -561,44 +384,12 @@ export default function BillingSettings() {
               fontSize: '0.875rem',
               fontWeight: '600',
               cursor: 'pointer',
-              width: '100%',
-              textAlign: 'center',
             }}
           >
             Cancel Subscription
           </button>
-        )}
-
-        {isCanceled && (
-          <div
-            style={{
-              padding: '1rem',
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: '8px',
-              flex: 1,
-            }}
-          >
-            <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
-              Your subscription has been canceled. You will have access until {formatDate(subscription?.subscriptionEndsAt || null)}.
-              <button
-                onClick={() => window.location.href = '/pricing'}
-                style={{
-                  marginLeft: '0.5rem',
-                  color: '#244b7a',
-                  background: 'none',
-                  border: 'none',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                }}
-              >
-                Resubscribe
-              </button>
-            </p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Cancel Modal */}
       {showCancelModal && (

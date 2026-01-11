@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSubscription } from '@/app/lib/paypal/subscriptions';
+import { createSubscription, getSubscription } from '@/app/lib/paypal/subscriptions';
 import { prisma } from '@/app/lib/prisma';
 
 // PayPal Plan IDs (from .env)
@@ -77,15 +77,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if merchant already has active subscription
+    // Check if merchant already has a subscription ID stored
     if (merchant.paypalSubscriptionId) {
-      return NextResponse.json(
-        {
-          error: 'Merchant already has an active subscription',
-          subscriptionId: merchant.paypalSubscriptionId,
-        },
-        { status: 400 }
-      );
+      // Verify with PayPal if the subscription is actually active
+      try {
+        const existingSubscription = await getSubscription(merchant.paypalSubscriptionId);
+
+        // Only block if subscription is actually active or in approval pending state with PayPal
+        if (existingSubscription.status === 'ACTIVE' || existingSubscription.status === 'APPROVED') {
+          return NextResponse.json(
+            {
+              error: 'Merchant already has an active subscription',
+              subscriptionId: merchant.paypalSubscriptionId,
+            },
+            { status: 400 }
+          );
+        }
+
+        // If subscription is cancelled, expired, or in other non-active state, clear it
+        console.log(`[PayPal] Clearing orphaned subscription ${merchant.paypalSubscriptionId} (status: ${existingSubscription.status})`);
+        await prisma.merchant.update({
+          where: { id: merchantId },
+          data: { paypalSubscriptionId: null },
+        });
+      } catch (error: any) {
+        // If we can't get the subscription from PayPal (e.g., it doesn't exist), clear the ID
+        console.log(`[PayPal] Clearing invalid subscription ID ${merchant.paypalSubscriptionId}: ${error.message}`);
+        await prisma.merchant.update({
+          where: { id: merchantId },
+          data: { paypalSubscriptionId: null },
+        });
+      }
     }
 
     // Create PayPal subscription
@@ -105,14 +127,11 @@ export async function POST(req: NextRequest) {
 
     console.log(`[PayPal] Created subscription ${subscription.id} for merchant ${merchantId}`);
 
-    // Store subscription ID in database (status will be APPROVAL_PENDING)
-    await prisma.merchant.update({
-      where: { id: merchantId },
-      data: {
-        paypalSubscriptionId: subscription.id,
-        subscriptionStatus: 'TRIAL', // Will be updated by webhook
-      },
-    });
+    // NOTE: We do NOT save the subscription ID here.
+    // The subscription is not yet approved - user will be redirected to PayPal.
+    // The webhook (BILLING.SUBSCRIPTION.ACTIVATED) will save the subscription ID
+    // once the user actually completes payment.
+    // This prevents orphaned subscription IDs when users back out of checkout.
 
     return NextResponse.json({
       subscriptionId: subscription.id,

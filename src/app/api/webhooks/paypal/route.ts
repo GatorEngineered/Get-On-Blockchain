@@ -129,9 +129,14 @@ export async function POST(req: NextRequest) {
  */
 async function handleSubscriptionActivated(resource: any) {
   const subscriptionId = resource.id;
-  const customId = resource.custom_id; // Our merchant ID
+  const merchantId = resource.custom_id; // Our merchant ID passed during subscription creation
 
-  console.log(`[PayPal] Subscription activated: ${subscriptionId}`);
+  console.log(`[PayPal] Subscription activated: ${subscriptionId} for merchant ${merchantId}`);
+
+  if (!merchantId) {
+    console.error('[PayPal] No custom_id (merchantId) found in subscription resource');
+    return;
+  }
 
   // Get full subscription details
   const subscription = await getSubscription(subscriptionId);
@@ -153,21 +158,28 @@ async function handleSubscriptionActivated(resource: any) {
     }
   }
 
-  // Get merchant to send notification
+  // Get merchant by ID (from custom_id) to check previous plan
   const merchant = await prisma.merchant.findUnique({
-    where: { paypalSubscriptionId: subscriptionId },
+    where: { id: merchantId },
     include: { businesses: { take: 1 } },
   });
 
-  const previousPlan = merchant?.plan || 'STARTER';
+  if (!merchant) {
+    console.error(`[PayPal] Merchant not found for ID: ${merchantId}`);
+    return;
+  }
+
+  const previousPlan = merchant.plan || 'STARTER';
   const newPlan = getPlanFromPayPalPlanId(subscription.plan_id);
   const isAnnual = subscription.plan_id === process.env.PAYPAL_PLAN_BASIC_ANNUAL ||
                    subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL;
 
-  // Update merchant
+  // Update merchant with subscription ID and plan
+  // This is where we save the subscription ID - only after payment is confirmed
   await prisma.merchant.update({
-    where: { paypalSubscriptionId: subscriptionId },
+    where: { id: merchantId },
     data: {
+      paypalSubscriptionId: subscriptionId,
       subscriptionStatus: status,
       trialEndsAt,
       plan: newPlan,
@@ -175,10 +187,10 @@ async function handleSubscriptionActivated(resource: any) {
     },
   });
 
-  console.log(`[PayPal] Merchant updated: status=${status}, plan=${newPlan}, trial=${trialEndsAt}`);
+  console.log(`[PayPal] Merchant ${merchantId} updated: subscriptionId=${subscriptionId}, status=${status}, plan=${newPlan}, trial=${trialEndsAt}`);
 
   // Send admin notification for new subscription (upgrade from Starter or new signup)
-  if (merchant && previousPlan !== newPlan) {
+  if (previousPlan !== newPlan) {
     const planPrice = PLAN_PRICES[newPlan] || { monthly: '$0', annual: '$0' };
 
     sendAdminPlanUpgradeNotification({
