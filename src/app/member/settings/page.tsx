@@ -14,6 +14,17 @@ type MemberProfile = {
   createdAt: string;
 };
 
+type EmailPreferences = {
+  // System notifications
+  payoutNotifications: boolean;
+  magicLinkEnabled: boolean;
+  securityAlerts: boolean;
+  // Merchant notifications
+  merchantPromotional: boolean;
+  merchantPointsUpdates: boolean;
+  merchantAnnouncements: boolean;
+};
+
 export default function MemberSettingsPage() {
   const router = useRouter();
 
@@ -40,7 +51,13 @@ export default function MemberSettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
 
   // Active tab
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "wallet">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "wallet" | "notifications">("profile");
+
+  // Email preferences state
+  const [emailPreferences, setEmailPreferences] = useState<EmailPreferences | null>(null);
+  const [savingPreferences, setSavingPreferences] = useState(false);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
+  const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfile();
@@ -80,6 +97,66 @@ export default function MemberSettingsPage() {
       setLoading(false);
     }
   }
+
+  async function loadEmailPreferences() {
+    try {
+      const res = await fetch("/api/member/email-preferences");
+
+      if (!res.ok) {
+        throw new Error("Failed to load email preferences");
+      }
+
+      const data = await res.json();
+      setEmailPreferences(data.preferences);
+    } catch (err: any) {
+      console.error("Failed to load email preferences:", err);
+      setPreferencesError(err.message);
+    }
+  }
+
+  async function handleUpdatePreference(key: keyof EmailPreferences, value: boolean) {
+    setSavingPreferences(true);
+    setPreferencesError(null);
+    setPreferencesSuccess(null);
+
+    // Optimistically update UI
+    if (emailPreferences) {
+      setEmailPreferences({ ...emailPreferences, [key]: value });
+    }
+
+    try {
+      const res = await fetch("/api/member/email-preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [key]: value }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Revert on error
+        if (emailPreferences) {
+          setEmailPreferences({ ...emailPreferences, [key]: !value });
+        }
+        throw new Error(data.error || "Failed to update preference");
+      }
+
+      setEmailPreferences(data.preferences);
+      setPreferencesSuccess("Preference updated!");
+      setTimeout(() => setPreferencesSuccess(null), 2000);
+    } catch (err: any) {
+      setPreferencesError(err.message);
+    } finally {
+      setSavingPreferences(false);
+    }
+  }
+
+  // Load email preferences when switching to notifications tab
+  useEffect(() => {
+    if (activeTab === "notifications" && !emailPreferences) {
+      loadEmailPreferences();
+    }
+  }, [activeTab, emailPreferences]);
 
   async function handleUpdateProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -246,6 +323,15 @@ export default function MemberSettingsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
             Wallet
+          </button>
+          <button
+            className={`tab ${activeTab === "notifications" ? "active" : ""}`}
+            onClick={() => setActiveTab("notifications")}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            Notifications
           </button>
         </div>
 
@@ -481,6 +567,157 @@ export default function MemberSettingsPage() {
                 <li>Payouts are processed instantly once claimed</li>
               </ul>
             </div>
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === "notifications" && (
+          <div className="tab-content">
+            <h2>Email Notifications</h2>
+            <p className="tab-description">Manage what emails you receive from us and merchants</p>
+
+            {preferencesError && <div className="message error">{preferencesError}</div>}
+            {preferencesSuccess && <div className="message success">{preferencesSuccess}</div>}
+
+            {!emailPreferences ? (
+              <div style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+                Loading preferences...
+              </div>
+            ) : (
+              <>
+                {/* System Notifications Section */}
+                <div className="notification-section">
+                  <h3 className="section-title">System Notifications</h3>
+                  <p className="section-description">Emails from Get On Blockchain platform</p>
+
+                  <div className="toggle-list">
+                    <div className="toggle-item">
+                      <div className="toggle-info">
+                        <span className="toggle-label">Payout Confirmations</span>
+                        <span className="toggle-description">
+                          Get notified when you receive USDC payouts
+                        </span>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={emailPreferences.payoutNotifications}
+                          onChange={(e) => handleUpdatePreference("payoutNotifications", e.target.checked)}
+                          disabled={savingPreferences}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="toggle-item">
+                      <div className="toggle-info">
+                        <span className="toggle-label">Magic Link Emails</span>
+                        <span className="toggle-description">
+                          Receive passwordless login links (requires password if disabled)
+                        </span>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={emailPreferences.magicLinkEnabled}
+                          onChange={(e) => handleUpdatePreference("magicLinkEnabled", e.target.checked)}
+                          disabled={savingPreferences}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="toggle-item">
+                      <div className="toggle-info">
+                        <span className="toggle-label">Security Alerts</span>
+                        <span className="toggle-description">
+                          Important account security notifications
+                        </span>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={emailPreferences.securityAlerts}
+                          onChange={(e) => handleUpdatePreference("securityAlerts", e.target.checked)}
+                          disabled={savingPreferences}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Merchant Notifications Section */}
+                <div className="notification-section">
+                  <h3 className="section-title">Merchant Notifications</h3>
+                  <p className="section-description">Emails from businesses you're a member of</p>
+
+                  <div className="toggle-list">
+                    <div className="toggle-item">
+                      <div className="toggle-info">
+                        <span className="toggle-label">Promotional Offers</span>
+                        <span className="toggle-description">
+                          Special deals and discounts from merchants
+                        </span>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={emailPreferences.merchantPromotional}
+                          onChange={(e) => handleUpdatePreference("merchantPromotional", e.target.checked)}
+                          disabled={savingPreferences}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="toggle-item">
+                      <div className="toggle-info">
+                        <span className="toggle-label">Points & Tier Updates</span>
+                        <span className="toggle-description">
+                          Notifications about points earned and tier changes
+                        </span>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={emailPreferences.merchantPointsUpdates}
+                          onChange={(e) => handleUpdatePreference("merchantPointsUpdates", e.target.checked)}
+                          disabled={savingPreferences}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+
+                    <div className="toggle-item">
+                      <div className="toggle-info">
+                        <span className="toggle-label">Business Announcements</span>
+                        <span className="toggle-description">
+                          News and updates from businesses you support
+                        </span>
+                      </div>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={emailPreferences.merchantAnnouncements}
+                          onChange={(e) => handleUpdatePreference("merchantAnnouncements", e.target.checked)}
+                          disabled={savingPreferences}
+                        />
+                        <span className="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="info-box">
+                  <h4>Note About Critical Emails</h4>
+                  <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
+                    Some emails cannot be disabled, including account verification, password resets,
+                    and critical security alerts. These are essential for protecting your account.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -886,6 +1123,115 @@ const pageStyles = `
 
   .info-box li:last-child {
     margin-bottom: 0;
+  }
+
+  /* Notification Settings Styles */
+  .notification-section {
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .section-description {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 1rem 0;
+  }
+
+  .toggle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: #f9fafb;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: white;
+  }
+
+  .toggle-item:last-child {
+    border-bottom: none;
+  }
+
+  .toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .toggle-label {
+    font-weight: 500;
+    color: #1f2937;
+    font-size: 0.9rem;
+  }
+
+  .toggle-description {
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #d1d5db;
+    transition: 0.3s;
+    border-radius: 26px;
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background-color: #10b981;
+  }
+
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(22px);
+  }
+
+  .toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   @media (max-width: 640px) {

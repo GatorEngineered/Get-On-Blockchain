@@ -1,6 +1,6 @@
 // src/lib/email/templates/low-balance-alert.ts
 
- 
+import { generateEmailFooter } from './email-footer';
 
 export interface LowBalanceAlertEmailParams {
 
@@ -400,13 +400,7 @@ export function generateLowBalanceAlertEmail({
 
  
 
-    <div class="footer">
-
-      <p>© ${new Date().getFullYear()} Get On Blockchain. All rights reserved.</p>
-
-      <p>Need help? Contact support or visit our documentation</p>
-
-    </div>
+${generateEmailFooter({ recipientType: 'merchant' })}
 
   </div>
 

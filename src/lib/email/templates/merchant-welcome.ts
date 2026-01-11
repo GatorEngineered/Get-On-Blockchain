@@ -1,5 +1,7 @@
 // src/lib/email/templates/merchant-welcome.ts
 
+import { generateEmailFooter } from './email-footer';
+
 export interface MerchantWelcomeEmailParams {
   merchantName: string;
   businessName: string;
@@ -342,10 +344,7 @@ export function generateMerchantWelcomeEmail({
       </div>
     </div>
 
-    <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Get On Blockchain. All rights reserved.</p>
-      <p>You're receiving this email because you signed up for Get On Blockchain.</p>
-    </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
   </div>
 </body>
 </html>

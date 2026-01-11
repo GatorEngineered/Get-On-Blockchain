@@ -1,5 +1,7 @@
 // src/lib/email/templates/trial-expiring.ts
 
+import { generateEmailFooter } from './email-footer';
+
 export interface TrialExpiringEmailParams {
   merchantName: string;
   daysRemaining: number;
@@ -233,10 +235,7 @@ export function generateTrialExpiringEmail({
       </div>
     </div>
 
-    <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Get On Blockchain. All rights reserved.</p>
-      <p>Questions? Reply to this email or visit our support center.</p>
-    </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
   </div>
 </body>
 </html>

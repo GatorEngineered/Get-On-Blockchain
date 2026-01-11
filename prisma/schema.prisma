@@ -132,7 +132,17 @@ model Member {
   // Email preferences & verification
   emailVerified         Boolean   @default(false)
   emailVerifiedAt       DateTime?
-  emailMarketingConsent Boolean   @default(true)
+  emailMarketingConsent Boolean   @default(true) // Legacy field, kept for backwards compatibility
+
+  // System notification preferences (from Get On Blockchain platform)
+  emailPayoutNotifications  Boolean @default(true)  // Payout confirmations
+  emailMagicLinkEnabled     Boolean @default(true)  // Magic link emails (if false, must use password)
+  emailSecurityAlerts       Boolean @default(true)  // Account security alerts (always sent for critical)
+
+  // Merchant notification preferences (from businesses they're members of)
+  emailMerchantPromotional  Boolean @default(true)  // Promotional offers from merchants
+  emailMerchantPointsUpdates Boolean @default(true) // Points earned, tier updates
+  emailMerchantAnnouncements Boolean @default(true) // Special announcements from businesses
 
   walletAddress      String?
   tier               String              @default("STARTER")

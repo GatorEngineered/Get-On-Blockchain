@@ -6,6 +6,7 @@ import { generateTrialExpiringEmail, type TrialExpiringEmailParams } from './tem
 import { generateMerchantWelcomeEmail, type MerchantWelcomeEmailParams } from './templates/merchant-welcome';
 import { generatePaymentFailedEmail, type PaymentFailedEmailParams } from './templates/payment-failed';
 import { generateStaffInviteEmail, type StaffInviteEmailParams } from './templates/staff-invite';
+import { generateEmailFooter, generateEmailFooterText } from './templates/email-footer';
 
  
 
@@ -255,19 +256,9 @@ export async function sendLowBalanceEmail(params: LowBalanceEmailParams): Promis
 
  
 
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
- 
-
-      <p style="font-size: 0.9em; color: #6b7280;">
-
-        This is an automated alert from Get On Blockchain. Your wallet balance is checked periodically.
-
-        <br>Questions? Contact support@getonblockchain.com
-
-      </p>
-
     </div>
+
+    ${generateEmailFooter({ recipientType: 'merchant' })}
 
   </div>
 
@@ -515,33 +506,18 @@ export async function sendPayoutSuccessEmail(params: PayoutSuccessEmailParams): 
 
  
 
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
- 
-
-      <p><strong>What's Next?</strong></p>
-
-      <ul>
-
-        <li>Your USDC has been sent to your wallet</li>
-
-        <li>You can use it anywhere USDC is accepted</li>
-
-        <li>Keep earning points for more rewards!</li>
-
-      </ul>
-
- 
-
-      <p style="font-size: 0.9em; color: #6b7280; margin-top: 30px;">
-
-        This is an automated notification from Get On Blockchain.
-
-        <br>Questions? Contact support@getonblockchain.com
-
-      </p>
+      <div style="margin-top: 24px; padding: 16px; background: #f0fdf4; border-radius: 8px;">
+        <p style="margin: 0 0 8px 0;"><strong>What's Next?</strong></p>
+        <ul style="margin: 0; padding-left: 20px; color: #166534;">
+          <li>Your USDC has been sent to your wallet</li>
+          <li>You can use it anywhere USDC is accepted</li>
+          <li>Keep earning points for more rewards!</li>
+        </ul>
+      </div>
 
     </div>
+
+    ${generateEmailFooter({ recipientType: 'member' })}
 
   </div>
 
@@ -551,7 +527,7 @@ export async function sendPayoutSuccessEmail(params: PayoutSuccessEmailParams): 
 
   `;
 
- 
+
 
   const text = `
 
@@ -741,21 +717,9 @@ export async function sendMagicLinkEmail(
 
       <p>If you didn't request this email, you can safely ignore it.</p>
 
- 
-
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
- 
-
-      <p style="font-size: 0.9em; color: #6b7280;">
-
-        This is an automated email from Get On Blockchain.
-
-        <br>Questions? Contact support@getonblockchain.com
-
-      </p>
-
     </div>
+
+    ${generateEmailFooter({ recipientType: 'member', showUnsubscribe: false })}
 
   </div>
 
@@ -765,7 +729,7 @@ export async function sendMagicLinkEmail(
 
   `;
 
- 
+
 
   const text = `
 
@@ -1032,10 +996,8 @@ export async function sendAdminNewMerchantNotification(
 
       <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
 
-      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
-        This is an automated notification from Get On Blockchain.
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'admin' })}
   </div>
 </body>
 </html>
@@ -1121,10 +1083,8 @@ export async function sendAdminPlanUpgradeNotification(
 
       <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
 
-      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
-        This is an automated notification from Get On Blockchain.
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'admin' })}
   </div>
 </body>
 </html>
@@ -1218,10 +1178,8 @@ export async function sendAdminPlanDowngradeNotification(
 
       <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
 
-      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
-        This is an automated notification from Get On Blockchain.
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'admin' })}
   </div>
 </body>
 </html>
@@ -1314,10 +1272,8 @@ export async function sendAdminSubscriptionCancelledNotification(
 
       <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
 
-      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
-        This is an automated notification from Get On Blockchain.
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'admin' })}
   </div>
 </body>
 </html>
@@ -1422,10 +1378,8 @@ export async function sendPaymentReceiptEmail(
 
       <a href="${APP_URL}/dashboard/settings" class="button">View Subscription →</a>
 
-      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
-        Questions about your subscription? Contact us at support@getonblockchain.com
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
   </div>
 </body>
 </html>
@@ -1507,13 +1461,12 @@ export async function sendReferralInviteEmail(params: ReferralInviteParams): Pro
         Simply sign up with this email address to start earning rewards!
       </p>
 
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
-      <p style="font-size: 0.85em; color: #6b7280;">
-        This invitation was sent by ${referrerName} via Get On Blockchain.
-        <br>If you didn't expect this email, you can safely ignore it.
+      <p style="font-size: 0.85em; color: #9ca3af; margin-top: 20px;">
+        This invitation was sent by ${referrerName}. If you didn't expect this email, you can safely ignore it.
       </p>
+
     </div>
+    ${generateEmailFooter({ recipientType: 'member', showUnsubscribe: false })}
   </div>
 </body>
 </html>
@@ -1580,10 +1533,8 @@ export async function sendMerchantReferralSentNotification(params: MerchantRefer
         If the invited friend signs up with the same email, ${referrerName} will automatically earn referral points!
       </p>
 
-      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
-        This is an automated notification from Get On Blockchain.
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
   </div>
 </body>
 </html>
@@ -1657,12 +1608,8 @@ export async function sendReferralConvertedEmail(params: ReferralConvertedMember
 
       <p style="margin-top: 30px;">Keep sharing! The more friends you refer, the more points you earn.</p>
 
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
-      <p style="font-size: 0.85em; color: #6b7280;">
-        This is an automated notification from Get On Blockchain.
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'member' })}
   </div>
 </body>
 </html>
@@ -1735,10 +1682,8 @@ export async function sendMerchantReferralConvertedNotification(params: Merchant
         View Members →
       </a>
 
-      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
-        This is an automated notification from Get On Blockchain.
-      </p>
     </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
   </div>
 </body>
 </html>

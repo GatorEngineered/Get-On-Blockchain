@@ -1,5 +1,6 @@
-// src/lib/email/notifications.ts
+// src/app/lib/email/notifications.ts
 import nodemailer from 'nodemailer';
+import { generateEmailFooter, generateEmailFooterText } from '@/lib/email/templates/email-footer';
 
 /**
  * Email notification utility for sending alerts and updates
@@ -124,12 +125,7 @@ export async function sendLowBalanceEmail(params: LowBalanceEmailParams): Promis
         Manage Wallet →
       </a>
 
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
-      <p style="font-size: 0.9em; color: #6b7280;">
-        This is an automated alert from Get On Blockchain. Your wallet balance is checked periodically.
-        <br>Questions? Contact support@getonblockchain.com
-      </p>
+      ${generateEmailFooter({ recipientType: 'merchant' })}
     </div>
   </div>
 </body>
@@ -155,6 +151,8 @@ Action Required:
 Customer payouts will fail if your wallet runs out of USDC!
 
 Manage your wallet: https://app.getonblockchain.com/dashboard/settings
+
+${generateEmailFooterText({ recipientType: 'merchant' })}
   `;
 
   // If no transporter (dev mode), log to console
@@ -263,10 +261,7 @@ export async function sendPayoutSuccessEmail(params: PayoutSuccessEmailParams): 
         <li>Keep earning points for more rewards!</li>
       </ul>
 
-      <p style="font-size: 0.9em; color: #6b7280; margin-top: 30px;">
-        This is an automated notification from Get On Blockchain.
-        <br>Questions? Contact support@getonblockchain.com
-      </p>
+      ${generateEmailFooter({ recipientType: 'member' })}
     </div>
   </div>
 </body>
@@ -290,6 +285,8 @@ What's Next?
 - Your USDC has been sent to your wallet
 - You can use it anywhere USDC is accepted
 - Keep earning points for more rewards!
+
+${generateEmailFooterText({ recipientType: 'member' })}
   `;
 
   if (!transporter) {
@@ -368,12 +365,7 @@ export async function sendMagicLinkEmail(
 
       <p>If you didn't request this email, you can safely ignore it.</p>
 
-      <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-
-      <p style="font-size: 0.9em; color: #6b7280;">
-        This is an automated email from Get On Blockchain.
-        <br>Questions? Contact support@getonblockchain.com
-      </p>
+      ${generateEmailFooter({ recipientType: 'member', showUnsubscribe: false })}
     </div>
   </div>
 </body>
@@ -389,6 +381,8 @@ ${magicLink}
 This link expires in 15 minutes for security reasons.
 
 If you didn't request this email, you can safely ignore it.
+
+${generateEmailFooterText({ recipientType: 'member', showUnsubscribe: false })}
   `;
 
   if (!transporter) {

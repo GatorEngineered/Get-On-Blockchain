@@ -1,5 +1,7 @@
 // src/lib/email/templates/staff-invite.ts
 
+import { generateEmailFooter } from './email-footer';
+
 export interface StaffInviteEmailParams {
   staffName: string;
   staffEmail: string;
@@ -232,10 +234,7 @@ export function generateStaffInviteEmail({
       </div>
     </div>
 
-    <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Get On Blockchain. All rights reserved.</p>
-      <p>This invitation was sent to ${staffEmail} from ${merchantName}.</p>
-    </div>
+${generateEmailFooter({ recipientType: 'staff' })}
   </div>
 </body>
 </html>

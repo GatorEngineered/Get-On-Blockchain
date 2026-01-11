@@ -1,6 +1,6 @@
 // src/lib/email/templates/magic-link.ts
 
- 
+import { generateEmailFooter } from './email-footer';
 
 export interface MagicLinkEmailParams {
 
@@ -272,13 +272,7 @@ export function generateMagicLinkEmail({
 
  
 
-    <div class="footer">
-
-      <p>© ${new Date().getFullYear()} Get On Blockchain. All rights reserved.</p>
-
-      <p>Blockchain-powered loyalty rewards platform</p>
-
-    </div>
+${generateEmailFooter({ recipientType: 'member', showUnsubscribe: false })}
 
   </div>
 

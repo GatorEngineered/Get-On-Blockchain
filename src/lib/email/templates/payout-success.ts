@@ -1,6 +1,6 @@
 // src/lib/email/templates/payout-success.ts
 
- 
+import { generateEmailFooter } from './email-footer';
 
 export interface PayoutSuccessEmailParams {
 
@@ -390,13 +390,7 @@ export function generatePayoutSuccessEmail({
 
  
 
-    <div class="footer">
-
-      <p>© ${new Date().getFullYear()} Get On Blockchain. All rights reserved.</p>
-
-      <p>Blockchain-powered loyalty rewards platform</p>
-
-    </div>
+${generateEmailFooter({ recipientType: 'member' })}
 
   </div>
 
