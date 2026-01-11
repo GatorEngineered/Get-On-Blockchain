@@ -1055,6 +1055,396 @@ export async function sendAdminNewMerchantNotification(
   }
 }
 
+/**
+ * Send admin notification when a merchant upgrades their plan
+ */
+type AdminPlanUpgradeParams = {
+  merchantName: string;
+  businessName: string;
+  ownerEmail: string;
+  previousPlan: string;
+  newPlan: string;
+  billingCycle: 'monthly' | 'annual';
+  amount: string;
+};
+
+export async function sendAdminPlanUpgradeNotification(
+  params: AdminPlanUpgradeParams
+): Promise<boolean> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+  if (!adminEmail) {
+    console.log('[Email] ADMIN_NOTIFICATION_EMAIL not set, skipping admin notification');
+    return false;
+  }
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .details p { margin: 8px 0; }
+    .label { color: #6b7280; font-size: 0.9em; }
+    .value { font-weight: 600; color: #111827; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
+    .badge-old { background: #f3f4f6; color: #6b7280; text-decoration: line-through; }
+    .badge-new { background: #d1fae5; color: #065f46; }
+    .arrow { color: #10b981; font-weight: bold; margin: 0 8px; }
+    .button { display: inline-block; background: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">📈 Plan Upgrade!</h2>
+    </div>
+    <div class="content">
+      <p>Great news! A merchant has upgraded their subscription.</p>
+
+      <div class="details">
+        <p><span class="label">Business Name:</span><br><span class="value">${params.businessName}</span></p>
+        <p><span class="label">Owner/Contact:</span><br><span class="value">${params.merchantName}</span></p>
+        <p><span class="label">Email:</span><br><span class="value">${params.ownerEmail}</span></p>
+        <p><span class="label">Plan Change:</span><br>
+          <span class="badge badge-old">${params.previousPlan}</span>
+          <span class="arrow">→</span>
+          <span class="badge badge-new">${params.newPlan}</span>
+        </p>
+        <p><span class="label">Billing:</span><br><span class="value">${params.billingCycle === 'annual' ? 'Annual' : 'Monthly'} - ${params.amount}</span></p>
+      </div>
+
+      <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
+
+      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
+        This is an automated notification from Get On Blockchain.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: adminEmail,
+      subject: `📈 Plan Upgrade: ${params.businessName} upgraded to ${params.newPlan}`,
+      html,
+    });
+
+    console.log(`[Email] Admin upgrade notification sent for: ${params.businessName}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send admin upgrade notification:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send admin notification when a merchant downgrades their plan
+ */
+type AdminPlanDowngradeParams = {
+  merchantName: string;
+  businessName: string;
+  ownerEmail: string;
+  previousPlan: string;
+  newPlan: string;
+  gracePeriodEndsAt?: Date;
+};
+
+export async function sendAdminPlanDowngradeNotification(
+  params: AdminPlanDowngradeParams
+): Promise<boolean> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+  if (!adminEmail) {
+    console.log('[Email] ADMIN_NOTIFICATION_EMAIL not set, skipping admin notification');
+    return false;
+  }
+
+  try {
+    const gracePeriodInfo = params.gracePeriodEndsAt
+      ? `Grace period ends: ${params.gracePeriodEndsAt.toLocaleDateString()}`
+      : 'Immediate effect';
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .details p { margin: 8px 0; }
+    .label { color: #6b7280; font-size: 0.9em; }
+    .value { font-weight: 600; color: #111827; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
+    .badge-old { background: #d1fae5; color: #065f46; text-decoration: line-through; }
+    .badge-new { background: #fef3c7; color: #92400e; }
+    .arrow { color: #f59e0b; font-weight: bold; margin: 0 8px; }
+    .warning { background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; margin-top: 15px; }
+    .button { display: inline-block; background: #f59e0b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">📉 Plan Downgrade</h2>
+    </div>
+    <div class="content">
+      <p>A merchant has downgraded their subscription plan.</p>
+
+      <div class="details">
+        <p><span class="label">Business Name:</span><br><span class="value">${params.businessName}</span></p>
+        <p><span class="label">Owner/Contact:</span><br><span class="value">${params.merchantName}</span></p>
+        <p><span class="label">Email:</span><br><span class="value">${params.ownerEmail}</span></p>
+        <p><span class="label">Plan Change:</span><br>
+          <span class="badge badge-old">${params.previousPlan}</span>
+          <span class="arrow">→</span>
+          <span class="badge badge-new">${params.newPlan}</span>
+        </p>
+      </div>
+
+      <div class="warning">
+        <strong>⏰ ${gracePeriodInfo}</strong>
+        <p style="margin: 5px 0 0; font-size: 0.9em;">Member limits will adjust after the grace period.</p>
+      </div>
+
+      <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
+
+      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
+        This is an automated notification from Get On Blockchain.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: adminEmail,
+      subject: `📉 Plan Downgrade: ${params.businessName} downgraded to ${params.newPlan}`,
+      html,
+    });
+
+    console.log(`[Email] Admin downgrade notification sent for: ${params.businessName}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send admin downgrade notification:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send admin notification when a merchant cancels their subscription
+ */
+type AdminSubscriptionCancelledParams = {
+  merchantName: string;
+  businessName: string;
+  ownerEmail: string;
+  plan: string;
+  reason?: string;
+  accessEndsAt?: Date;
+};
+
+export async function sendAdminSubscriptionCancelledNotification(
+  params: AdminSubscriptionCancelledParams
+): Promise<boolean> {
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+  if (!adminEmail) {
+    console.log('[Email] ADMIN_NOTIFICATION_EMAIL not set, skipping admin notification');
+    return false;
+  }
+
+  try {
+    const accessInfo = params.accessEndsAt
+      ? `Access until: ${params.accessEndsAt.toLocaleDateString()}`
+      : 'Access ends at billing period';
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .details { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .details p { margin: 8px 0; }
+    .label { color: #6b7280; font-size: 0.9em; }
+    .value { font-weight: 600; color: #111827; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+    .reason-box { background: #fef2f2; border: 1px solid #fecaca; padding: 12px; border-radius: 8px; margin-top: 15px; }
+    .button { display: inline-block; background: #ef4444; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">❌ Subscription Cancelled</h2>
+    </div>
+    <div class="content">
+      <p>A merchant has cancelled their subscription.</p>
+
+      <div class="details">
+        <p><span class="label">Business Name:</span><br><span class="value">${params.businessName}</span></p>
+        <p><span class="label">Owner/Contact:</span><br><span class="value">${params.merchantName}</span></p>
+        <p><span class="label">Email:</span><br><span class="value">${params.ownerEmail}</span></p>
+        <p><span class="label">Plan:</span><br>
+          <span class="badge badge-cancelled">${params.plan} (Cancelled)</span>
+        </p>
+        <p><span class="label">Status:</span><br><span class="value">${accessInfo}</span></p>
+      </div>
+
+      ${params.reason ? `
+      <div class="reason-box">
+        <strong>📝 Cancellation Reason:</strong>
+        <p style="margin: 5px 0 0;">${params.reason}</p>
+      </div>
+      ` : ''}
+
+      <a href="${APP_URL}/admin/merchants" class="button">View in Admin Dashboard →</a>
+
+      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
+        This is an automated notification from Get On Blockchain.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: adminEmail,
+      subject: `❌ Subscription Cancelled: ${params.businessName}`,
+      html,
+    });
+
+    console.log(`[Email] Admin cancellation notification sent for: ${params.businessName}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send admin cancellation notification:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Send payment receipt to merchant after successful payment
+ */
+type PaymentReceiptParams = {
+  merchantEmail: string;
+  merchantName: string;
+  businessName: string;
+  plan: string;
+  amount: string;
+  billingCycle: 'monthly' | 'annual';
+  nextBillingDate?: string;
+  subscriptionId: string;
+};
+
+export async function sendPaymentReceiptEmail(
+  params: PaymentReceiptParams
+): Promise<boolean> {
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #244b7a, #8bbcff); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .receipt { background: white; padding: 20px; border-radius: 8px; margin: 15px 0; border: 1px solid #e5e7eb; }
+    .receipt-header { border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; margin-bottom: 15px; }
+    .receipt-row { display: flex; justify-content: space-between; margin: 10px 0; }
+    .label { color: #6b7280; }
+    .value { font-weight: 600; color: #111827; }
+    .total { border-top: 2px solid #244b7a; padding-top: 15px; margin-top: 15px; }
+    .total .value { font-size: 1.25em; color: #244b7a; }
+    .success-badge { background: #d1fae5; color: #065f46; padding: 8px 16px; border-radius: 20px; display: inline-block; font-weight: 600; }
+    .button { display: inline-block; background: #244b7a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0 0 10px;">Payment Receipt</h2>
+      <span class="success-badge">✓ Payment Successful</span>
+    </div>
+    <div class="content">
+      <p>Hi ${params.merchantName},</p>
+      <p>Thank you for your payment! Here's your receipt:</p>
+
+      <div class="receipt">
+        <div class="receipt-header">
+          <strong>Get On Blockchain</strong><br>
+          <span style="color: #6b7280; font-size: 0.9em;">Subscription Receipt</span>
+        </div>
+
+        <div class="receipt-row">
+          <span class="label">Business:</span>
+          <span class="value">${params.businessName}</span>
+        </div>
+        <div class="receipt-row">
+          <span class="label">Plan:</span>
+          <span class="value">${params.plan}</span>
+        </div>
+        <div class="receipt-row">
+          <span class="label">Billing Cycle:</span>
+          <span class="value">${params.billingCycle === 'annual' ? 'Annual' : 'Monthly'}</span>
+        </div>
+        ${params.nextBillingDate ? `
+        <div class="receipt-row">
+          <span class="label">Next Billing:</span>
+          <span class="value">${params.nextBillingDate}</span>
+        </div>
+        ` : ''}
+        <div class="receipt-row">
+          <span class="label">Subscription ID:</span>
+          <span class="value" style="font-size: 0.85em; font-family: monospace;">${params.subscriptionId}</span>
+        </div>
+
+        <div class="receipt-row total">
+          <span class="label" style="font-size: 1.1em;">Amount Paid:</span>
+          <span class="value">${params.amount}</span>
+        </div>
+      </div>
+
+      <a href="${APP_URL}/dashboard/settings" class="button">View Subscription →</a>
+
+      <p style="font-size: 0.85em; color: #6b7280; margin-top: 25px;">
+        Questions about your subscription? Contact us at support@getonblockchain.com
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: params.merchantEmail,
+      subject: `Payment Receipt - ${params.plan} Plan`,
+      html,
+    });
+
+    console.log(`[Email] Payment receipt sent to: ${params.merchantEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send payment receipt:', error.message);
+    return false;
+  }
+}
+
 // =============================================================================
 // Referral System Emails
 // =============================================================================

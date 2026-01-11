@@ -2,7 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { verifyWebhookSignature, getSubscription } from '@/app/lib/paypal/subscriptions';
 import { getPlanMemberLimit, GRACE_PERIOD_DAYS } from '@/app/lib/plan-limits';
-import { sendPaymentFailedNotification } from '@/lib/email/notifications';
+import {
+  sendPaymentFailedNotification,
+  sendAdminPlanUpgradeNotification,
+  sendAdminPlanDowngradeNotification,
+  sendAdminSubscriptionCancelledNotification,
+  sendPaymentReceiptEmail,
+} from '@/lib/email/notifications';
+
+// Plan prices for receipts
+const PLAN_PRICES: Record<string, { monthly: string; annual: string }> = {
+  BASIC: { monthly: '$49.00', annual: '$490.00' },
+  PREMIUM: { monthly: '$99.00', annual: '$990.00' },
+  GROWTH: { monthly: '$149.00', annual: '$1,490.00' },
+  PRO: { monthly: '$199.00', annual: '$1,990.00' },
+};
 
 const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID;
 
@@ -138,17 +152,46 @@ async function handleSubscriptionActivated(resource: any) {
     }
   }
 
+  // Get merchant to send notification
+  const merchant = await prisma.merchant.findUnique({
+    where: { paypalSubscriptionId: subscriptionId },
+    include: { businesses: { take: 1 } },
+  });
+
+  const previousPlan = merchant?.plan || 'STARTER';
+  const newPlan = getPlanFromPayPalPlanId(subscription.plan_id);
+  const isAnnual = subscription.plan_id === process.env.PAYPAL_PLAN_BASIC_ANNUAL ||
+                   subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL;
+
   // Update merchant
   await prisma.merchant.update({
     where: { paypalSubscriptionId: subscriptionId },
     data: {
       subscriptionStatus: status,
       trialEndsAt,
+      plan: newPlan,
       paymentVerified: status === 'ACTIVE', // Trial = false, Active = true
     },
   });
 
-  console.log(`[PayPal] Merchant updated: status=${status}, trial=${trialEndsAt}`);
+  console.log(`[PayPal] Merchant updated: status=${status}, plan=${newPlan}, trial=${trialEndsAt}`);
+
+  // Send admin notification for new subscription (upgrade from Starter or new signup)
+  if (merchant && previousPlan !== newPlan) {
+    const planPrice = PLAN_PRICES[newPlan] || { monthly: '$0', annual: '$0' };
+
+    sendAdminPlanUpgradeNotification({
+      merchantName: merchant.name,
+      businessName: merchant.businesses[0]?.name || merchant.name,
+      ownerEmail: merchant.loginEmail,
+      previousPlan,
+      newPlan,
+      billingCycle: isAnnual ? 'annual' : 'monthly',
+      amount: isAnnual ? planPrice.annual : planPrice.monthly,
+    }).catch((err) => {
+      console.error('[PayPal] Failed to send admin upgrade notification:', err);
+    });
+  }
 }
 
 /**
@@ -166,7 +209,7 @@ async function handleSubscriptionUpdated(resource: any) {
   // Get current merchant to check for plan change
   const merchant = await prisma.merchant.findUnique({
     where: { paypalSubscriptionId: subscriptionId },
-    select: { id: true, plan: true },
+    include: { businesses: { take: 1 } },
   });
 
   if (!merchant) {
@@ -183,6 +226,8 @@ async function handleSubscriptionUpdated(resource: any) {
   const newLimit = getPlanMemberLimit(newPlan);
   const isDowngrade = newLimit < oldLimit;
   const isUpgrade = newLimit > oldLimit;
+  const isAnnual = subscription.plan_id === process.env.PAYPAL_PLAN_BASIC_ANNUAL ||
+                   subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL;
 
   // Prepare update data
   const updateData: any = {
@@ -190,12 +235,13 @@ async function handleSubscriptionUpdated(resource: any) {
   };
 
   // If plan changed
+  let gracePeriodEndsAt: Date | null = null;
   if (newPlan !== oldPlan) {
     updateData.plan = newPlan;
 
     if (isDowngrade) {
       // Set grace period for downgrade
-      const gracePeriodEndsAt = new Date();
+      gracePeriodEndsAt = new Date();
       gracePeriodEndsAt.setDate(gracePeriodEndsAt.getDate() + GRACE_PERIOD_DAYS);
       updateData.previousPlan = oldPlan;
       updateData.downgradeGracePeriodEndsAt = gracePeriodEndsAt;
@@ -213,6 +259,36 @@ async function handleSubscriptionUpdated(resource: any) {
     where: { paypalSubscriptionId: subscriptionId },
     data: updateData,
   });
+
+  // Send admin notifications for plan changes
+  if (newPlan !== oldPlan) {
+    const planPrice = PLAN_PRICES[newPlan] || { monthly: '$0', annual: '$0' };
+
+    if (isUpgrade) {
+      sendAdminPlanUpgradeNotification({
+        merchantName: merchant.name,
+        businessName: merchant.businesses[0]?.name || merchant.name,
+        ownerEmail: merchant.loginEmail,
+        previousPlan: oldPlan,
+        newPlan,
+        billingCycle: isAnnual ? 'annual' : 'monthly',
+        amount: isAnnual ? planPrice.annual : planPrice.monthly,
+      }).catch((err) => {
+        console.error('[PayPal] Failed to send admin upgrade notification:', err);
+      });
+    } else if (isDowngrade) {
+      sendAdminPlanDowngradeNotification({
+        merchantName: merchant.name,
+        businessName: merchant.businesses[0]?.name || merchant.name,
+        ownerEmail: merchant.loginEmail,
+        previousPlan: oldPlan,
+        newPlan,
+        gracePeriodEndsAt: gracePeriodEndsAt || undefined,
+      }).catch((err) => {
+        console.error('[PayPal] Failed to send admin downgrade notification:', err);
+      });
+    }
+  }
 }
 
 /**
@@ -243,16 +319,39 @@ async function handleSubscriptionCancelled(resource: any) {
 
   console.log(`[PayPal] Subscription cancelled: ${subscriptionId}`);
 
+  // Get merchant before update for notification
+  const merchant = await prisma.merchant.findUnique({
+    where: { paypalSubscriptionId: subscriptionId },
+    include: { businesses: { take: 1 } },
+  });
+
+  // Get subscription details for billing end date
+  const subscription = await getSubscription(subscriptionId);
+  const accessEndsAt = subscription.billing_info?.next_billing_time
+    ? new Date(subscription.billing_info.next_billing_time)
+    : undefined;
+
   await prisma.merchant.update({
     where: { paypalSubscriptionId: subscriptionId },
     data: {
       subscriptionStatus: 'CANCELED',
       cancelAtPeriodEnd: true,
+      subscriptionEndsAt: accessEndsAt,
     },
   });
 
-  // TODO: Send cancellation email
-  console.log(`[PayPal] TODO: Send cancellation email for subscription ${subscriptionId}`);
+  // Send admin notification
+  if (merchant) {
+    sendAdminSubscriptionCancelledNotification({
+      merchantName: merchant.name,
+      businessName: merchant.businesses[0]?.name || merchant.name,
+      ownerEmail: merchant.loginEmail,
+      plan: merchant.plan,
+      accessEndsAt,
+    }).catch((err) => {
+      console.error('[PayPal] Failed to send admin cancellation notification:', err);
+    });
+  }
 }
 
 /**
@@ -323,6 +422,12 @@ async function handlePaymentCompleted(resource: any) {
 
   console.log(`[PayPal] Payment completed for subscription: ${billingAgreementId}`);
 
+  // Get merchant for receipt
+  const merchant = await prisma.merchant.findUnique({
+    where: { paypalSubscriptionId: billingAgreementId },
+    include: { businesses: { take: 1 } },
+  });
+
   // Update merchant payment status
   await prisma.merchant.update({
     where: { paypalSubscriptionId: billingAgreementId },
@@ -332,8 +437,29 @@ async function handlePaymentCompleted(resource: any) {
     },
   });
 
-  // TODO: Send payment receipt email
-  console.log(`[PayPal] TODO: Send payment receipt for subscription ${billingAgreementId}`);
+  // Send payment receipt email
+  if (merchant) {
+    const subscription = await getSubscription(billingAgreementId);
+    const amount = resource.amount?.total || subscription.billing_info?.last_payment?.amount?.value || '0';
+    const isAnnual = subscription.plan_id === process.env.PAYPAL_PLAN_BASIC_ANNUAL ||
+                     subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL;
+    const nextBillingDate = subscription.billing_info?.next_billing_time
+      ? new Date(subscription.billing_info.next_billing_time).toLocaleDateString()
+      : undefined;
+
+    sendPaymentReceiptEmail({
+      merchantEmail: merchant.loginEmail,
+      merchantName: merchant.name,
+      businessName: merchant.businesses[0]?.name || merchant.name,
+      plan: merchant.plan,
+      amount: `$${amount}`,
+      billingCycle: isAnnual ? 'annual' : 'monthly',
+      nextBillingDate,
+      subscriptionId: billingAgreementId,
+    }).catch((err) => {
+      console.error('[PayPal] Failed to send payment receipt:', err);
+    });
+  }
 }
 
 /**

@@ -140,6 +140,10 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
   const [addonSlots, setAddonSlots] = useState(1);
   const [purchasingAddon, setPurchasingAddon] = useState(false);
 
+  // Upgrade state
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+
   useEffect(() => {
     fetchSubscriptionDetails();
     fetchMemberLimitStatus();
@@ -259,6 +263,63 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
       setError(err.message || 'Failed to cancel subscription');
     } finally {
       setCanceling(false);
+    }
+  }
+
+  async function handleUpgrade(targetPlan: 'BASIC' | 'PREMIUM') {
+    if (!merchantData?.id || !merchantData?.loginEmail) {
+      setError('Session expired. Please refresh the page.');
+      return;
+    }
+
+    // Don't allow upgrade to same or lower plan
+    const planHierarchy = ['STARTER', 'BASIC', 'PREMIUM', 'GROWTH', 'PRO'];
+    const currentPlanIndex = planHierarchy.indexOf(details?.plan || 'STARTER');
+    const targetPlanIndex = planHierarchy.indexOf(targetPlan);
+
+    if (targetPlanIndex <= currentPlanIndex) {
+      setError('Please select a higher plan to upgrade.');
+      return;
+    }
+
+    setUpgrading(targetPlan);
+    setError('');
+
+    try {
+      const planType = `${targetPlan}_${billingCycle.toUpperCase()}` as
+        | 'BASIC_MONTHLY'
+        | 'BASIC_ANNUAL'
+        | 'PREMIUM_MONTHLY'
+        | 'PREMIUM_ANNUAL';
+
+      const res = await fetch('/api/merchant/subscription/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantId: merchantData.id,
+          planType,
+          email: merchantData.loginEmail,
+          firstName: merchantData.name?.split(' ')[0] || '',
+          lastName: merchantData.name?.split(' ').slice(1).join(' ') || '',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to create subscription');
+      }
+
+      // Redirect to PayPal for approval
+      if (data.approvalUrl) {
+        window.location.href = data.approvalUrl;
+      } else {
+        throw new Error('No approval URL returned');
+      }
+    } catch (err: any) {
+      console.error('Upgrade error:', err);
+      setError(err.message || 'Failed to initiate upgrade');
+      setUpgrading(null);
     }
   }
 
@@ -531,16 +592,175 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
       )}
 
       {/* Upgrade Options */}
-      <div className={styles.card}>
-        <h3 className={styles.cardTitle}>Change Plan</h3>
-        <p className={styles.upgradeText}>
-          Want to upgrade or change your plan? Visit our{' '}
-          <a href="/pricing" className={styles.link} target="_blank">
-            pricing page
-          </a>{' '}
-          to see all available options.
-        </p>
-      </div>
+      {(details.plan === 'STARTER' || details.plan === 'BASIC') && !details.hasSubscription && (
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Upgrade Your Plan</h3>
+          <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
+            Unlock more features and capacity by upgrading to a paid plan.
+          </p>
+
+          {/* Billing Toggle */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+            <button
+              type="button"
+              onClick={() => setBillingCycle('monthly')}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '9999px',
+                border: 'none',
+                background: billingCycle === 'monthly' ? '#244b7a' : '#e5e7eb',
+                color: billingCycle === 'monthly' ? 'white' : '#374151',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+              }}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingCycle('annual')}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '9999px',
+                border: 'none',
+                background: billingCycle === 'annual' ? '#244b7a' : '#e5e7eb',
+                color: billingCycle === 'annual' ? 'white' : '#374151',
+                fontWeight: '600',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              Annual
+              <span style={{
+                background: billingCycle === 'annual' ? 'rgba(255,255,255,0.2)' : '#d1fae5',
+                color: billingCycle === 'annual' ? 'white' : '#065f46',
+                padding: '0.15rem 0.4rem',
+                borderRadius: '9999px',
+                fontSize: '0.7rem',
+                fontWeight: '700',
+              }}>
+                2 months free
+              </span>
+            </button>
+          </div>
+
+          {/* Plan Options */}
+          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+            {/* Basic Plan */}
+            {details.plan === 'STARTER' && (
+              <div style={{
+                border: '1px solid #e5e7eb',
+                borderRadius: '12px',
+                padding: '1.25rem',
+                background: '#f9fafb',
+              }}>
+                <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Basic</h4>
+                <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#244b7a', margin: '0 0 0.5rem' }}>
+                  ${billingCycle === 'annual' ? '490' : '49'}
+                  <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#6b7280' }}>
+                    /{billingCycle === 'annual' ? 'year' : 'month'}
+                  </span>
+                </p>
+                <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#4b5563' }}>
+                  <li>Up to 1,000 members</li>
+                  <li>Unlimited rewards</li>
+                  <li>Email support</li>
+                </ul>
+                <button
+                  onClick={() => handleUpgrade('BASIC')}
+                  disabled={upgrading === 'BASIC'}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    background: upgrading === 'BASIC' ? '#9ca3af' : '#244b7a',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: upgrading === 'BASIC' ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {upgrading === 'BASIC' ? 'Processing...' : 'Upgrade to Basic'}
+                </button>
+              </div>
+            )}
+
+            {/* Premium Plan */}
+            <div style={{
+              border: '2px solid #10b981',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+              position: 'relative',
+            }}>
+              <span style={{
+                position: 'absolute',
+                top: '-10px',
+                right: '1rem',
+                background: '#10b981',
+                color: 'white',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '9999px',
+                fontSize: '0.75rem',
+                fontWeight: '600',
+              }}>
+                Most Popular
+              </span>
+              <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Premium</h4>
+              <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#065f46', margin: '0 0 0.5rem' }}>
+                ${billingCycle === 'annual' ? '990' : '99'}
+                <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#047857' }}>
+                  /{billingCycle === 'annual' ? 'year' : 'month'}
+                </span>
+              </p>
+              <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#065f46' }}>
+                <li>Up to 5,000 members</li>
+                <li>USDC stablecoin rewards</li>
+                <li>Blockchain verification</li>
+                <li>Priority support</li>
+              </ul>
+              <button
+                onClick={() => handleUpgrade('PREMIUM')}
+                disabled={upgrading === 'PREMIUM'}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  background: upgrading === 'PREMIUM' ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: upgrading === 'PREMIUM' ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {upgrading === 'PREMIUM' ? 'Processing...' : 'Upgrade to Premium'}
+              </button>
+            </div>
+          </div>
+
+          <p style={{ fontSize: '0.85rem', color: '#9ca3af', marginTop: '1rem', textAlign: 'center' }}>
+            All paid plans include a 7-day free trial. Cancel anytime.
+          </p>
+        </div>
+      )}
+
+      {/* Already subscribed - link to pricing */}
+      {details.hasSubscription && (
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Change Plan</h3>
+          <p className={styles.upgradeText}>
+            Want to change your plan? Visit our{' '}
+            <a href="/pricing" className={styles.link} target="_blank">
+              pricing page
+            </a>{' '}
+            or contact support for assistance.
+          </p>
+        </div>
+      )}
 
       {/* Cancellation */}
       {details.subscriptionStatus === 'ACTIVE' && !details.cancelAtPeriodEnd && (
