@@ -57,26 +57,34 @@ export default function MembersPage() {
 
   async function handleExportCSV() {
     try {
+      if (members.length === 0) {
+        alert('No members to export');
+        return;
+      }
+
       const csvContent = [
         ['Name', 'Email', 'Phone', 'Points', 'Tier', 'Total Visits', 'Last Visit', 'Joined Date'].join(','),
         ...members.map(m => [
-          `"${m.fullName}"`,
-          m.email,
+          `"${m.fullName || ''}"`,
+          m.email || '',
           m.phone || '',
-          m.points,
-          m.tier,
-          m.totalVisits,
+          m.points || 0,
+          m.tier || '',
+          m.totalVisits || 0,
           m.lastVisit ? new Date(m.lastVisit).toLocaleDateString() : 'Never',
-          new Date(m.joinedAt).toLocaleDateString()
+          m.joinedAt ? new Date(m.joinedAt).toLocaleDateString() : ''
         ].join(','))
       ].join('\n');
 
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${businessName}-members-${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${businessName || 'members'}-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Export error:', err);
