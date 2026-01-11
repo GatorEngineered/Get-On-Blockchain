@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
+import { Plan } from '@prisma/client';
 import { verifyWebhookSignature, getSubscription } from '@/app/lib/paypal/subscriptions';
 import { getPlanMemberLimit, GRACE_PERIOD_DAYS } from '@/app/lib/plan-limits';
 import {
@@ -294,20 +295,20 @@ async function handleSubscriptionUpdated(resource: any) {
 /**
  * Map PayPal plan ID to our plan enum
  */
-function getPlanFromPayPalPlanId(planId: string): string {
+function getPlanFromPayPalPlanId(planId: string): Plan {
   // Map PayPal plan IDs to our plan names
-  const planMap: Record<string, string> = {
-    [process.env.PAYPAL_PLAN_BASIC_MONTHLY || '']: 'BASIC',
-    [process.env.PAYPAL_PLAN_BASIC_ANNUAL || '']: 'BASIC',
-    [process.env.PAYPAL_PLAN_PREMIUM_MONTHLY || '']: 'PREMIUM',
-    [process.env.PAYPAL_PLAN_PREMIUM_ANNUAL || '']: 'PREMIUM',
-    [process.env.PAYPAL_PLAN_GROWTH_MONTHLY || '']: 'GROWTH',
-    [process.env.PAYPAL_PLAN_GROWTH_ANNUAL || '']: 'GROWTH',
-    [process.env.PAYPAL_PLAN_PRO_MONTHLY || '']: 'PRO',
-    [process.env.PAYPAL_PLAN_PRO_ANNUAL || '']: 'PRO',
+  const planMap: Record<string, Plan> = {
+    [process.env.PAYPAL_PLAN_BASIC_MONTHLY || '']: Plan.BASIC,
+    [process.env.PAYPAL_PLAN_BASIC_ANNUAL || '']: Plan.BASIC,
+    [process.env.PAYPAL_PLAN_PREMIUM_MONTHLY || '']: Plan.PREMIUM,
+    [process.env.PAYPAL_PLAN_PREMIUM_ANNUAL || '']: Plan.PREMIUM,
+    [process.env.PAYPAL_PLAN_GROWTH_MONTHLY || '']: Plan.GROWTH,
+    [process.env.PAYPAL_PLAN_GROWTH_ANNUAL || '']: Plan.GROWTH,
+    [process.env.PAYPAL_PLAN_PRO_MONTHLY || '']: Plan.PRO,
+    [process.env.PAYPAL_PLAN_PRO_ANNUAL || '']: Plan.PRO,
   };
 
-  return planMap[planId] || 'STARTER';
+  return planMap[planId] || Plan.STARTER;
 }
 
 /**
