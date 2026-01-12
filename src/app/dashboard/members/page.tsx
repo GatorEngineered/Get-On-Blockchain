@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MembersTable from './MembersTable';
+import SendAnnouncementModal from './SendAnnouncementModal';
 
 type Member = {
   id: string;
@@ -26,6 +27,7 @@ export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [businessName, setBusinessName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -62,11 +64,11 @@ export default function MembersPage() {
         return;
       }
 
+      // Note: Email is intentionally excluded to protect member privacy
       const csvContent = [
-        ['Name', 'Email', 'Phone', 'Points', 'Tier', 'Total Visits', 'Last Visit', 'Joined Date'].join(','),
+        ['Name', 'Phone', 'Points', 'Tier', 'Total Visits', 'Last Visit', 'Joined Date'].join(','),
         ...members.map(m => [
           `"${m.fullName || ''}"`,
-          m.email || '',
           m.phone || '',
           m.points || 0,
           m.tier || '',
@@ -126,15 +128,63 @@ export default function MembersPage() {
   const activeMembers = members.filter(m => m.lastVisit).length;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', background: '#f9fafb', minHeight: '100vh' }}>
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.5rem' }}>
-          Members
-        </h1>
-        <p style={{ color: '#6b7280', fontSize: '1rem' }}>
-          Manage your loyalty program members
-        </p>
+        <button
+          onClick={() => router.push('/dashboard')}
+          style={{
+            padding: '0.5rem 1rem',
+            background: 'transparent',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            color: '#6b7280',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Dashboard
+        </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.5rem' }}>
+              Members
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '1rem' }}>
+              Manage your loyalty program members
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAnnouncementModal(true)}
+            disabled={members.length === 0}
+            style={{
+              padding: '0.75rem 1.25rem',
+              background: members.length === 0 ? '#d1d5db' : 'linear-gradient(135deg, #244b7a 0%, #3b6ea5 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '0.95rem',
+              fontWeight: '600',
+              cursor: members.length === 0 ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              boxShadow: members.length === 0 ? 'none' : '0 2px 8px rgba(36, 75, 122, 0.25)',
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Send Announcement
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -230,6 +280,15 @@ export default function MembersPage() {
 
         <MembersTable initialMembers={members} onRefresh={loadMembers} />
       </div>
+
+      {/* Send Announcement Modal */}
+      <SendAnnouncementModal
+        isOpen={showAnnouncementModal}
+        onClose={() => setShowAnnouncementModal(false)}
+        onSuccess={() => {
+          // Optionally refresh or show success message
+        }}
+      />
     </div>
   );
 }

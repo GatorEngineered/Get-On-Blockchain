@@ -29,12 +29,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [merchant, setMerchant] = useState<CurrentMerchant | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Skip layout for main dashboard, login, auth, and settings pages (they have their own layouts)
+  // Skip layout for main dashboard, login, auth, settings, and members pages (they have their own layouts)
   const isDashboardHome = pathname === "/dashboard" || pathname === "/dashboard/";
   const isLoginPage = pathname === "/dashboard/login";
   const isRegisterPage = pathname === "/dashboard/register";
   const isSettingsPage = pathname?.startsWith("/dashboard/settings");
-  const skipLayout = isDashboardHome || isLoginPage || isRegisterPage || isSettingsPage;
+  const isMembersPage = pathname?.startsWith("/dashboard/members");
+  const skipLayout = isDashboardHome || isLoginPage || isRegisterPage || isSettingsPage || isMembersPage;
 
   useEffect(() => {
     if (skipLayout) return; // Don't load merchant data on these pages

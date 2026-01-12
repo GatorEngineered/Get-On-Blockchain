@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import SendAnnouncementModal from '../SendAnnouncementModal';
 
 type MemberProfile = {
   member: {
     id: string;
-    email: string;
     firstName: string;
     lastName: string;
     fullName: string;
@@ -22,6 +22,12 @@ type MemberProfile = {
     tierProgress: number;
     totalVisits: number;
     lastVisit: string | null;
+    referralCount: number;
+  };
+  emailPreferences: {
+    canReceivePromotional: boolean;
+    canReceiveAnnouncements: boolean;
+    canReceivePointsUpdates: boolean;
   };
   scans: Array<{
     id: string;
@@ -58,6 +64,9 @@ export default function MemberProfilePage() {
   const [adjustAmount, setAdjustAmount] = useState<string>('');
   const [adjustReason, setAdjustReason] = useState('');
   const [adjusting, setAdjusting] = useState(false);
+
+  // Send message modal
+  const [showMessageModal, setShowMessageModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -165,57 +174,93 @@ export default function MemberProfilePage() {
     }
   };
 
+  // Check if member can receive any communications
+  const canReceiveMessages = profile.emailPreferences?.canReceivePromotional ||
+    profile.emailPreferences?.canReceiveAnnouncements ||
+    profile.emailPreferences?.canReceivePointsUpdates;
+
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', background: '#f9fafb', minHeight: '100vh' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <div>
-          <button
-            onClick={() => router.push('/dashboard/members')}
-            style={{
-              padding: '0.5rem 1rem',
-              background: 'transparent',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              color: '#6b7280',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              marginBottom: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            ← Back to Members
-          </button>
-          <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.5rem' }}>
-            {profile.member.fullName}
-          </h1>
-          <p style={{ color: '#6b7280', fontSize: '1rem' }}>
-            Member since {new Date(profile.member.joinedBusiness).toLocaleDateString()}
-          </p>
-        </div>
+      <div style={{ marginBottom: '2rem' }}>
         <button
-          onClick={() => setShowAdjustModal(true)}
+          onClick={() => router.push('/dashboard/members')}
           style={{
-            padding: '0.75rem 1.5rem',
-            background: '#244b7a',
-            color: 'white',
-            border: 'none',
+            padding: '0.5rem 1rem',
+            background: 'transparent',
+            border: '1px solid #d1d5db',
             borderRadius: '6px',
-            fontSize: '0.95rem',
-            fontWeight: '600',
+            color: '#6b7280',
             cursor: 'pointer',
+            fontSize: '0.875rem',
+            marginBottom: '1rem',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem'
           }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Adjust Points
+          Back to Members
         </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.5rem' }}>
+              {profile.member.fullName}
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '1rem' }}>
+              Member since {new Date(profile.member.joinedBusiness).toLocaleDateString()}
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              onClick={() => setShowMessageModal(true)}
+              disabled={!canReceiveMessages}
+              title={!canReceiveMessages ? 'Member has opted out of all email communications' : 'Send a message to this member'}
+              style={{
+                padding: '0.75rem 1.25rem',
+                background: canReceiveMessages ? 'linear-gradient(135deg, #244b7a 0%, #3b6ea5 100%)' : '#d1d5db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                cursor: canReceiveMessages ? 'pointer' : 'not-allowed',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: canReceiveMessages ? '0 2px 8px rgba(36, 75, 122, 0.25)' : 'none',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Send Message
+            </button>
+            <button
+              onClick={() => setShowAdjustModal(true)}
+              style={{
+                padding: '0.75rem 1.25rem',
+                background: 'white',
+                color: '#244b7a',
+                border: '2px solid #244b7a',
+                borderRadius: '8px',
+                fontSize: '0.95rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Adjust Points
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Top Row - Info Cards */}
@@ -229,22 +274,43 @@ export default function MemberProfilePage() {
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
           <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#6b7280', marginBottom: '1rem' }}>
-            Contact Information
+            Member Information
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div>
-              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Email</p>
-              <p style={{ fontSize: '0.95rem', color: '#1f2937' }}>{profile.member.email}</p>
-            </div>
             <div>
               <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Phone</p>
               <p style={{ fontSize: '0.95rem', color: '#1f2937' }}>{profile.member.phone || 'Not provided'}</p>
             </div>
             <div>
-              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Member ID</p>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280', fontFamily: 'monospace' }}>
-                {profile.member.id.slice(0, 12)}...
+              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Referrals Made</p>
+              <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#7c3aed' }}>
+                {profile.loyalty.referralCount || 0}
               </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.5rem' }}>Email Preferences</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
+                {profile.emailPreferences?.canReceiveAnnouncements && (
+                  <span style={{ padding: '0.25rem 0.5rem', background: '#d1fae5', color: '#065f46', fontSize: '0.7rem', borderRadius: '4px', fontWeight: '500' }}>
+                    Announcements
+                  </span>
+                )}
+                {profile.emailPreferences?.canReceivePromotional && (
+                  <span style={{ padding: '0.25rem 0.5rem', background: '#dbeafe', color: '#1e40af', fontSize: '0.7rem', borderRadius: '4px', fontWeight: '500' }}>
+                    Promotions
+                  </span>
+                )}
+                {profile.emailPreferences?.canReceivePointsUpdates && (
+                  <span style={{ padding: '0.25rem 0.5rem', background: '#fef3c7', color: '#92400e', fontSize: '0.7rem', borderRadius: '4px', fontWeight: '500' }}>
+                    Points Updates
+                  </span>
+                )}
+                {!canReceiveMessages && (
+                  <span style={{ padding: '0.25rem 0.5rem', background: '#fee2e2', color: '#991b1b', fontSize: '0.7rem', borderRadius: '4px', fontWeight: '500' }}>
+                    Opted Out
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -546,6 +612,17 @@ export default function MemberProfilePage() {
           </div>
         </div>
       )}
+
+      {/* Send Message Modal */}
+      <SendAnnouncementModal
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
+        memberIds={[memberId]}
+        memberName={profile.member.fullName}
+        onSuccess={() => {
+          // Optionally show success feedback
+        }}
+      />
     </div>
   );
 }

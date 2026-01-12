@@ -117,6 +117,25 @@ export async function GET(
     const totalVisits = scans.length;
     const lastVisit = scans[0]?.scannedAt || null;
 
+    // Get referral count for this member (how many people they've referred to this merchant)
+    const referralCount = await prisma.referral.count({
+      where: {
+        referrerId: memberId,
+        merchantId: merchantId,
+        status: 'CONVERTED', // Only count successful referrals
+      },
+    });
+
+    // Get member's email preferences (to show if they're opted in for communications)
+    const memberPreferences = await prisma.member.findUnique({
+      where: { id: memberId },
+      select: {
+        emailMerchantPromotional: true,
+        emailMerchantAnnouncements: true,
+        emailMerchantPointsUpdates: true,
+      },
+    });
+
     // Calculate tier progress
     const currentPoints = merchantMember.points;
     const currentTier = merchantMember.tier;
@@ -140,7 +159,8 @@ export async function GET(
     return NextResponse.json({
       member: {
         id: merchantMember.member.id,
-        email: merchantMember.member.email,
+        // Email is intentionally hidden to protect member privacy
+        // Merchants can contact members through the platform's announcement feature
         firstName: merchantMember.member.firstName,
         lastName: merchantMember.member.lastName,
         fullName: `${merchantMember.member.firstName} ${merchantMember.member.lastName}`.trim() || "No name",
@@ -156,6 +176,13 @@ export async function GET(
         tierProgress: Math.min(tierProgress, 100),
         totalVisits,
         lastVisit,
+        referralCount, // Number of successful referrals made by this member
+      },
+      emailPreferences: {
+        // Used to show if member is reachable via platform communications
+        canReceivePromotional: memberPreferences?.emailMerchantPromotional ?? false,
+        canReceiveAnnouncements: memberPreferences?.emailMerchantAnnouncements ?? false,
+        canReceivePointsUpdates: memberPreferences?.emailMerchantPointsUpdates ?? false,
       },
       scans: scans.map((scan) => ({
         id: scan.id,
