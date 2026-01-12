@@ -457,7 +457,12 @@ export default function DashboardPage() {
         <div className={styles.tableHeader}>
           <h3 className={styles.cardTitle}>Top Customers</h3>
           {businessData.topCustomers.length > 0 && (
-            <button className={styles.viewAllButton}>View All →</button>
+            <button
+              className={styles.viewAllButton}
+              onClick={() => router.push('/dashboard/members')}
+            >
+              View All →
+            </button>
           )}
         </div>
         <div className={styles.tableWrapper}>
@@ -497,7 +502,12 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td>
-                      <button className={styles.actionButton}>View Profile</button>
+                      <button
+                        className={styles.actionButton}
+                        onClick={() => router.push(`/dashboard/members/${customer.id}`)}
+                      >
+                        View Profile
+                      </button>
                     </td>
                   </tr>
                 ))}
