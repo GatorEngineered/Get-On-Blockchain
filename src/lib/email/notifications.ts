@@ -1702,3 +1702,316 @@ export async function sendMerchantReferralConvertedNotification(params: Merchant
     return false;
   }
 }
+
+// =============================================================================
+// Member Limit Notification Emails
+// =============================================================================
+
+type MemberLimitWarningParams = {
+  merchantEmail: string;
+  merchantName: string;
+  businessName: string;
+  currentCount: number;
+  limit: number;
+  percentUsed: number;
+  plan: string;
+};
+
+/**
+ * Send member limit warning email (at 80% and 90% thresholds)
+ */
+export async function sendMemberLimitWarningEmail(
+  params: MemberLimitWarningParams
+): Promise<boolean> {
+  const { merchantEmail, merchantName, businessName, currentCount, limit, percentUsed, plan } = params;
+
+  const isUrgent = percentUsed >= 90;
+  const thresholdText = percentUsed >= 90 ? '90%' : '80%';
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: ${isUrgent ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #3b82f6, #2563eb)'}; color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .warning { background: ${isUrgent ? '#fef3c7' : '#dbeafe'}; border-left: 4px solid ${isUrgent ? '#f59e0b' : '#3b82f6'}; padding: 15px; margin: 15px 0; border-radius: 5px; }
+    .progress-container { background: #e5e7eb; border-radius: 10px; height: 24px; margin: 15px 0; overflow: hidden; }
+    .progress-bar { background: ${isUrgent ? '#f59e0b' : '#3b82f6'}; height: 100%; border-radius: 10px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; color: white; font-weight: 600; font-size: 0.85em; }
+    .stats { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .stat-row { display: flex; justify-content: space-between; margin: 8px 0; }
+    .label { color: #6b7280; }
+    .value { font-weight: 600; color: #111827; }
+    .button { display: inline-block; background: #244b7a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+    .button-secondary { background: #10b981; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">${isUrgent ? '⚠️' : '📊'} Member Limit Warning</h2>
+    </div>
+    <div class="content">
+      <p>Hi ${merchantName},</p>
+
+      <div class="warning">
+        <strong>${isUrgent ? 'Urgent: ' : ''}You've reached ${thresholdText} of your member limit!</strong>
+        <p style="margin: 5px 0 0;">Your ${businessName} loyalty program ${isUrgent ? 'will soon stop accepting' : 'is approaching the limit where it will stop accepting'} new members.</p>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-bar" style="width: ${Math.min(100, percentUsed)}%;">
+          ${percentUsed.toFixed(0)}%
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-row">
+          <span class="label">Current Members:</span>
+          <span class="value">${currentCount.toLocaleString()}</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">Plan Limit:</span>
+          <span class="value">${limit.toLocaleString()}</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">Remaining:</span>
+          <span class="value">${(limit - currentCount).toLocaleString()}</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">Current Plan:</span>
+          <span class="value">${plan}</span>
+        </div>
+      </div>
+
+      <p><strong>What can you do?</strong></p>
+      <ul>
+        <li><strong>Upgrade your plan</strong> for higher member limits</li>
+        <li><strong>Purchase member add-ons</strong> ($10 per 500 additional members)</li>
+      </ul>
+
+      <center>
+        <a href="${APP_URL}/dashboard/settings?tab=plans" class="button">
+          Upgrade Plan →
+        </a>
+        <a href="${APP_URL}/dashboard/settings?tab=plans" class="button button-secondary" style="margin-left: 10px;">
+          Buy Add-ons →
+        </a>
+      </center>
+
+    </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: merchantEmail,
+      subject: `${isUrgent ? '⚠️ Urgent: ' : ''}${businessName} has reached ${thresholdText} of member limit`,
+      html,
+    });
+
+    console.log(`[Email] Member limit warning (${thresholdText}) sent to ${merchantEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send member limit warning:', error.message);
+    return false;
+  }
+}
+
+type MemberLimitReachedParams = {
+  merchantEmail: string;
+  merchantName: string;
+  businessName: string;
+  currentCount: number;
+  limit: number;
+  plan: string;
+};
+
+/**
+ * Send member limit reached email (at 100%)
+ */
+export async function sendMemberLimitReachedEmail(
+  params: MemberLimitReachedParams
+): Promise<boolean> {
+  const { merchantEmail, merchantName, businessName, currentCount, limit, plan } = params;
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .alert { background: #fee2e2; border: 1px solid #fecaca; padding: 15px; margin: 15px 0; border-radius: 8px; }
+    .stats { background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .stat-row { display: flex; justify-content: space-between; margin: 8px 0; }
+    .label { color: #6b7280; }
+    .value { font-weight: 600; color: #111827; }
+    .button { display: inline-block; background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">🚫 Member Limit Reached!</h2>
+    </div>
+    <div class="content">
+      <p>Hi ${merchantName},</p>
+
+      <div class="alert">
+        <strong>Your ${businessName} loyalty program has reached its member limit.</strong>
+        <p style="margin: 5px 0 0; color: #991b1b;">New customers will be unable to join your program until you upgrade or add member slots.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-row">
+          <span class="label">Current Members:</span>
+          <span class="value">${currentCount.toLocaleString()}</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">Plan Limit:</span>
+          <span class="value">${limit.toLocaleString()}</span>
+        </div>
+        <div class="stat-row">
+          <span class="label">Current Plan:</span>
+          <span class="value">${plan}</span>
+        </div>
+      </div>
+
+      <p><strong>Take action now to keep growing:</strong></p>
+      <ol>
+        <li><strong>Upgrade your plan</strong> - Get more members and additional features</li>
+        <li><strong>Purchase member add-ons</strong> - Add 500 members for just $10</li>
+      </ol>
+
+      <center>
+        <a href="${APP_URL}/dashboard/settings?tab=plans" class="button">
+          Upgrade Now →
+        </a>
+      </center>
+
+      <p style="margin-top: 20px; color: #6b7280; font-size: 0.9em;">
+        Don't miss out on potential customers! Every denied signup is a lost opportunity for your business.
+      </p>
+
+    </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: merchantEmail,
+      subject: `🚫 Action Required: ${businessName} member limit reached`,
+      html,
+    });
+
+    console.log(`[Email] Member limit reached notification sent to ${merchantEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send member limit reached email:', error.message);
+    return false;
+  }
+}
+
+type MemberDeniedParams = {
+  merchantEmail: string;
+  merchantName: string;
+  businessName: string;
+  deniedMemberEmail?: string;
+  currentCount: number;
+  limit: number;
+  plan: string;
+};
+
+/**
+ * Notify merchant when a potential member is denied due to limit
+ */
+export async function sendMemberDeniedNotification(
+  params: MemberDeniedParams
+): Promise<boolean> {
+  const { merchantEmail, merchantName, businessName, deniedMemberEmail, currentCount, limit, plan } = params;
+
+  try {
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; padding: 20px; border-radius: 10px 10px 0 0; }
+    .content { background: #f9fafb; padding: 25px; border-radius: 0 0 10px 10px; }
+    .alert { background: #fee2e2; border: 1px solid #fecaca; padding: 15px; margin: 15px 0; border-radius: 8px; }
+    .denied-info { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 15px 0; border-radius: 5px; }
+    .button { display: inline-block; background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2 style="margin: 0;">❌ Customer Signup Denied</h2>
+    </div>
+    <div class="content">
+      <p>Hi ${merchantName},</p>
+
+      <div class="alert">
+        <strong>A potential customer was unable to join ${businessName} because you've reached your member limit.</strong>
+      </div>
+
+      ${deniedMemberEmail ? `
+      <div class="denied-info">
+        <strong>Denied Customer:</strong> ${deniedMemberEmail}<br>
+        <span style="color: #991b1b;">This customer tried to sign up but was turned away!</span>
+      </div>
+      ` : ''}
+
+      <p>Your current status:</p>
+      <ul>
+        <li><strong>Members:</strong> ${currentCount.toLocaleString()} / ${limit.toLocaleString()} (at limit)</li>
+        <li><strong>Plan:</strong> ${plan}</li>
+      </ul>
+
+      <p style="color: #dc2626; font-weight: 600;">
+        Every denied customer is a missed opportunity for your business and potential lost revenue!
+      </p>
+
+      <center>
+        <a href="${APP_URL}/dashboard/settings?tab=plans" class="button">
+          Increase Limit Now →
+        </a>
+      </center>
+
+      <p style="margin-top: 20px; color: #6b7280; font-size: 0.9em;">
+        Quick options: Upgrade your plan or purchase member add-ons ($10 per 500 members)
+      </p>
+
+    </div>
+    ${generateEmailFooter({ recipientType: 'merchant' })}
+  </div>
+</body>
+</html>
+    `;
+
+    await sendEmail({
+      to: merchantEmail,
+      subject: `❌ Customer denied: ${businessName} member limit reached`,
+      html,
+    });
+
+    console.log(`[Email] Member denied notification sent to ${merchantEmail}`);
+    return true;
+  } catch (error: any) {
+    console.error('[Email] Failed to send member denied notification:', error.message);
+    return false;
+  }
+}

@@ -46,16 +46,17 @@ const PLAN_DETAILS = {
     price: 0,
     interval: 'Free',
     description: 'Trial plan with basic features',
-    features: ['5 active members', '1 reward tier', 'Basic dashboard'],
+    features: ['5 active members', '1 location', '1 reward', 'Basic dashboard'],
   },
   BASIC: {
     name: 'Basic',
     price: 49,
     interval: 'month',
-    description: 'Points & rewards only',
+    description: 'Points & rewards for small businesses',
     features: [
-      'Up to 1,000 active members',
-      '3 rewards',
+      'Up to 150 active members',
+      '1 location',
+      'Up to 3 rewards',
       'Full dashboard & analytics',
       'Email support',
     ],
@@ -66,8 +67,9 @@ const PLAN_DETAILS = {
     interval: 'month',
     description: 'Everything in Basic + stablecoin rewards',
     features: [
-      'Up to 5,000 active members',
-      '4 rewards',
+      'Up to 500 active members',
+      'Up to 3 locations',
+      'Up to 7 rewards',
       'USDC stablecoin payouts',
       'Blockchain-verified rewards',
       'Priority email support',
@@ -77,13 +79,14 @@ const PLAN_DETAILS = {
     name: 'Growth',
     price: 149,
     interval: 'month',
-    description: 'For growing brands with multi-location support',
+    description: 'Scale your loyalty program',
     features: [
-      'Up to 15,000 active members',
-      '5 rewards',
-      'Up to 3 locations',
-      'Custom points rules',
-      'Advanced reporting',
+      'Up to 2,000 active members',
+      'Up to 10 locations',
+      'Up to 25 rewards',
+      'Custom loyalty tiers',
+      'Multiple milestones',
+      'Priority support',
     ],
   },
   PRO: {
@@ -93,8 +96,8 @@ const PLAN_DETAILS = {
     description: 'High-volume businesses with custom workflows',
     features: [
       'Up to 35,000 active members',
-      '6 rewards',
-      'Up to 15 locations',
+      'Up to 100 locations',
+      'Up to 100 rewards',
       'Custom workflows',
       'NFT access',
       'Dedicated support',
@@ -196,7 +199,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
     }
   }
 
-  async function handleUpgrade(targetPlan: 'BASIC' | 'PREMIUM') {
+  async function handleUpgrade(targetPlan: 'BASIC' | 'PREMIUM' | 'GROWTH') {
     if (!merchantData?.id || !merchantData?.loginEmail) {
       setError('Session expired. Please refresh the page.');
       return;
@@ -219,7 +222,9 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
         | 'BASIC_MONTHLY'
         | 'BASIC_ANNUAL'
         | 'PREMIUM_MONTHLY'
-        | 'PREMIUM_ANNUAL';
+        | 'PREMIUM_ANNUAL'
+        | 'GROWTH_MONTHLY'
+        | 'GROWTH_ANNUAL';
 
       const res = await fetch('/api/merchant/subscription/create', {
         method: 'POST',
@@ -475,11 +480,11 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
       )}
 
       {/* Upgrade Options */}
-      {(details.plan === 'STARTER' || details.plan === 'BASIC') && (
+      {(details.plan === 'STARTER' || details.plan === 'BASIC' || details.plan === 'PREMIUM') && (
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Upgrade Your Plan</h3>
           <p style={{ color: '#6b7280', marginBottom: '1rem' }}>
-            Unlock more features and capacity by upgrading to a paid plan.
+            Unlock more features and capacity by upgrading to a higher plan.
           </p>
 
           {/* Billing Toggle */}
@@ -532,7 +537,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
           </div>
 
           {/* Plan Options */}
-          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+          <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             {/* Basic Plan */}
             {details.plan === 'STARTER' && (
               <div style={{
@@ -549,9 +554,9 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
                   </span>
                 </p>
                 <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#4b5563' }}>
-                  <li>Up to 1,000 members</li>
+                  <li>150 members</li>
+                  <li>1 location</li>
                   <li>3 rewards</li>
-                  <li>Email support</li>
                 </ul>
                 <button
                   onClick={() => handleUpgrade('BASIC')}
@@ -567,60 +572,100 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
                     cursor: upgrading === 'BASIC' ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {upgrading === 'BASIC' ? 'Processing...' : 'Upgrade to Basic'}
+                  {upgrading === 'BASIC' ? 'Processing...' : 'Upgrade'}
                 </button>
               </div>
             )}
 
             {/* Premium Plan */}
+            {(details.plan === 'STARTER' || details.plan === 'BASIC') && (
+              <div style={{
+                border: '2px solid #10b981',
+                borderRadius: '12px',
+                padding: '1.25rem',
+                background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                position: 'relative',
+              }}>
+                <span style={{
+                  position: 'absolute',
+                  top: '-10px',
+                  right: '1rem',
+                  background: '#10b981',
+                  color: 'white',
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '9999px',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                }}>
+                  Most Popular
+                </span>
+                <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Premium</h4>
+                <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#065f46', margin: '0 0 0.5rem' }}>
+                  ${billingCycle === 'annual' ? '990' : '99'}
+                  <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#047857' }}>
+                    /{billingCycle === 'annual' ? 'year' : 'month'}
+                  </span>
+                </p>
+                <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#065f46' }}>
+                  <li>500 members</li>
+                  <li>3 locations</li>
+                  <li>7 rewards</li>
+                  <li>USDC rewards</li>
+                </ul>
+                <button
+                  onClick={() => handleUpgrade('PREMIUM')}
+                  disabled={upgrading === 'PREMIUM'}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    background: upgrading === 'PREMIUM' ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: upgrading === 'PREMIUM' ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {upgrading === 'PREMIUM' ? 'Processing...' : 'Upgrade'}
+                </button>
+              </div>
+            )}
+
+            {/* Growth Plan */}
             <div style={{
-              border: '2px solid #10b981',
+              border: '1px solid #e5e7eb',
               borderRadius: '12px',
               padding: '1.25rem',
-              background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-              position: 'relative',
+              background: '#f9fafb',
             }}>
-              <span style={{
-                position: 'absolute',
-                top: '-10px',
-                right: '1rem',
-                background: '#10b981',
-                color: 'white',
-                padding: '0.25rem 0.75rem',
-                borderRadius: '9999px',
-                fontSize: '0.75rem',
-                fontWeight: '600',
-              }}>
-                Most Popular
-              </span>
-              <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Premium</h4>
-              <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#065f46', margin: '0 0 0.5rem' }}>
-                ${billingCycle === 'annual' ? '990' : '99'}
-                <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#047857' }}>
+              <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Growth</h4>
+              <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#244b7a', margin: '0 0 0.5rem' }}>
+                ${billingCycle === 'annual' ? '1,490' : '149'}
+                <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#6b7280' }}>
                   /{billingCycle === 'annual' ? 'year' : 'month'}
                 </span>
               </p>
-              <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#065f46' }}>
-                <li>Up to 5,000 members</li>
-                <li>USDC stablecoin rewards</li>
-                <li>Blockchain verification</li>
-                <li>Priority support</li>
+              <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#4b5563' }}>
+                <li>2,000 members</li>
+                <li>10 locations</li>
+                <li>25 rewards</li>
+                <li>Custom tiers</li>
               </ul>
               <button
-                onClick={() => handleUpgrade('PREMIUM')}
-                disabled={upgrading === 'PREMIUM'}
+                onClick={() => handleUpgrade('GROWTH')}
+                disabled={upgrading === 'GROWTH'}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
-                  background: upgrading === 'PREMIUM' ? '#9ca3af' : 'linear-gradient(135deg, #10b981, #059669)',
+                  background: upgrading === 'GROWTH' ? '#9ca3af' : '#244b7a',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
                   fontWeight: '600',
-                  cursor: upgrading === 'PREMIUM' ? 'not-allowed' : 'pointer',
+                  cursor: upgrading === 'GROWTH' ? 'not-allowed' : 'pointer',
                 }}
               >
-                {upgrading === 'PREMIUM' ? 'Processing...' : 'Upgrade to Premium'}
+                {upgrading === 'GROWTH' ? 'Processing...' : 'Upgrade'}
               </button>
             </div>
           </div>
@@ -631,8 +676,8 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
         </div>
       )}
 
-      {/* Already on higher plan */}
-      {(details.plan === 'PREMIUM' || details.plan === 'GROWTH' || details.plan === 'PRO') && (
+      {/* Already on highest plan */}
+      {(details.plan === 'GROWTH' || details.plan === 'PRO') && (
         <div className={styles.card}>
           <h3 className={styles.cardTitle}>Plan Changes</h3>
           <p className={styles.upgradeText}>
@@ -640,7 +685,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
             <a href="/pricing" className={styles.link} target="_blank">
               pricing page
             </a>{' '}
-            or contact support for assistance with upgrades or custom plans.
+            or contact support for assistance with custom plans.
           </p>
         </div>
       )}

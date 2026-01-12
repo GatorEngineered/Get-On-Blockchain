@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { cookies } from 'next/headers';
+import { getLocationLimit } from '@/app/lib/plan-limits';
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,13 +26,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get merchant to use business name
+    // Get merchant to use business name and check plan
     const merchant = await prisma.merchant.findUnique({
       where: { id: merchantId },
     });
 
     if (!merchant) {
       return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
+    }
+
+    // Check location limit based on plan
+    const locationLimit = getLocationLimit(merchant.plan);
+    const currentLocationCount = await prisma.business.count({
+      where: { merchantId },
+    });
+
+    if (currentLocationCount >= locationLimit) {
+      return NextResponse.json(
+        {
+          error: `Your ${merchant.plan} plan is limited to ${locationLimit} location${locationLimit > 1 ? 's' : ''}. Please upgrade your plan to add more locations.`,
+          planRestricted: true,
+          currentPlan: merchant.plan,
+          limit: locationLimit,
+          current: currentLocationCount,
+        },
+        { status: 403 }
+      );
     }
 
     // Generate unique slug for this location

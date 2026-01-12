@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './pricing.module.css';
 
-type PlanId = 'STARTER' | 'BASIC' | 'PREMIUM';
+type PlanId = 'STARTER' | 'BASIC' | 'PREMIUM' | 'GROWTH';
 type BillingCycle = 'monthly' | 'annual';
 
 type Plan = {
@@ -27,14 +27,13 @@ const plans: Plan[] = [
     priceAnnual: 0,
     priceLabel: 'Free',
     description:
-      'Try our loyalty platform with no commitment. Perfect for testing the waters before you upgrade.',
+      'Try our loyalty platform with no commitment. Perfect for testing before you upgrade.',
     features: [
       'QR-based loyalty with points & rewards',
-      'Redeem for free products/discounts',
-      '1 merchant claim page',
-      'Basic dashboard',
       'Up to 5 active members',
+      '1 location',
       '1 reward in catalog',
+      'Basic dashboard',
     ],
   },
   {
@@ -43,14 +42,12 @@ const plans: Plan[] = [
     priceMonthly: 49,
     priceAnnual: 490,
     description:
-      'Points & rewards only. Redeem for free products/discounts. Simple for businesses who don\'t want crypto complexity.',
+      'Points & rewards for small businesses. Simple loyalty without crypto complexity.',
     features: [
-      'QR-based loyalty with points & rewards',
-      'Redeem for free products/discounts',
-      '1 merchant claim page',
-      'Basic dashboard & analytics',
-      'Up to 1,000 active members',
-      'Unlimited rewards in catalog',
+      'Up to 150 active members',
+      '1 location',
+      'Up to 3 rewards in catalog',
+      'Full dashboard & analytics',
       'Email support',
       '7-day free trial',
     ],
@@ -62,15 +59,32 @@ const plans: Plan[] = [
     priceMonthly: 99,
     priceAnnual: 990,
     description:
-      'Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points.',
+      'Everything in Basic + stablecoin rewards. Give customers REAL money, not just points.',
     features: [
-      'Everything in Basic',
+      'Up to 500 active members',
+      'Up to 3 locations',
+      'Up to 7 rewards in catalog',
       'Stablecoin rewards (USDC)',
       'Blockchain-verified rewards',
-      'Customer wallet setup',
-      'Milestone-based payouts',
-      'Up to 5,000 active members',
       'Priority email support',
+      '7-day free trial',
+    ],
+  },
+  {
+    id: 'GROWTH',
+    name: 'Growth',
+    priceMonthly: 149,
+    priceAnnual: 1490,
+    description:
+      'Scale your loyalty program. For businesses with multiple locations and larger customer bases.',
+    features: [
+      'Up to 2,000 active members',
+      'Up to 10 locations',
+      'Up to 25 rewards in catalog',
+      'All Premium features',
+      'Custom loyalty tiers',
+      'Multiple milestones',
+      'Priority support',
       '7-day free trial',
     ],
   },
@@ -133,7 +147,9 @@ export default function PricingCards() {
         | 'BASIC_MONTHLY'
         | 'BASIC_ANNUAL'
         | 'PREMIUM_MONTHLY'
-        | 'PREMIUM_ANNUAL';
+        | 'PREMIUM_ANNUAL'
+        | 'GROWTH_MONTHLY'
+        | 'GROWTH_ANNUAL';
 
       const res = await fetch('/api/merchant/subscription/create', {
         method: 'POST',

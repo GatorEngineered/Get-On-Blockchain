@@ -172,7 +172,8 @@ async function handleSubscriptionActivated(resource: any) {
   const previousPlan = merchant.plan || 'STARTER';
   const newPlan = getPlanFromPayPalPlanId(subscription.plan_id);
   const isAnnual = subscription.plan_id === process.env.PAYPAL_PLAN_BASIC_ANNUAL ||
-                   subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL;
+                   subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL ||
+                   subscription.plan_id === process.env.PAYPAL_PLAN_GROWTH_ANNUAL;
 
   // Update merchant with subscription ID and plan
   // This is where we save the subscription ID - only after payment is confirmed
@@ -240,7 +241,8 @@ async function handleSubscriptionUpdated(resource: any) {
   const isDowngrade = newLimit < oldLimit;
   const isUpgrade = newLimit > oldLimit;
   const isAnnual = subscription.plan_id === process.env.PAYPAL_PLAN_BASIC_ANNUAL ||
-                   subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL;
+                   subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL ||
+                   subscription.plan_id === process.env.PAYPAL_PLAN_GROWTH_ANNUAL;
 
   // Prepare update data
   const updateData: any = {
@@ -455,7 +457,8 @@ async function handlePaymentCompleted(resource: any) {
     const subscription = await getSubscription(billingAgreementId);
     const amount = resource.amount?.total || subscription.billing_info?.last_payment?.amount?.value || '0';
     const isAnnual = subscription.plan_id === process.env.PAYPAL_PLAN_BASIC_ANNUAL ||
-                     subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL;
+                     subscription.plan_id === process.env.PAYPAL_PLAN_PREMIUM_ANNUAL ||
+                     subscription.plan_id === process.env.PAYPAL_PLAN_GROWTH_ANNUAL;
     const nextBillingDate = subscription.billing_info?.next_billing_time
       ? new Date(subscription.billing_info.next_billing_time).toLocaleDateString()
       : undefined;

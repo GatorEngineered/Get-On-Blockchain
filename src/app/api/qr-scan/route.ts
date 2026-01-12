@@ -3,7 +3,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { cookies } from 'next/headers';
-import { canAddNewMember } from '@/app/lib/plan-limits';
+import { canAddNewMember, getMemberLimitStatus } from '@/app/lib/plan-limits';
+import {
+  sendMemberLimitWarningEmail,
+  sendMemberLimitReachedEmail,
+  sendMemberDeniedNotification,
+} from '@/lib/email/notifications';
 
 /**
  * POST /api/qr-scan
@@ -59,6 +64,20 @@ export async function POST(req: NextRequest) {
       const memberCheck = await canAddNewMember(business.merchantId);
 
       if (!memberCheck.allowed) {
+        // Send notification to merchant about denied customer
+        const status = memberCheck.memberLimitStatus;
+        if (status) {
+          sendMemberDeniedNotification({
+            merchantEmail: business.merchant.loginEmail,
+            merchantName: business.merchant.name,
+            businessName: business.name,
+            deniedMemberEmail: undefined, // We don't have the member email in QR scan
+            currentCount: status.currentCount,
+            limit: status.effectiveLimit,
+            plan: status.plan,
+          }).catch((err) => console.error('[QR Scan] Failed to send denied notification:', err));
+        }
+
         return NextResponse.json(
           {
             error: memberCheck.reason,
@@ -91,6 +110,50 @@ export async function POST(req: NextRequest) {
           status: 'SUCCESS',
         },
       });
+
+      // Check and send member limit notifications after new member added
+      const newStatus = await getMemberLimitStatus(business.merchantId);
+      if (newStatus) {
+        const { percentUsed, currentCount, effectiveLimit, plan } = newStatus;
+
+        // Check if we've crossed a threshold (80%, 90%, 100%)
+        // We check previous count to see if we just crossed the threshold
+        const prevPercent = ((currentCount - 1) / effectiveLimit) * 100;
+
+        if (percentUsed >= 100 && prevPercent < 100) {
+          // Just hit 100%
+          sendMemberLimitReachedEmail({
+            merchantEmail: business.merchant.loginEmail,
+            merchantName: business.merchant.name,
+            businessName: business.name,
+            currentCount,
+            limit: effectiveLimit,
+            plan,
+          }).catch((err) => console.error('[QR Scan] Failed to send limit reached email:', err));
+        } else if (percentUsed >= 90 && prevPercent < 90) {
+          // Just crossed 90%
+          sendMemberLimitWarningEmail({
+            merchantEmail: business.merchant.loginEmail,
+            merchantName: business.merchant.name,
+            businessName: business.name,
+            currentCount,
+            limit: effectiveLimit,
+            percentUsed,
+            plan,
+          }).catch((err) => console.error('[QR Scan] Failed to send 90% warning email:', err));
+        } else if (percentUsed >= 80 && prevPercent < 80) {
+          // Just crossed 80%
+          sendMemberLimitWarningEmail({
+            merchantEmail: business.merchant.loginEmail,
+            merchantName: business.merchant.name,
+            businessName: business.name,
+            currentCount,
+            limit: effectiveLimit,
+            percentUsed,
+            plan,
+          }).catch((err) => console.error('[QR Scan] Failed to send 80% warning email:', err));
+        }
+      }
     }
 
     // Check for duplicate scan (prevent scanning multiple times in short period)

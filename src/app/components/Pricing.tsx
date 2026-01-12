@@ -1,11 +1,3 @@
-const BASIC_CHECKOUT_URL =
-  "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled";
-
-const PREMIUM_CHECKOUT_URL =
-  "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled";
-
-const SALES_PHONE_NUMBER = "+18134651195";
-
 export default function Pricing() {
   return (
     <section className="section pricing" id="pricing">
@@ -29,7 +21,7 @@ export default function Pricing() {
             <ul className="pricing-list">
               <li>QR-based loyalty with points & rewards</li>
               <li>Redeem for free products/discounts</li>
-              <li>1 merchant claim page</li>
+              <li>1 location</li>
               <li>Basic dashboard</li>
               <li>Up to 5 active members</li>
               <li>1 reward in catalog</li>
@@ -37,7 +29,7 @@ export default function Pricing() {
             <button
               className="btn btn-secondary btn-full"
               onClick={() => {
-                window.location.href = "/merchant/signup";
+                window.location.href = "/business/register";
               }}
             >
               Start Free
@@ -52,23 +44,23 @@ export default function Pricing() {
             <p className="pricing-price">$49<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
-              <li>QR-based loyalty with points & rewards</li>
-              <li>Redeem for free products/discounts</li>
-              <li>1 merchant claim page (yourbrand.getonblockchain.com)</li>
-              <li>Basic dashboard & analytics</li>
-              <li>Simple POS receipt QR (just print the URL)</li>
-              <li>Up to 1,000 active members</li>
-              <li>Unlimited rewards in catalog</li>
+              <li>Up to 150 active members</li>
+              <li>1 location</li>
+              <li>Up to 3 rewards in catalog</li>
+              <li>Full dashboard & analytics</li>
+              <li>QR scan rewards for visits</li>
+              <li>Email support</li>
+              <li>7-day free trial</li>
             </ul>
             <button
               className="btn btn-primary btn-full"
               onClick={() => {
-                window.open(BASIC_CHECKOUT_URL, "_blank");
+                window.location.href = "/pricing";
               }}
             >
               Get Started
             </button>
-            <p className="pricing-footnote">Perfect for businesses who don&apos;t want crypto complexity.</p>
+            <p className="pricing-footnote">Perfect for small businesses starting their loyalty program.</p>
           </div>
 
           {/* Premium Tier - $99/month */}
@@ -78,84 +70,55 @@ export default function Pricing() {
             <p className="pricing-price">$99<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
-              <li>Everything in Basic</li>
-              <li>Stablecoin rewards (your unique angle)</li>
-              <li>&quot;Give your customers REAL money, not just points&quot;</li>
+              <li>Up to 500 active members</li>
+              <li>Up to 3 locations</li>
+              <li>Up to 7 rewards in catalog</li>
+              <li>Stablecoin rewards (USDC)</li>
               <li>Blockchain-verified rewards</li>
-              <li>Customer wallet setup (MetaMask, Trust Wallet, etc.)</li>
-              <li>Milestone-based payouts (100 points = $5 USDC)</li>
-              <li>Configure payout wallet</li>
-              <li>Up to 5,000 active members & priority support</li>
+              <li>Customer wallet setup</li>
+              <li>Priority support &bull; 7-day free trial</li>
             </ul>
             <button
               className="btn btn-primary btn-full"
               onClick={() => {
-                window.open(PREMIUM_CHECKOUT_URL, "_blank");
+                window.location.href = "/pricing";
               }}
             >
-              Book A Demo
+              Get Started
             </button>
             <p className="pricing-footnote">Best for forward-thinking businesses ready to stand out.</p>
           </div>
 
-          {/* COMMENTED OUT - Will be added back later
-
-          <div className="pricing-card highlight">
-            <p className="pricing-pill">Growth · Most popular</p>
+          {/* Growth Tier - $149/month */}
+          <div className="pricing-card">
+            <p className="pricing-pill">Growth</p>
             <h3>For Growing Brands</h3>
             <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
-            <p className="pricing-setup">+ $349 one-time setup</p>
+            <p className="pricing-setup"></p>
             <ul className="pricing-list">
-              <li>Up to 3 locations</li>
-              <li>QR scan rewards for visits</li>
-              <li>Email login + wallet-based rewards (custodial wallet included)</li>
-              <li>You choose the stablecoin and wallet flow per business</li>
-              <li>3 merchant claim pages (yourbrand.getonblockchain.com)</li>
-              <li>5 custom points rules for visits, referrals, or spend tiers</li>
-              <li>Up to 15,000 active members & priority email support</li>
+              <li>Up to 2,000 active members</li>
+              <li>Up to 10 locations</li>
+              <li>Up to 25 rewards in catalog</li>
+              <li>All Premium features</li>
+              <li>Custom loyalty tiers</li>
+              <li>Multiple milestones</li>
+              <li>Priority support &bull; 7-day free trial</li>
             </ul>
             <button
               className="btn btn-primary btn-full"
               onClick={() => {
-                window.location.href = "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled";
+                window.location.href = "/pricing";
               }}
             >
-              Book A Demo
+              Get Started
             </button>
-            <p className="pricing-footnote">Best value for multi-location and online brands.</p>
+            <p className="pricing-footnote">Scale your loyalty program with more members and locations.</p>
           </div>
-
-          */}
-
-          {/* COMMENTED OUT - Will be added back later
-
-          <div className="pricing-card">
-            <p className="pricing-pill">Pro / Brand</p>
-            <h3>For Franchises & Launches</h3>
-            <p className="pricing-price">$199<span className="pricing-price-suffix">/mo</span></p>
-            <p className="pricing-setup">+ $449 setup (or custom quote if complex)</p>
-            <ul className="pricing-list">
-              <li>Everything in Growth</li>
-              <li>White-label portal & API access</li>
-              <li>Multi-location dashboards & user roles</li>
-              <li>Advanced reporting and data export</li>
-              <li>POS/ERP integration support</li>
-              <li>Quarterly strategy reviews</li>
-            </ul>
-            <button className="btn btn-secondary btn-full"
-              onClick={() => {
-                window.location.href = `tel:${SALES_PHONE_NUMBER}`;
-              }}>
-              Talk To Sales</button>
-            <p className="pricing-footnote">Tailored scope, quoted after discovery.</p>
-          </div>
-
-          */}
         </div>
 
         <div className="pricing-extra">
           <p className="pricing-extra-note">
-            Taxes, card/processor fees, and any on-chain gas costs (when used) are separate.
+            All paid plans include a 7-day free trial. Cancel anytime. Save 2 months with annual billing.
           </p>
         </div>
       </div>

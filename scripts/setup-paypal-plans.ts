@@ -6,7 +6,8 @@
  *
  * This creates:
  * - 1 Product: "GetOnBlockchain Loyalty Platform"
- * - 4 Plans: Basic Monthly, Premium Monthly, Basic Annual, Premium Annual
+ * - 6 Plans: Basic Monthly ($49), Premium Monthly ($99), Growth Monthly ($149),
+ *            Basic Annual ($490), Premium Annual ($990), Growth Annual ($1490)
  */
 
 // IMPORTANT: Load environment variables FIRST before any other imports
@@ -102,6 +103,28 @@ async function setupPayPalPlans() {
     plans.push(premiumAnnual);
     console.log(`✅ Premium Annual: ${premiumAnnual.id}`);
 
+    // Plan 5: Growth Monthly ($149/mo with 7-day trial)
+    console.log('Creating Growth Monthly plan...');
+    const growthMonthly = await createPlan({
+      product_id: product.id,
+      name: 'Growth Monthly',
+      description: 'Growth plan - $149/month with 7-day free trial',
+      billing_cycles: createTrialBillingCycles('149.00'),
+    });
+    plans.push(growthMonthly);
+    console.log(`✅ Growth Monthly: ${growthMonthly.id}`);
+
+    // Plan 6: Growth Annual ($1490/year - save $298)
+    console.log('Creating Growth Annual plan...');
+    const growthAnnual = await createPlan({
+      product_id: product.id,
+      name: 'Growth Annual',
+      description: 'Growth plan - $1490/year (save $298 vs monthly)',
+      billing_cycles: createAnnualBillingCycle('1490.00'),
+    });
+    plans.push(growthAnnual);
+    console.log(`✅ Growth Annual: ${growthAnnual.id}`);
+
     // Step 3: Summary
     console.log('\n' + '='.repeat(60));
     console.log('✅ Setup Complete!\n');
@@ -121,6 +144,8 @@ async function setupPayPalPlans() {
     console.log(`      PAYPAL_PLAN_PREMIUM_MONTHLY="${plans[1].id}"`);
     console.log(`      PAYPAL_PLAN_BASIC_ANNUAL="${plans[2].id}"`);
     console.log(`      PAYPAL_PLAN_PREMIUM_ANNUAL="${plans[3].id}"`);
+    console.log(`      PAYPAL_PLAN_GROWTH_MONTHLY="${plans[4].id}"`);
+    console.log(`      PAYPAL_PLAN_GROWTH_ANNUAL="${plans[5].id}"`);
     console.log('\n   2. Test subscription creation in your app');
     console.log('   3. Set up webhook URL in PayPal dashboard');
     console.log('\n' + '='.repeat(60));

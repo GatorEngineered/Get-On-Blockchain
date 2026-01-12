@@ -6,11 +6,19 @@ import { prisma } from '@/app/lib/prisma';
 const PAYPAL_PLANS = {
   BASIC_MONTHLY: process.env.PAYPAL_PLAN_BASIC_MONTHLY,
   PREMIUM_MONTHLY: process.env.PAYPAL_PLAN_PREMIUM_MONTHLY,
+  GROWTH_MONTHLY: process.env.PAYPAL_PLAN_GROWTH_MONTHLY,
   BASIC_ANNUAL: process.env.PAYPAL_PLAN_BASIC_ANNUAL,
   PREMIUM_ANNUAL: process.env.PAYPAL_PLAN_PREMIUM_ANNUAL,
+  GROWTH_ANNUAL: process.env.PAYPAL_PLAN_GROWTH_ANNUAL,
 };
 
-export type PlanType = 'BASIC_MONTHLY' | 'PREMIUM_MONTHLY' | 'BASIC_ANNUAL' | 'PREMIUM_ANNUAL';
+export type PlanType =
+  | 'BASIC_MONTHLY'
+  | 'PREMIUM_MONTHLY'
+  | 'GROWTH_MONTHLY'
+  | 'BASIC_ANNUAL'
+  | 'PREMIUM_ANNUAL'
+  | 'GROWTH_ANNUAL';
 
 /**
  * POST /api/merchant/subscription/create
@@ -20,7 +28,7 @@ export type PlanType = 'BASIC_MONTHLY' | 'PREMIUM_MONTHLY' | 'BASIC_ANNUAL' | 'P
  * Request body:
  * {
  *   merchantId: string;
- *   planType: 'BASIC_MONTHLY' | 'PREMIUM_MONTHLY' | 'BASIC_ANNUAL' | 'PREMIUM_ANNUAL';
+ *   planType: 'BASIC_MONTHLY' | 'PREMIUM_MONTHLY' | 'GROWTH_MONTHLY' | 'BASIC_ANNUAL' | 'PREMIUM_ANNUAL' | 'GROWTH_ANNUAL';
  *   email: string;
  *   firstName: string;
  *   lastName: string;

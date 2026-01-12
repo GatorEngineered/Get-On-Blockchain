@@ -32,7 +32,7 @@
 /* Pricing Container */
 .pricingContainer {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
@@ -113,8 +113,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
   width: 100%;
 }
 
@@ -277,8 +277,8 @@
   color: #6b7280;
 }
 
-/* Responsive - Tablet */
-@media (min-width: 768px) and (max-width: 1024px) {
+/* Responsive - Large tablet / Small desktop */
+@media (min-width: 900px) and (max-width: 1200px) {
   .page {
     padding: 2.5rem 1.25rem 3.5rem;
   }
@@ -288,20 +288,25 @@
   }
 
   .grid {
-    gap: 1rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
   }
 
   .card {
-    padding: 1.5rem 1.25rem 1.75rem;
+    padding: 1.25rem 1rem 1.5rem;
   }
 
   .cardPriceAmount {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
+  }
+
+  .cardFeatures {
+    font-size: 0.8rem;
   }
 }
 
-/* Responsive - Small tablet */
-@media (min-width: 641px) and (max-width: 767px) {
+/* Responsive - Tablet */
+@media (min-width: 641px) and (max-width: 899px) {
   .page {
     padding: 2rem 1rem 3rem;
   }
@@ -315,10 +320,12 @@
     gap: 1rem;
   }
 
-  .cardHighlight {
-    grid-column: 1 / -1;
-    max-width: 400px;
-    margin: 0 auto;
+  .card {
+    padding: 1.5rem 1.25rem 1.75rem;
+  }
+
+  .cardPriceAmount {
+    font-size: 1.75rem;
   }
 }
 

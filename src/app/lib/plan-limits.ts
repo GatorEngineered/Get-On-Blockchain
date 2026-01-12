@@ -4,34 +4,35 @@
 import { prisma } from '@/app/lib/prisma';
 
 // Plan limits configuration
+// Updated pricing structure (Jan 2026)
 export const PLAN_LIMITS = {
   STARTER: {
     members: 5,
+    locations: 1,
+    rewards: 1,
+    customTiers: false,
+    multipleMilestones: false,
+    customPointsRules: false,
+  },
+  BASIC: {
+    members: 150,
     locations: 1,
     rewards: 3,
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
   },
-  BASIC: {
-    members: 1000,
-    locations: 3,
-    rewards: 5,
-    customTiers: false,
-    multipleMilestones: false,
-    customPointsRules: false,
-  },
   PREMIUM: {
-    members: 5000,
-    locations: 10,
-    rewards: 10,
+    members: 500,
+    locations: 3,
+    rewards: 7,
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
   },
   GROWTH: {
-    members: 15000,
-    locations: 25,
+    members: 2000,
+    locations: 10,
     rewards: 25,
     customTiers: true,
     multipleMilestones: true,
