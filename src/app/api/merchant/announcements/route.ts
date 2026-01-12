@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
     // Build query for members
     let membersQuery: any = {
       where: {
-        merchantMemberships: {
+        merchantMembers: {
           some: {
             merchantId: merchantId,
           },
@@ -332,7 +332,7 @@ export async function GET(req: NextRequest) {
     // Count members who have opted in for this email type
     const eligibleCount = await prisma.member.count({
       where: {
-        merchantMemberships: {
+        merchantMembers: {
           some: {
             merchantId: merchantId,
           },
@@ -343,7 +343,7 @@ export async function GET(req: NextRequest) {
 
     const totalCount = await prisma.member.count({
       where: {
-        merchantMemberships: {
+        merchantMembers: {
           some: {
             merchantId: merchantId,
           },
