@@ -263,6 +263,8 @@ export async function POST(req: NextRequest) {
 
     for (const member of eligibleMembers) {
       try {
+        console.log(`[Announcements] Sending ${emailType} email to ${member.email}...`);
+
         const html = generateEmailHtml({
           merchantName: merchant.name,
           emailType,
@@ -271,12 +273,13 @@ export async function POST(req: NextRequest) {
           memberEmail: member.email,
         });
 
-        await sendEmail({
+        const emailResult = await sendEmail({
           to: member.email,
           subject: `${merchant.name}: ${subject}`,
           html,
         });
 
+        console.log(`[Announcements] Email sent successfully to ${member.email}:`, emailResult);
         results.sent++;
       } catch (err: any) {
         console.error(`[Announcements] Failed to send to ${member.email}:`, err);
