@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import styles from '../styles/dashboard-mockups.module.css';
 import PayoutHistory from './components/PayoutHistory';
 import LocationSelector from './components/LocationSelector';
+import SendAnnouncementModal from './members/SendAnnouncementModal';
 
 type Business = {
   id: string;
@@ -56,6 +57,19 @@ export default function DashboardPage() {
   const [walletData, setWalletData] = useState<any>(null);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>('');
+
+  // Points adjustment modal state
+  const [showPointsModal, setShowPointsModal] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<{id: string; name: string; points: number} | null>(null);
+  const [adjustmentType, setAdjustmentType] = useState<'reward' | 'confiscate'>('reward');
+  const [adjustAmount, setAdjustAmount] = useState('');
+  const [adjustReason, setAdjustReason] = useState('');
+  const [adjusting, setAdjusting] = useState(false);
+  const [adjustError, setAdjustError] = useState<string | null>(null);
+
+  // Message modal state
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageCustomer, setMessageCustomer] = useState<{id: string; name: string} | null>(null);
 
   // Initial load - fetch merchant data first to get all businesses
   useEffect(() => {
@@ -186,6 +200,67 @@ export default function DashboardPage() {
     // Clear merchant session
     document.cookie = "gob_merchant_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     router.push("/dashboard/login");
+  }
+
+  // Open points adjustment modal
+  function openPointsModal(customer: {id: string; name: string; points: number}, type: 'reward' | 'confiscate') {
+    setSelectedCustomer(customer);
+    setAdjustmentType(type);
+    setAdjustAmount('');
+    setAdjustReason('');
+    setAdjustError(null);
+    setShowPointsModal(true);
+  }
+
+  // Handle points adjustment submission
+  async function handlePointsAdjustment() {
+    if (!selectedCustomer) return;
+
+    const amount = parseInt(adjustAmount);
+    if (!amount || amount <= 0) {
+      setAdjustError('Please enter a valid amount greater than 0');
+      return;
+    }
+    if (!adjustReason.trim()) {
+      setAdjustError('Please provide a reason');
+      return;
+    }
+
+    setAdjusting(true);
+    setAdjustError(null);
+
+    try {
+      const res = await fetch(`/api/merchant/members/${selectedCustomer.id}/adjust-points`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: adjustmentType === 'reward' ? amount : -amount,
+          reason: adjustReason,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to adjust points');
+      }
+
+      // Close modal and refresh data
+      setShowPointsModal(false);
+      if (selectedBusinessId) {
+        fetchDashboardMetrics(selectedBusinessId);
+      }
+    } catch (err: any) {
+      setAdjustError(err.message);
+    } finally {
+      setAdjusting(false);
+    }
+  }
+
+  // Open message modal
+  function openMessageModal(customer: {id: string; name: string}) {
+    setMessageCustomer(customer);
+    setShowMessageModal(true);
   }
 
   // Loading state
@@ -502,12 +577,87 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td>
-                      <button
-                        className={styles.actionButton}
-                        onClick={() => router.push(`/dashboard/members/${customer.id}`)}
-                      >
-                        View Profile
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        {/* Reward Button */}
+                        <button
+                          onClick={() => openPointsModal({id: customer.id, name: customer.name, points: customer.points}, 'reward')}
+                          title="Reward points"
+                          style={{
+                            padding: '0.4rem 0.6rem',
+                            background: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                          </svg>
+                          Reward
+                        </button>
+
+                        {/* Confiscate Button */}
+                        <button
+                          onClick={() => openPointsModal({id: customer.id, name: customer.name, points: customer.points}, 'confiscate')}
+                          title="Confiscate points"
+                          style={{
+                            padding: '0.4rem 0.6rem',
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                          </svg>
+                          Confiscate
+                        </button>
+
+                        {/* Email Button */}
+                        <button
+                          onClick={() => openMessageModal({id: customer.id, name: customer.name})}
+                          title="Send message"
+                          style={{
+                            padding: '0.4rem 0.5rem',
+                            background: '#244b7a',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+
+                        {/* View Profile Button */}
+                        <button
+                          className={styles.actionButton}
+                          onClick={() => router.push(`/dashboard/members/${customer.id}`)}
+                          style={{
+                            padding: '0.4rem 0.6rem',
+                            fontSize: '0.75rem',
+                          }}
+                        >
+                          View
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -852,6 +1002,226 @@ export default function DashboardPage() {
           <PayoutHistory />
         </div>
       )}
+
+      {/* Points Adjustment Modal */}
+      {showPointsModal && selectedCustomer && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowPointsModal(false);
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '420px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '1.5rem',
+                borderBottom: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div>
+                <h2 style={{
+                  margin: 0,
+                  fontSize: '1.25rem',
+                  fontWeight: '700',
+                  color: adjustmentType === 'reward' ? '#059669' : '#dc2626',
+                }}>
+                  {adjustmentType === 'reward' ? 'Reward Points' : 'Confiscate Points'}
+                </h2>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                  {selectedCustomer.name} • Current: {selectedCustomer.points.toLocaleString()} pts
+                </p>
+              </div>
+              <button
+                onClick={() => setShowPointsModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '0.5rem',
+                  color: '#9ca3af',
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '1.5rem' }}>
+              {adjustError && (
+                <div style={{
+                  padding: '0.75rem 1rem',
+                  background: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#991b1b',
+                  fontSize: '0.875rem',
+                  marginBottom: '1rem',
+                }}>
+                  {adjustError}
+                </div>
+              )}
+
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '0.5rem',
+                }}>
+                  Points to {adjustmentType === 'reward' ? 'Add' : 'Remove'}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={adjustAmount}
+                  onChange={(e) => setAdjustAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  disabled={adjusting}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '0.5rem',
+                }}>
+                  Reason
+                </label>
+                <input
+                  type="text"
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  placeholder={adjustmentType === 'reward' ? 'e.g., Birthday bonus, Loyalty reward' : 'e.g., Policy violation, Fraud correction'}
+                  disabled={adjusting}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.95rem',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Preview */}
+              {adjustAmount && parseInt(adjustAmount) > 0 && (
+                <div style={{
+                  padding: '1rem',
+                  background: adjustmentType === 'reward' ? '#ecfdf5' : '#fef2f2',
+                  borderRadius: '8px',
+                  marginBottom: '1.5rem',
+                }}>
+                  <p style={{
+                    margin: 0,
+                    fontSize: '0.875rem',
+                    color: adjustmentType === 'reward' ? '#065f46' : '#991b1b',
+                  }}>
+                    New balance: <strong>{(adjustmentType === 'reward'
+                      ? selectedCustomer.points + parseInt(adjustAmount)
+                      : Math.max(0, selectedCustomer.points - parseInt(adjustAmount))
+                    ).toLocaleString()} pts</strong>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              padding: '1rem 1.5rem 1.5rem',
+              display: 'flex',
+              gap: '0.75rem',
+              justifyContent: 'flex-end',
+            }}>
+              <button
+                onClick={() => setShowPointsModal(false)}
+                disabled={adjusting}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: 'white',
+                  color: '#6b7280',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '8px',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePointsAdjustment}
+                disabled={adjusting || !adjustAmount || !adjustReason.trim()}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: adjustmentType === 'reward' ? '#10b981' : '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  cursor: adjusting || !adjustAmount || !adjustReason.trim() ? 'not-allowed' : 'pointer',
+                  opacity: adjusting || !adjustAmount || !adjustReason.trim() ? 0.6 : 1,
+                }}
+              >
+                {adjusting ? 'Processing...' : (adjustmentType === 'reward' ? 'Add Points' : 'Remove Points')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Message Modal */}
+      <SendAnnouncementModal
+        isOpen={showMessageModal}
+        onClose={() => {
+          setShowMessageModal(false);
+          setMessageCustomer(null);
+        }}
+        memberIds={messageCustomer ? [messageCustomer.id] : undefined}
+        memberName={messageCustomer?.name}
+        onSuccess={() => {
+          // Optionally show success feedback
+        }}
+      />
     </div>
   );
 }
