@@ -192,7 +192,7 @@ export async function GET(req: NextRequest) {
       const avatar = `${firstName.charAt(0)}${mm.member.lastName?.charAt(0) || ""}`;
 
       return {
-        id: mm.id,
+        id: mm.memberId, // Use actual Member ID for API calls
         name: fullName,
         visits: mm.rewardTransactions.length, // Count of EARN transactions for this business
         points: mm.points,
