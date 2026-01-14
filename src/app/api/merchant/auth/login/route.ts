@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (merchant) {
-      // Merchant login flow
+      // Merchant login flow (use generic message for security)
       if (!merchant.passwordHash) {
         return NextResponse.json(
-          { error: "Password not set. Please complete your account setup." },
+          { error: "Invalid email or password" },
           { status: 401 }
         );
       }
@@ -115,24 +115,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if staff account is active
+    // Check if staff account is active (use generic message for security)
     if (!staff.isActive) {
       return NextResponse.json(
-        { error: "Your account has been deactivated. Please contact your manager." },
+        { error: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    // Check if staff has accepted their invitation
+    // Check if staff has accepted their invitation (use generic message for security)
     if (!staff.passwordHash) {
-      if (staff.inviteAcceptedAt === null) {
-        return NextResponse.json(
-          { error: "Please accept your invitation first by clicking the link in your email." },
-          { status: 401 }
-        );
-      }
       return NextResponse.json(
-        { error: "Password not set. Please contact your manager." },
+        { error: "Invalid email or password" },
         { status: 401 }
       );
     }
@@ -200,10 +194,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("[Login] Error:", error);
     return NextResponse.json(
-      {
-        error: error.message || "Login failed",
-        details: error.toString(),
-      },
+      { error: "Something went wrong. Please try again or contact support." },
       { status: 500 }
     );
   }

@@ -51,13 +51,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if member has a password set
+    // Check if member has a password set (use same generic message for security)
     if (!member.passwordHash) {
       return NextResponse.json(
-        {
-          error:
-            'No password set for this account. Please use magic link login or reset your password.',
-        },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -157,10 +154,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('[Member Login] Error:', error);
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error.message,
-      },
+      { error: 'Something went wrong. Please try again or contact support.' },
       { status: 500 }
     );
   }

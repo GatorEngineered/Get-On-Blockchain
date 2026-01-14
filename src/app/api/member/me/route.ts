@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     if (!sessionCookie) {
       return NextResponse.json(
-        { error: 'Not authenticated' },
+        { error: 'Please log in to continue.' },
         { status: 401 }
       );
     }
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       session = JSON.parse(sessionCookie.value);
     } catch {
       return NextResponse.json(
-        { error: 'Invalid session' },
+        { error: 'Session expired. Please log in again.' },
         { status: 401 }
       );
     }
@@ -59,8 +59,8 @@ export async function GET(req: NextRequest) {
 
     if (!member) {
       return NextResponse.json(
-        { error: 'Member not found' },
-        { status: 404 }
+        { error: 'Session expired. Please log in again.' },
+        { status: 401 }
       );
     }
 
@@ -97,10 +97,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error('[API] Error getting member data:', error);
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error.message,
-      },
+      { error: 'Something went wrong. Please try again or contact support.' },
       { status: 500 }
     );
   }

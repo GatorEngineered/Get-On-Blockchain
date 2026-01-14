@@ -56,7 +56,7 @@ function generateEmailHtml({
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #244b7a 0%, #3b6ea5 100%); padding: 32px 40px; text-align: center;">
-              <img src="${process.env.NEXT_PUBLIC_BASE_URL || 'https://getonblockchain.com'}/getonblockchain-logo-resized.png" alt="Get On Blockchain" width="48" height="48" style="margin-bottom: 16px; border-radius: 8px;">
+              <img src="https://getonblockchain.com/getonblockchain-logo-resized.png" alt="Get On Blockchain" width="48" height="48" style="margin-bottom: 16px; border-radius: 8px;">
               <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
                 ${merchantName}
               </h1>
@@ -134,8 +134,8 @@ function generateEmailHtml({
                     </p>
                     <p style="margin: 0 0 8px 0; color: #9ca3af; font-size: 12px;">
                       Get On Blockchain LLC<br>
-                      123 Business Ave, Suite 100<br>
-                      Orlando, FL 32801, USA
+                      7901 N 4th Street Ste 300<br>
+                      St Petersburg, FL 33702, USA
                     </p>
                     <p style="margin: 0; color: #9ca3af; font-size: 12px;">
                       <a href="mailto:support@getonblockchain.com" style="color: #9ca3af; text-decoration: none;">
@@ -169,14 +169,14 @@ export async function POST(req: NextRequest) {
     const sessionCookie = cookieStore.get('gob_merchant_session');
 
     if (!sessionCookie?.value) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Please log in to continue.' }, { status: 401 });
     }
 
     const session = JSON.parse(sessionCookie.value);
     const merchantId = session.merchantId;
 
     if (!merchantId) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      return NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 });
     }
 
     const body = await req.json();
@@ -212,13 +212,14 @@ export async function POST(req: NextRequest) {
     });
 
     if (!merchant) {
-      return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 });
     }
 
     // Get the preference field name for this email type
     const preferenceField = EMAIL_TYPE_TO_PREFERENCE[emailType];
 
     // Build query for members
+    // Use "not: false" to include both true AND null values (null = default opted-in)
     let membersQuery: any = {
       where: {
         merchantMembers: {
@@ -226,8 +227,8 @@ export async function POST(req: NextRequest) {
             merchantId: merchantId,
           },
         },
-        // Only include members who have opted in for this email type
-        [preferenceField]: true,
+        // Only include members who haven't explicitly opted out (true or null = eligible)
+        [preferenceField]: { not: false },
       },
       select: {
         id: true,
@@ -246,7 +247,7 @@ export async function POST(req: NextRequest) {
     if (eligibleMembers.length === 0) {
       return NextResponse.json(
         {
-          error: 'No eligible recipients found. Members may have opted out of this type of email.',
+          error: 'Unable to send announcement. Please try again or contact support.',
           sentCount: 0,
           skippedCount: sendToAll ? 0 : (memberIds?.length || 0),
         },
@@ -314,14 +315,14 @@ export async function GET(req: NextRequest) {
     const sessionCookie = cookieStore.get('gob_merchant_session');
 
     if (!sessionCookie?.value) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Please log in to continue.' }, { status: 401 });
     }
 
     const session = JSON.parse(sessionCookie.value);
     const merchantId = session.merchantId;
 
     if (!merchantId) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+      return NextResponse.json({ error: 'Session expired. Please log in again.' }, { status: 401 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -332,7 +333,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid email type' }, { status: 400 });
     }
 
-    // Count members who have opted in for this email type
+    // Count members who haven't explicitly opted out (true or null = eligible)
     const eligibleCount = await prisma.member.count({
       where: {
         merchantMembers: {
@@ -340,7 +341,7 @@ export async function GET(req: NextRequest) {
             merchantId: merchantId,
           },
         },
-        [preferenceField]: true,
+        [preferenceField]: { not: false },
       },
     });
 

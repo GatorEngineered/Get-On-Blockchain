@@ -12,7 +12,7 @@ export async function POST(
 
     if (!session?.value) {
       return NextResponse.json(
-        { error: "Not authenticated" },
+        { error: "Please log in to continue." },
         { status: 401 }
       );
     }
@@ -22,7 +22,7 @@ export async function POST(
       sessionData = JSON.parse(session.value);
     } catch (e) {
       return NextResponse.json(
-        { error: "Invalid session" },
+        { error: "Session expired. Please log in again." },
         { status: 401 }
       );
     }
@@ -30,7 +30,7 @@ export async function POST(
     const merchantId = sessionData.merchantId;
     if (!merchantId) {
       return NextResponse.json(
-        { error: "Invalid session" },
+        { error: "Session expired. Please log in again." },
         { status: 401 }
       );
     }
@@ -64,7 +64,7 @@ export async function POST(
 
     if (!merchant || !merchant.businesses[0]) {
       return NextResponse.json(
-        { error: "Business not found" },
+        { error: "Unable to process request. Please try again or contact support." },
         { status: 404 }
       );
     }
@@ -83,7 +83,7 @@ export async function POST(
 
     if (!merchantMember) {
       return NextResponse.json(
-        { error: "Member not found for this merchant" },
+        { error: "Unable to process request. Please try again or contact support." },
         { status: 404 }
       );
     }
@@ -92,7 +92,7 @@ export async function POST(
     const newPoints = Math.max(0, merchantMember.points + amount);
 
     // Update points (merchant-level aggregation)
-    const updatedMerchantMember = await prisma.merchantMember.update({
+    await prisma.merchantMember.update({
       where: { id: merchantMember.id },
       data: {
         points: newPoints,
@@ -144,7 +144,7 @@ export async function POST(
   } catch (error: any) {
     console.error("Adjust points error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to adjust points" },
+      { error: "Something went wrong. Please try again or contact support." },
       { status: 500 }
     );
   }

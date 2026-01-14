@@ -12,7 +12,7 @@ export async function GET(
 
     if (!session?.value) {
       return NextResponse.json(
-        { error: "Not authenticated" },
+        { error: "Please log in to continue." },
         { status: 401 }
       );
     }
@@ -22,7 +22,7 @@ export async function GET(
       sessionData = JSON.parse(session.value);
     } catch (e) {
       return NextResponse.json(
-        { error: "Invalid session" },
+        { error: "Session expired. Please log in again." },
         { status: 401 }
       );
     }
@@ -30,7 +30,7 @@ export async function GET(
     const merchantId = sessionData.merchantId;
     if (!merchantId) {
       return NextResponse.json(
-        { error: "Invalid session" },
+        { error: "Session expired. Please log in again." },
         { status: 401 }
       );
     }
@@ -49,7 +49,7 @@ export async function GET(
 
     if (!merchant || !merchant.businesses[0]) {
       return NextResponse.json(
-        { error: "Business not found" },
+        { error: "Unable to load member. Please try again or contact support." },
         { status: 404 }
       );
     }
@@ -85,7 +85,7 @@ export async function GET(
 
     if (!merchantMember) {
       return NextResponse.json(
-        { error: "Member not found for this merchant" },
+        { error: "Unable to load member. Please try again or contact support." },
         { status: 404 }
       );
     }
@@ -207,7 +207,7 @@ export async function GET(
   } catch (error: any) {
     console.error("Get member profile error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch member profile" },
+      { error: "Something went wrong. Please try again or contact support." },
       { status: 500 }
     );
   }

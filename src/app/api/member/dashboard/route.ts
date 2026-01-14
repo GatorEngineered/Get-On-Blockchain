@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(
 
-        { error: 'No authorization token provided' },
+        { error: 'Please log in to continue.' },
 
         { status: 401 }
 
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json(
 
-        { error: 'Invalid or expired token' },
+        { error: 'Session expired. Please log in again.' },
 
         { status: 401 }
 
@@ -209,13 +209,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
 
-      {
-
-        error: 'Internal server error',
-
-        details: error.message,
-
-      },
+      { error: 'Something went wrong. Please try again or contact support.' },
 
       { status: 500 }
 

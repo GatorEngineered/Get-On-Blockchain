@@ -9,7 +9,7 @@ export async function GET() {
 
     if (!session?.value) {
         return NextResponse.json(
-            { error: "Not authenticated" },
+            { error: "Please log in to continue." },
             { status: 401 }
         );
     }
@@ -20,7 +20,7 @@ export async function GET() {
         sessionData = JSON.parse(session.value);
     } catch (e) {
         return NextResponse.json(
-            { error: "Invalid session" },
+            { error: "Session expired. Please log in again." },
             { status: 401 }
         );
     }
@@ -28,7 +28,7 @@ export async function GET() {
     const merchantId = sessionData.merchantId;
     if (!merchantId) {
         return NextResponse.json(
-            { error: "Invalid session" },
+            { error: "Session expired. Please log in again." },
             { status: 401 }
         );
     }
@@ -72,8 +72,8 @@ export async function GET() {
 
     if (!merchant) {
         return NextResponse.json(
-            { error: "Merchant not found" },
-            { status: 404 }
+            { error: "Session expired. Please log in again." },
+            { status: 401 }
         );
     }
 

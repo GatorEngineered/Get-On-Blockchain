@@ -68,14 +68,14 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check if member already exists
+    // Check if member already exists (use generic message for security)
     const existingMember = await prisma.member.findUnique({
       where: { email: normalizedEmail },
     });
 
     if (existingMember) {
       return NextResponse.json(
-        { error: 'An account with this email already exists' },
+        { error: 'Unable to create account. Please try again or contact support.' },
         { status: 409 }
       );
     }
@@ -316,10 +316,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('[Member Registration] Error:', error);
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error.message,
-      },
+      { error: 'Something went wrong. Please try again or contact support.' },
       { status: 500 }
     );
   }
