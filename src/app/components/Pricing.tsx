@@ -6,8 +6,8 @@ export default function Pricing() {
           <p className="eyebrow">Pricing</p>
           <h2>Pick A Plan That Pays For Itself.</h2>
           <p className="section-sub">
-            Launch in days. Keep customers for months. All plans include a branded QR flow, simple
-            dashboard, and ongoing support.
+            Launch in days. Keep customers for months. All plans include unlimited rewards,
+            points that never expire, referral tracking, and member tiers.
           </p>
         </div>
 
@@ -19,12 +19,12 @@ export default function Pricing() {
             <p className="pricing-price">$0<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
-              <li>QR-based loyalty with points & rewards</li>
-              <li>Redeem for free products/discounts</li>
-              <li>1 location</li>
-              <li>Basic dashboard</li>
               <li>Up to 5 active members</li>
-              <li>1 reward in catalog</li>
+              <li>1 location</li>
+              <li>Unlimited rewards catalog</li>
+              <li>Points never expire</li>
+              <li>QR-based loyalty</li>
+              <li>Basic dashboard</li>
             </ul>
             <button
               className="btn btn-secondary btn-full"
@@ -46,10 +46,11 @@ export default function Pricing() {
             <ul className="pricing-list">
               <li>Up to 150 active members</li>
               <li>1 location</li>
-              <li>Up to 3 rewards in catalog</li>
-              <li>Full dashboard & analytics</li>
-              <li>QR scan rewards for visits</li>
-              <li>Email support</li>
+              <li>Unlimited rewards catalog</li>
+              <li>Points never expire</li>
+              <li>Member tiers &bull; Referrals</li>
+              <li>Email announcements</li>
+              <li>Points reminder emails</li>
               <li>7-day free trial</li>
             </ul>
             <button
@@ -72,11 +73,11 @@ export default function Pricing() {
             <ul className="pricing-list">
               <li>Up to 500 active members</li>
               <li>Up to 3 locations</li>
-              <li>Up to 7 rewards in catalog</li>
-              <li>Stablecoin rewards (USDC)</li>
+              <li>Unlimited rewards catalog</li>
+              <li>Direct member messaging</li>
+              <li>USDC payouts on Polygon</li>
               <li>Blockchain-verified rewards</li>
-              <li>Customer wallet setup</li>
-              <li>Priority support &bull; 7-day free trial</li>
+              <li>Priority support &bull; 7-day trial</li>
             </ul>
             <button
               className="btn btn-primary btn-full"
@@ -98,11 +99,12 @@ export default function Pricing() {
             <ul className="pricing-list">
               <li>Up to 2,000 active members</li>
               <li>Up to 10 locations</li>
-              <li>Up to 25 rewards in catalog</li>
+              <li>Unlimited rewards catalog</li>
               <li>All Premium features</li>
-              <li>Custom loyalty tiers</li>
+              <li>Custom tier thresholds</li>
               <li>Multiple milestones</li>
-              <li>Priority support &bull; 7-day free trial</li>
+              <li>Bulk email campaigns</li>
+              <li>7-day free trial</li>
             </ul>
             <button
               className="btn btn-primary btn-full"

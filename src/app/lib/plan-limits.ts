@@ -5,46 +5,57 @@ import { prisma } from '@/app/lib/prisma';
 
 // Plan limits configuration
 // Updated pricing structure (Jan 2026)
+// Note: rewards = -1 means unlimited
 export const PLAN_LIMITS = {
   STARTER: {
     members: 5,
     locations: 1,
-    rewards: 1,
+    rewards: -1, // Unlimited rewards catalog
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
+    directMessaging: false, // Can only send to all members
+    pointsReminderEmails: false,
   },
   BASIC: {
     members: 150,
     locations: 1,
-    rewards: 3,
+    rewards: -1, // Unlimited rewards catalog
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
+    directMessaging: false, // Can only send to all members
+    pointsReminderEmails: true, // Points reminder emails enabled
   },
   PREMIUM: {
     members: 500,
     locations: 3,
-    rewards: 7,
+    rewards: -1, // Unlimited rewards catalog
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
+    directMessaging: true, // Can message individual members
+    pointsReminderEmails: true,
   },
   GROWTH: {
     members: 2000,
     locations: 10,
-    rewards: 25,
+    rewards: -1, // Unlimited rewards catalog
     customTiers: true,
     multipleMilestones: true,
     customPointsRules: true,
+    directMessaging: true,
+    pointsReminderEmails: true,
   },
   PRO: {
     members: 35000,
     locations: 100,
-    rewards: 100,
+    rewards: -1, // Unlimited rewards catalog
     customTiers: true,
     multipleMilestones: true,
     customPointsRules: true,
+    directMessaging: true,
+    pointsReminderEmails: true,
   },
 } as const;
 
@@ -226,9 +237,34 @@ export async function canAddNewMember(merchantId: string): Promise<{
 
 /**
  * Get reward limit for a plan
+ * Returns -1 for unlimited
  */
 export function getRewardLimit(plan: string): number {
-  return PLAN_LIMITS[plan as PlanType]?.rewards || PLAN_LIMITS.STARTER.rewards;
+  const limit = PLAN_LIMITS[plan as PlanType]?.rewards;
+  // -1 means unlimited, return as-is
+  if (limit === -1) return -1;
+  return limit ?? PLAN_LIMITS.STARTER.rewards;
+}
+
+/**
+ * Check if plan has unlimited rewards
+ */
+export function hasUnlimitedRewards(plan: string): boolean {
+  return getRewardLimit(plan) === -1;
+}
+
+/**
+ * Check if plan allows direct individual messaging
+ */
+export function canDirectMessage(plan: string): boolean {
+  return PLAN_LIMITS[plan as PlanType]?.directMessaging ?? false;
+}
+
+/**
+ * Check if plan has points reminder emails
+ */
+export function hasPointsReminderEmails(plan: string): boolean {
+  return PLAN_LIMITS[plan as PlanType]?.pointsReminderEmails ?? false;
 }
 
 /**
@@ -241,11 +277,13 @@ export function getLocationLimit(plan: string): number {
 /**
  * Check if a reward is over the plan limit
  * Used to determine if reward should be greyed out
+ * Note: -1 limit means unlimited (all rewards active)
  */
 export async function getRewardVisibility(merchantId: string): Promise<{
   activeRewardIds: string[];
   greyedRewardIds: string[];
   limit: number;
+  isUnlimited: boolean;
 }> {
   const merchant = await prisma.merchant.findUnique({
     where: { id: merchantId },
@@ -253,10 +291,11 @@ export async function getRewardVisibility(merchantId: string): Promise<{
   });
 
   if (!merchant) {
-    return { activeRewardIds: [], greyedRewardIds: [], limit: 0 };
+    return { activeRewardIds: [], greyedRewardIds: [], limit: 0, isUnlimited: false };
   }
 
   const limit = getRewardLimit(merchant.plan);
+  const isUnlimited = limit === -1;
 
   // Get all active rewards ordered by creation date
   const rewards = await prisma.reward.findMany({
@@ -265,10 +304,20 @@ export async function getRewardVisibility(merchantId: string): Promise<{
     select: { id: true },
   });
 
+  // If unlimited, all rewards are active
+  if (isUnlimited) {
+    return {
+      activeRewardIds: rewards.map(r => r.id),
+      greyedRewardIds: [],
+      limit: -1,
+      isUnlimited: true,
+    };
+  }
+
   const activeRewardIds = rewards.slice(0, limit).map(r => r.id);
   const greyedRewardIds = rewards.slice(limit).map(r => r.id);
 
-  return { activeRewardIds, greyedRewardIds, limit };
+  return { activeRewardIds, greyedRewardIds, limit, isUnlimited: false };
 }
 
 /**

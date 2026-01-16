@@ -6,7 +6,7 @@ import PricingCards from "./PricingCards";
 export const metadata: Metadata = {
   title: "Pricing - Loyalty Program Plans Starting at $49/month | Get On Blockchain",
   description:
-    "Affordable loyalty program software for local businesses. QR-based rewards, USDC payments, real-time analytics. Plans from $49-199/month. 7-day free trial, no credit card required.",
+    "Affordable loyalty program software for local businesses. Unlimited rewards, points never expire, member tiers, referral tracking, email marketing, USDC payouts on Polygon. Plans from $49-149/month. 7-day free trial.",
   keywords: [
     "loyalty program pricing",
     "customer rewards software cost",
@@ -15,10 +15,14 @@ export const metadata: Metadata = {
     "small business rewards program",
     "loyalty program free trial",
     "QR rewards pricing",
+    "unlimited rewards",
+    "points never expire",
+    "USDC rewards",
+    "Polygon blockchain rewards",
   ],
   openGraph: {
     title: "Loyalty Program Pricing - Plans for Every Business Size",
-    description: "Choose a plan that matches your business. QR-based rewards, USDC payments, analytics dashboard. Start free, upgrade anytime.",
+    description: "Unlimited rewards. Points never expire. Member tiers. Referral tracking. Email marketing. USDC payouts on Polygon. Start free, upgrade anytime.",
     url: "https://getonblockchain.com/pricing",
   },
 };
@@ -34,9 +38,9 @@ export default function PricingPage() {
           </h1>
           <p className={styles.heroSubtitle}>
             Choose a plan that matches where your business is today—and where
-            you want it to go. Every plan includes QR-based rewards, member
-            tracking, stablecoin + wallet setup, and a per-business custodial
-            rewards balance.
+            you want it to go. Every plan includes unlimited rewards, member
+            tiers, referral tracking, and points that never expire.
+            Premium plans unlock USDC payouts on Polygon with ultra-low fees.
           </p>
         </div>
       </section>
