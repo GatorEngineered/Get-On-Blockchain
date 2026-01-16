@@ -75,7 +75,7 @@ export default function TermsOfService() {
 
         <h2>7. Cryptocurrency & Wallet Features</h2>
         <p>
-          Members may optionally connect a Solana-compatible wallet to receive
+          Members may optionally connect a Polygon-compatible wallet to receive
           USDC payouts. By using these features:
         </p>
         <ul>

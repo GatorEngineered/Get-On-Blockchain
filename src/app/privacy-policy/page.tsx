@@ -59,7 +59,7 @@ export default function PrivacyPolicy() {
 
         <h3>Wallet Information (Optional):</h3>
         <ul>
-          <li>Solana wallet addresses (for USDC payouts)</li>
+          <li>Polygon wallet addresses (for USDC payouts)</li>
           <li>Transaction records on the blockchain</li>
           <li>Payout history and amounts</li>
         </ul>
@@ -133,7 +133,7 @@ export default function PrivacyPolicy() {
         <ul>
           <li><strong>Payment Processors:</strong> Stripe for subscription payments</li>
           <li><strong>Email Services:</strong> Resend for transactional and announcement emails</li>
-          <li><strong>Blockchain Networks:</strong> Solana network for USDC transactions</li>
+          <li><strong>Blockchain Networks:</strong> Polygon network for USDC transactions</li>
           <li><strong>Hosting:</strong> Vercel for secure application hosting</li>
           <li><strong>Database:</strong> Neon for encrypted data storage</li>
         </ul>
