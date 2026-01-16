@@ -14,7 +14,7 @@ type Plan = {
   badge?: string;
   priceMonthly: number;
   priceAnnual: number;
-  priceLabel?: string;
+  priceLabel?: number;
   description: string;
   features: string[];
 };
@@ -75,6 +75,8 @@ const plans: Plan[] = [
       'Referral program with notifications',
       'Direct individual member messaging',
       'Points reminder emails',
+      'POS integration (Square, Toast, Clover, Shopify)',
+      'Points per dollar spent',
       'USDC payouts on Polygon (low fees)',
       'Blockchain-verified rewards',
       'Priority email support',
@@ -93,6 +95,8 @@ const plans: Plan[] = [
       'Up to 10 locations',
       'Unlimited rewards catalog',
       'All Premium features included',
+      'POS integration (Square, Toast, Clover, Shopify)',
+      'Points per dollar spent',
       'Custom loyalty tier thresholds',
       'Multiple payout milestones',
       'Bulk email marketing campaigns',

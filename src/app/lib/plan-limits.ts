@@ -16,6 +16,8 @@ export const PLAN_LIMITS = {
     customPointsRules: false,
     directMessaging: false, // Can only send to all members
     pointsReminderEmails: false,
+    posIntegration: false, // No POS integration
+    pointsPerDollar: false, // No points per dollar spent
   },
   BASIC: {
     members: 150,
@@ -26,6 +28,8 @@ export const PLAN_LIMITS = {
     customPointsRules: false,
     directMessaging: false, // Can only send to all members
     pointsReminderEmails: true, // Points reminder emails enabled
+    posIntegration: false, // No POS integration
+    pointsPerDollar: false, // No points per dollar spent
   },
   PREMIUM: {
     members: 500,
@@ -36,6 +40,8 @@ export const PLAN_LIMITS = {
     customPointsRules: false,
     directMessaging: true, // Can message individual members
     pointsReminderEmails: true,
+    posIntegration: true, // POS integration (Square, Toast, Clover, Shopify)
+    pointsPerDollar: true, // Points per dollar spent
   },
   GROWTH: {
     members: 2000,
@@ -46,6 +52,8 @@ export const PLAN_LIMITS = {
     customPointsRules: true,
     directMessaging: true,
     pointsReminderEmails: true,
+    posIntegration: true, // POS integration (Square, Toast, Clover, Shopify)
+    pointsPerDollar: true, // Points per dollar spent
   },
   PRO: {
     members: 35000,
@@ -56,6 +64,8 @@ export const PLAN_LIMITS = {
     customPointsRules: true,
     directMessaging: true,
     pointsReminderEmails: true,
+    posIntegration: true, // POS integration (Square, Toast, Clover, Shopify)
+    pointsPerDollar: true, // Points per dollar spent
   },
 } as const;
 
@@ -265,6 +275,20 @@ export function canDirectMessage(plan: string): boolean {
  */
 export function hasPointsReminderEmails(plan: string): boolean {
   return PLAN_LIMITS[plan as PlanType]?.pointsReminderEmails ?? false;
+}
+
+/**
+ * Check if plan has POS integration (Square, Toast, Clover, Shopify)
+ */
+export function hasPosIntegration(plan: string): boolean {
+  return PLAN_LIMITS[plan as PlanType]?.posIntegration ?? false;
+}
+
+/**
+ * Check if plan has points per dollar spent feature
+ */
+export function hasPointsPerDollar(plan: string): boolean {
+  return PLAN_LIMITS[plan as PlanType]?.pointsPerDollar ?? false;
 }
 
 /**

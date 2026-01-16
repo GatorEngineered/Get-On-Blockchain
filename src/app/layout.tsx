@@ -212,6 +212,8 @@ const structuredData = {
         "Email and wallet-based rewards",
         "Customizable points and milestones",
         "Real-time dashboard",
+        "POS integration (Square, Toast, Clover, Shopify)",
+        "Points per dollar spent",
       ],
     },
   ],

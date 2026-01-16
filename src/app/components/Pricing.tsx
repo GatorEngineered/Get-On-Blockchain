@@ -75,6 +75,7 @@ export default function Pricing() {
               <li>Up to 3 locations</li>
               <li>Unlimited rewards catalog</li>
               <li>Direct member messaging</li>
+              <li>POS integration &bull; Points/dollar</li>
               <li>USDC payouts on Polygon</li>
               <li>Blockchain-verified rewards</li>
               <li>Priority support &bull; 7-day trial</li>
@@ -101,6 +102,7 @@ export default function Pricing() {
               <li>Up to 10 locations</li>
               <li>Unlimited rewards catalog</li>
               <li>All Premium features</li>
+              <li>POS integration &bull; Points/dollar</li>
               <li>Custom tier thresholds</li>
               <li>Multiple milestones</li>
               <li>Bulk email campaigns</li>

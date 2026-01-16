@@ -6,7 +6,7 @@ import PricingCards from "./PricingCards";
 export const metadata: Metadata = {
   title: "Pricing - Loyalty Program Plans Starting at $49/month | Get On Blockchain",
   description:
-    "Affordable loyalty program software for local businesses. Unlimited rewards, points never expire, member tiers, referral tracking, email marketing, USDC payouts on Polygon. Plans from $49-149/month. 7-day free trial.",
+    "Affordable loyalty program software for local businesses. Unlimited rewards, points never expire, member tiers, referral tracking, email marketing, USDC payouts on Polygon. POS integration with Square, Toast, Clover, Shopify. Points per dollar spent. Plans from $49-149/month. 7-day free trial.",
   keywords: [
     "loyalty program pricing",
     "customer rewards software cost",
@@ -19,10 +19,16 @@ export const metadata: Metadata = {
     "points never expire",
     "USDC rewards",
     "Polygon blockchain rewards",
+    "POS integration loyalty",
+    "Square loyalty integration",
+    "Toast POS rewards",
+    "Clover loyalty program",
+    "Shopify rewards",
+    "points per dollar spent",
   ],
   openGraph: {
     title: "Loyalty Program Pricing - Plans for Every Business Size",
-    description: "Unlimited rewards. Points never expire. Member tiers. Referral tracking. Email marketing. USDC payouts on Polygon. Start free, upgrade anytime.",
+    description: "Unlimited rewards. Points never expire. Member tiers. Referral tracking. POS integration (Square, Toast, Clover, Shopify). Points per dollar spent. USDC payouts on Polygon. Start free, upgrade anytime.",
     url: "https://getonblockchain.com/pricing",
   },
 };
