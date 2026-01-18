@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../styles/dashboard-mockups.module.css";
+import RedemptionQRModal from "../components/RedemptionQRModal";
 
 type MerchantMember = {
   id: string;
@@ -115,6 +116,15 @@ export default function MemberDashboardPage() {
     merchantId: string;
     merchantName: string;
     pointsValue: number;
+  } | null>(null);
+
+  // Redemption modal state
+  const [redemptionModal, setRedemptionModal] = useState<{
+    isOpen: boolean;
+    reward: Reward;
+    merchantId: string;
+    merchantName: string;
+    memberPoints: number;
   } | null>(null);
   const [referralEmail, setReferralEmail] = useState("");
   const [sendingReferral, setSendingReferral] = useState(false);
@@ -939,7 +949,13 @@ export default function MemberDashboardPage() {
                         disabled={!canRedeem}
                         onClick={() => {
                           if (canRedeem) {
-                            alert("Redeem feature coming soon! Show this at checkout.");
+                            setRedemptionModal({
+                              isOpen: true,
+                              reward,
+                              merchantId: mr.merchantId,
+                              merchantName: mr.merchantName,
+                              memberPoints: mr.memberPoints,
+                            });
                           }
                         }}
                       >
@@ -1271,6 +1287,22 @@ export default function MemberDashboardPage() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* Redemption QR Modal */}
+      {redemptionModal && (
+        <RedemptionQRModal
+          isOpen={redemptionModal.isOpen}
+          onClose={() => setRedemptionModal(null)}
+          reward={redemptionModal.reward}
+          merchantId={redemptionModal.merchantId}
+          merchantName={redemptionModal.merchantName}
+          memberPoints={redemptionModal.memberPoints}
+          onRedemptionComplete={() => {
+            // Refresh member data after successful redemption
+            loadMemberData();
+          }}
+        />
       )}
     </div>
   );

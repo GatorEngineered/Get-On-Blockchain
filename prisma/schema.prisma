@@ -31,6 +31,7 @@ model Business {
   rewardTransactions RewardTransaction[]
   qrCodes            QRCode[]
   scans              Scan[]
+  redemptionRequests RedemptionRequest[] // QR-verified redemption requests at this location
 
   @@index([state])
   @@index([industry])
@@ -110,6 +111,7 @@ model Merchant {
   pointsConfigs   PointsConfig[]     // Custom points rules (Growth/Pro)
   payoutNotificationRequests PayoutNotificationRequest[] // Members waiting for funds
   referrals       Referral[]       // Member referrals for this merchant
+  redemptionRequests RedemptionRequest[] // QR-verified redemption requests
 }
 
 /// *
@@ -157,6 +159,7 @@ model Member {
   merchantMembers    MerchantMember[] // NEW: Merchant-level memberships
   payoutNotificationRequests PayoutNotificationRequest[] // Waiting for merchant funds
   referralsSent      Referral[]       // Referrals this member has sent
+  redemptionRequests RedemptionRequest[] // QR-verified redemption requests
 }
 
 /// *
@@ -330,6 +333,9 @@ model Staff {
   inviteAcceptedAt  DateTime? // When staff accepted and set password
   invitedById       String?   // Merchant user who sent the invite
 
+  // Redemption confirmations
+  confirmedRedemptions RedemptionRequest[] // Redemptions this staff confirmed
+
   @@index([merchantId])
   @@index([inviteToken])
 }
@@ -432,6 +438,7 @@ model Reward {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   merchant    Merchant   @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  redemptionRequests RedemptionRequest[] // QR-verified redemption requests
 
   @@index([merchantId])
 }
@@ -625,4 +632,56 @@ enum SubscriptionStatus {
   CANCELED // User canceled
   EXPIRED // Trial expired without payment
   PAUSED // Temporarily paused
+}
+
+/// *
+///  * Redemption Request - QR-verified reward redemptions
+///  * Member generates QR, staff scans to verify & confirm
+///  * Supports points, USDC, and future token redemptions
+model RedemptionRequest {
+  id              String            @id @default(cuid())
+  merchantId      String
+  memberId        String
+  rewardId        String            // Which reward being redeemed
+  businessId      String?           // Optional: which location (for multi-location merchants)
+
+  // Cost tracking
+  pointsCost      Int               // Points required
+  usdcCost        Float?            // For USDC rewards
+  tokenCost       Int?              // Future: for branded token rewards
+
+  // QR verification
+  qrCodeHash      String            @unique // Unique hash embedded in QR
+  expiresAt       DateTime          // 5-10 min from creation
+
+  // Status tracking
+  status          RedemptionStatus  @default(PENDING)
+  confirmedAt     DateTime?
+  confirmedByStaffId String?        // Staff member who confirmed
+  declinedAt      DateTime?
+  declineReason   String?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  merchant        Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  member          Member            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  reward          Reward            @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  business        Business?         @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  confirmedByStaff Staff?           @relation(fields: [confirmedByStaffId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId])
+  @@index([memberId])
+  @@index([status])
+  @@index([qrCodeHash])
+  @@index([expiresAt])
+}
+
+enum RedemptionStatus {
+  PENDING   // QR generated, waiting for staff scan
+  CONFIRMED // Staff confirmed, points deducted
+  DECLINED  // Staff declined
+  EXPIRED   // QR expired (not scanned in time)
+  CANCELLED // Member cancelled before scanning
 }
