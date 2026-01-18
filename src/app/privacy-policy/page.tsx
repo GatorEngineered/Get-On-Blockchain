@@ -7,7 +7,7 @@ export default function PrivacyPolicy() {
     <main className="section">
       <div className="container" style={{ maxWidth: "800px" }}>
         <h1>Privacy Policy</h1>
-        <p>Last updated: January 14, 2026</p>
+        <p>Last updated: January 17, 2026</p>
 
         <h2>1. Overview</h2>
         <p>
@@ -59,9 +59,18 @@ export default function PrivacyPolicy() {
 
         <h3>Wallet Information (Optional):</h3>
         <ul>
-          <li>Polygon wallet addresses (for USDC payouts)</li>
+          <li>Polygon wallet addresses (for USDC payouts and branded token storage)</li>
           <li>Transaction records on the blockchain</li>
           <li>Payout history and amounts</li>
+          <li>Wallet connection method (non-custodial external wallet or custodial)</li>
+        </ul>
+
+        <h3>Branded Token Information (Where Applicable):</h3>
+        <ul>
+          <li>Token balances and holdings</li>
+          <li>Token transaction history (mints, burns, conversions)</li>
+          <li>Token redemption records</li>
+          <li>Conversion history (token to USDC)</li>
         </ul>
 
         <h3>Automatically Collected Information:</h3>
@@ -154,7 +163,70 @@ export default function PrivacyPolicy() {
           <li>You can disconnect your wallet at any time</li>
         </ul>
 
-        <h2>8. Email Preferences</h2>
+        <h3>Non-Custodial Wallets:</h3>
+        <p>
+          For users who connect their own external wallets:
+        </p>
+        <ul>
+          <li>We only store your public wallet address, never your private keys</li>
+          <li>We cannot access, control, or recover your wallet</li>
+          <li>You maintain full control and responsibility for your wallet security</li>
+          <li>Transaction signing occurs on your device, not our servers</li>
+        </ul>
+
+        <h3>Custodial Wallet Services (Where Applicable):</h3>
+        <p>
+          For users utilizing custodial wallet services:
+        </p>
+        <ul>
+          <li>Wallet keys are generated and stored securely on our infrastructure</li>
+          <li>We implement encryption and access controls to protect custodial wallets</li>
+          <li>Custodial wallet data is not shared with merchants or third parties</li>
+          <li>You may request migration to a non-custodial wallet at any time</li>
+        </ul>
+
+        <h3>Blockchain Data Visibility:</h3>
+        <div style={{
+          background: '#fffbeb',
+          border: '1px solid #fcd34d',
+          borderRadius: '8px',
+          padding: '1rem 1.5rem',
+          margin: '1rem 0'
+        }}>
+          <p style={{ margin: 0 }}>
+            <strong>Important:</strong> Blockchain transactions are publicly visible
+            on the Polygon network. While we do not publicly associate your identity
+            with your wallet address, anyone with your wallet address can view your
+            on-chain transaction history, token balances, and transfer activity on
+            public block explorers (e.g., Polygonscan).
+          </p>
+        </div>
+
+        <h2>8. Branded Token Data</h2>
+        <p>
+          For merchants and members participating in branded loyalty token programs:
+        </p>
+        <ul>
+          <li>
+            <strong>Token Contract Data:</strong> Branded token smart contracts are
+            deployed on the public Polygon blockchain. Contract addresses, total supply,
+            and transaction history are publicly visible.
+          </li>
+          <li>
+            <strong>Merchant Token Data:</strong> We store merchant token configurations,
+            branding assets, and program settings in our secure database.
+          </li>
+          <li>
+            <strong>Member Token Balances:</strong> Your token balances are stored both
+            in our database (for fast access) and on the blockchain (as the source of truth).
+          </li>
+          <li>
+            <strong>No Identity Linking:</strong> We do not publicly associate your
+            personal identity with your token holdings or transactions on the blockchain.
+          </li>
+        </ul>
+
+        <h2>9. Email Preferences</h2>
         <p>
           Members have full control over email communications:
         </p>
@@ -163,13 +235,14 @@ export default function PrivacyPolicy() {
           <li>Merchant promotional emails</li>
           <li>Merchant announcements</li>
           <li>Points and rewards updates</li>
+          <li>Token balance and conversion notifications</li>
         </ul>
         <p>
           You can manage these preferences in your account settings at any time.
           All merchant emails include CAN-SPAM compliant unsubscribe links.
         </p>
 
-        <h2>9. Data Security</h2>
+        <h2>10. Data Security</h2>
         <p>We implement industry-standard security measures including:</p>
         <ul>
           <li>SSL/TLS encryption for all data transmission</li>
@@ -177,9 +250,10 @@ export default function PrivacyPolicy() {
           <li>Secure session management</li>
           <li>Regular security audits and monitoring</li>
           <li>Access controls and authentication requirements</li>
+          <li>Hardware security modules (HSM) for custodial wallet key storage (where applicable)</li>
         </ul>
 
-        <h2>10. Cookies & Tracking</h2>
+        <h2>11. Cookies & Tracking</h2>
         <p>
           We use essential cookies to:
         </p>
@@ -192,18 +266,19 @@ export default function PrivacyPolicy() {
           We do not use third-party advertising cookies or tracking pixels.
         </p>
 
-        <h2>11. Data Retention</h2>
+        <h2>12. Data Retention</h2>
         <p>
           We retain your data as long as your account remains active. Upon account
           deletion:
         </p>
         <ul>
           <li>Personal information is deleted within 30 days</li>
-          <li>Blockchain transaction records remain on-chain (immutable)</li>
+          <li>Blockchain transaction records remain on-chain (immutable and cannot be deleted)</li>
+          <li>Token balances on the blockchain persist independently of our platform</li>
           <li>Aggregated, anonymized analytics may be retained</li>
         </ul>
 
-        <h2>12. Your Rights</h2>
+        <h2>13. Your Rights</h2>
         <p>You have the right to:</p>
         <ul>
           <li>Access your personal data</li>
@@ -211,21 +286,27 @@ export default function PrivacyPolicy() {
           <li>Request deletion of your account and data</li>
           <li>Export your data in a portable format</li>
           <li>Opt out of non-essential communications</li>
+          <li>Request information about your token holdings and transaction history</li>
         </ul>
+        <p>
+          <strong>Note:</strong> We cannot delete blockchain data. Token balances and
+          transaction history recorded on the Polygon blockchain are immutable and
+          will persist even after account deletion.
+        </p>
 
-        <h2>13. Children&apos;s Privacy</h2>
+        <h2>14. Children&apos;s Privacy</h2>
         <p>
           Our service is not intended for individuals under 18 years of age. We do
           not knowingly collect information from minors.
         </p>
 
-        <h2>14. Changes to This Policy</h2>
+        <h2>15. Changes to This Policy</h2>
         <p>
           We may update this Privacy Policy from time to time. We will notify users
           of significant changes via email or platform notification.
         </p>
 
-        <h2>15. Contact Us</h2>
+        <h2>16. Contact Us</h2>
         <p>
           For privacy questions, data requests, or concerns, contact us at:
         </p>

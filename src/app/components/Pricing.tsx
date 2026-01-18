@@ -4,10 +4,10 @@ export default function Pricing() {
       <div className="container">
         <div className="section-header">
           <p className="eyebrow">Pricing</p>
-          <h2>Pick A Plan That Pays For Itself.</h2>
+          <h2>The First Blockchain-Powered Loyalty Platform.</h2>
           <p className="section-sub">
             Launch in days. Keep customers for months. All plans include unlimited rewards,
-            points that never expire, referral tracking, and member tiers.
+            points that never expire, referral tracking, and member tiers. Scale to any size.
           </p>
         </div>
 
@@ -40,12 +40,12 @@ export default function Pricing() {
           {/* Basic Tier - $49/month */}
           <div className="pricing-card">
             <p className="pricing-pill">Basic</p>
-            <h3>For Single-Location Shops</h3>
+            <h3>For Growing Businesses</h3>
             <p className="pricing-price">$49<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
-              <li>Up to 150 active members</li>
-              <li>1 location</li>
+              <li>Up to 1,000 active members</li>
+              <li>Unlimited locations</li>
               <li>Unlimited rewards catalog</li>
               <li>Points never expire</li>
               <li>Member tiers &bull; Referrals</li>
@@ -61,7 +61,7 @@ export default function Pricing() {
             >
               Get Started
             </button>
-            <p className="pricing-footnote">Perfect for small businesses starting their loyalty program.</p>
+            <p className="pricing-footnote">Simple loyalty rewards for any size business.</p>
           </div>
 
           {/* Premium Tier - $99/month */}
@@ -71,9 +71,9 @@ export default function Pricing() {
             <p className="pricing-price">$99<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
-              <li>Up to 500 active members</li>
-              <li>Up to 3 locations</li>
-              <li>Unlimited rewards catalog</li>
+              <li>Up to 25,000 active members</li>
+              <li>Unlimited locations</li>
+              <li>All Basic features</li>
               <li>Direct member messaging</li>
               <li>POS integration &bull; Points/dollar</li>
               <li>USDC payouts on Polygon</li>
@@ -88,23 +88,23 @@ export default function Pricing() {
             >
               Get Started
             </button>
-            <p className="pricing-footnote">Best for forward-thinking businesses ready to stand out.</p>
+            <p className="pricing-footnote">Real crypto rewards that customers can trust.</p>
           </div>
 
-          {/* Growth Tier - $149/month */}
+          {/* Growth Tier - $199/month */}
           <div className="pricing-card">
             <p className="pricing-pill">Growth</p>
-            <h3>For Growing Brands</h3>
-            <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
+            <h3>Your Own Branded Token</h3>
+            <p className="pricing-price">$199<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
-              <li>Up to 2,000 active members</li>
-              <li>Up to 10 locations</li>
-              <li>Unlimited rewards catalog</li>
+              <li>Up to 100,000 active members</li>
+              <li>Unlimited locations</li>
               <li>All Premium features</li>
-              <li>POS integration &bull; Points/dollar</li>
-              <li>Custom tier thresholds</li>
-              <li>Multiple milestones</li>
+              <li>Custom branded loyalty token</li>
+              <li>Non-custodial member wallets</li>
+              <li>1M token supply</li>
+              <li>Advanced analytics</li>
               <li>Bulk email campaigns</li>
               <li>7-day free trial</li>
             </ul>
@@ -116,13 +116,14 @@ export default function Pricing() {
             >
               Get Started
             </button>
-            <p className="pricing-footnote">Scale your loyalty program with more members and locations.</p>
+            <p className="pricing-footnote">Launch your own branded cryptocurrency token.</p>
           </div>
         </div>
 
         <div className="pricing-extra">
           <p className="pricing-extra-note">
             All paid plans include a 7-day free trial. Cancel anytime. Save 2 months with annual billing.
+            Need enterprise scale or custom tokens? <a href="mailto:support@getonblockchain.com">Contact us</a>.
           </p>
         </div>
       </div>

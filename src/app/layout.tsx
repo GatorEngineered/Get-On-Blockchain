@@ -31,27 +31,29 @@ export const metadata: Metadata = {
       : process.env.NEXT_PUBLIC_BASE_URL || "https://getonblockchain.com"
   ),
   title: {
-    default: "Loyalty Program Software for Local Businesses | Get On Blockchain",
+    default: "Blockchain-Powered Loyalty Rewards Platform | Get On Blockchain",
     template: "%s | Get On Blockchain",
   },
   description:
-    "Increase foot traffic and repeat customers with our QR-based loyalty rewards platform. Easy setup, crypto payments (USDC), proven ROI. Starting at $49/month.",
+    "The first blockchain-powered loyalty platform. QR-based rewards, USDC stablecoin payouts, branded loyalty tokens, and non-custodial wallets. Plans from $49-199/month.",
   keywords: [
-    "loyalty program software",
-    "customer retention platform",
-    "increase foot traffic",
-    "repeat customer rewards",
-    "loyalty program ROI",
-    "QR code rewards",
-    "USDC crypto payments",
-    "local business loyalty program",
-    "customer rewards system",
-    "digital loyalty cards",
+    "blockchain loyalty program",
+    "crypto rewards platform",
+    "USDC stablecoin rewards",
+    "branded loyalty token",
+    "blockchain verified rewards",
+    "QR code loyalty",
+    "Polygon blockchain rewards",
+    "non-custodial wallet loyalty",
+    "customer retention blockchain",
+    "digital loyalty tokens",
+    "POS integration rewards",
+    "cryptocurrency loyalty",
   ],
   openGraph: {
-    title: "Loyalty Program That Increases Foot Traffic & Repeat Customers",
+    title: "The First Blockchain-Powered Loyalty Platform",
     description:
-      "Launch a QR-based loyalty program in 30 minutes. Customers earn rewards, you see more repeat visits. Starting at $49/month with proven ROI.",
+      "Launch blockchain-verified rewards in minutes. USDC payouts, branded loyalty tokens, and non-custodial wallets. Plans from $49-199/month.",
     url: "https://getonblockchain.com",
     siteName: "Get On Blockchain",
     images: [
@@ -59,7 +61,7 @@ export const metadata: Metadata = {
         url: "/social-card-resized.png",
         width: 1200,
         height: 630,
-        alt: "Get On Blockchain loyalty rewards dashboard showing customer analytics",
+        alt: "Get On Blockchain blockchain-powered loyalty rewards platform",
       },
     ],
     type: "website",
@@ -67,8 +69,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Loyalty Program Software for Local Businesses",
-    description: "Increase foot traffic with QR-based rewards. Easy setup, proven ROI.",
+    title: "Blockchain-Powered Loyalty Rewards Platform",
+    description: "USDC payouts, branded tokens, blockchain-verified rewards. The future of loyalty.",
     images: ["/social-card-resized.png"],
   },
   robots: {
@@ -106,7 +108,7 @@ const structuredData = {
         height: 512,
       },
       description:
-        "Loyalty program software for local businesses. QR-based rewards, crypto payments, and customer retention tools.",
+        "The first blockchain-powered loyalty platform. USDC payouts, branded loyalty tokens, and blockchain-verified rewards.",
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "Customer Support",
@@ -166,7 +168,7 @@ const structuredData = {
         "@type": "AggregateOffer",
         priceCurrency: "USD",
         lowPrice: "0",
-        highPrice: "149",
+        highPrice: "199",
         priceSpecification: [
           {
             "@type": "UnitPriceSpecification",
@@ -191,7 +193,7 @@ const structuredData = {
           },
           {
             "@type": "UnitPriceSpecification",
-            price: "149.00",
+            price: "199.00",
             priceCurrency: "USD",
             name: "Growth Plan",
             billingDuration: "P1M",
@@ -204,16 +206,16 @@ const structuredData = {
         reviewCount: "127",
       },
       description:
-        "Complete loyalty program software for local businesses. Increase foot traffic and repeat customers with QR-based rewards, crypto payments (USDC), and real-time analytics.",
+        "The first blockchain-powered loyalty platform. USDC stablecoin payouts, branded loyalty tokens, non-custodial wallets, and blockchain-verified rewards.",
       featureList: [
         "QR code loyalty rewards",
-        "Customer retention analytics",
-        "USDC cryptocurrency payments",
-        "Email and wallet-based rewards",
-        "Customizable points and milestones",
-        "Real-time dashboard",
+        "Blockchain-verified rewards",
+        "USDC stablecoin payouts on Polygon",
+        "Branded loyalty tokens",
+        "Non-custodial member wallets",
         "POS integration (Square, Toast, Clover, Shopify)",
         "Points per dollar spent",
+        "Real-time analytics dashboard",
       ],
     },
   ],

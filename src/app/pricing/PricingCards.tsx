@@ -14,7 +14,7 @@ type Plan = {
   badge?: string;
   priceMonthly: number;
   priceAnnual: number;
-  priceLabel?: number;
+  priceLabel?: string;
   description: string;
   features: string[];
 };
@@ -25,7 +25,7 @@ const plans: Plan[] = [
     name: 'Starter',
     priceMonthly: 0,
     priceAnnual: 0,
-    priceLabel: 0,
+    priceLabel: '$0',
     description:
       'Try our loyalty platform with no commitment. Perfect for testing before you upgrade.',
     features: [
@@ -43,10 +43,10 @@ const plans: Plan[] = [
     priceMonthly: 49,
     priceAnnual: 490,
     description:
-      'Points & rewards for small businesses. Simple loyalty without crypto complexity.',
+      'Points & rewards for growing businesses. Simple loyalty without crypto complexity.',
     features: [
-      'Up to 150 active members',
-      '1 location',
+      'Up to 1,000 active members',
+      'Unlimited locations',
       'Unlimited rewards catalog',
       'Points never expire',
       'Member tiers (Base, VIP, Super)',
@@ -67,14 +67,12 @@ const plans: Plan[] = [
     description:
       'Everything in Basic + stablecoin rewards. Give customers REAL money, not just points.',
     features: [
-      'Up to 500 active members',
-      'Up to 3 locations',
+      'Up to 25,000 active members',
+      'Unlimited locations',
       'Unlimited rewards catalog',
       'Points never expire',
-      'Member tiers (Base, VIP, Super)',
-      'Referral program with notifications',
+      'All Basic features included',
       'Direct individual member messaging',
-      'Points reminder emails',
       'POS integration (Square, Toast, Clover, Shopify)',
       'Points per dollar spent',
       'USDC payouts on Polygon (low fees)',
@@ -86,17 +84,18 @@ const plans: Plan[] = [
   {
     id: 'GROWTH',
     name: 'Growth',
-    priceMonthly: 149,
-    priceAnnual: 1490,
+    priceMonthly: 199,
+    priceAnnual: 1990,
     description:
-      'Scale your loyalty program. For businesses with multiple locations and larger customer bases.',
+      'Your own branded loyalty token on the blockchain. True ownership for your customers.',
     features: [
-      'Up to 2,000 active members',
-      'Up to 10 locations',
+      'Up to 100,000 active members',
+      'Unlimited locations',
       'Unlimited rewards catalog',
       'All Premium features included',
-      'POS integration (Square, Toast, Clover, Shopify)',
-      'Points per dollar spent',
+      'Custom branded loyalty token',
+      'Non-custodial wallets for members',
+      '1 million token supply',
       'Custom loyalty tier thresholds',
       'Multiple payout milestones',
       'Bulk email marketing campaigns',

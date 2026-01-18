@@ -5,8 +5,8 @@
  * Run with: npx tsx scripts/add-growth-plans.ts
  *
  * This adds:
- * - Growth Monthly ($149/mo with 7-day trial)
- * - Growth Annual ($1490/year)
+ * - Growth Monthly ($199/mo with 7-day trial)
+ * - Growth Annual ($1990/year)
  *
  * Requires PAYPAL_PRODUCT_ID to be set in .env
  */
@@ -53,24 +53,24 @@ async function addGrowthPlans() {
   try {
     const plans = [];
 
-    // Plan 1: Growth Monthly ($149/mo with 7-day trial)
+    // Plan 1: Growth Monthly ($199/mo with 7-day trial)
     console.log('Creating Growth Monthly plan...');
     const growthMonthly = await createPlan({
       product_id: productId,
       name: 'Growth Monthly',
-      description: 'Growth plan - $149/month with 7-day free trial',
-      billing_cycles: createTrialBillingCycles('149.00'),
+      description: 'Growth plan - $199/month with 7-day free trial. Includes branded loyalty token.',
+      billing_cycles: createTrialBillingCycles('199.00'),
     });
     plans.push(growthMonthly);
     console.log(`Growth Monthly: ${growthMonthly.id}`);
 
-    // Plan 2: Growth Annual ($1490/year - save $298)
+    // Plan 2: Growth Annual ($1990/year - save $398)
     console.log('Creating Growth Annual plan...');
     const growthAnnual = await createPlan({
       product_id: productId,
       name: 'Growth Annual',
-      description: 'Growth plan - $1490/year (save $298 vs monthly)',
-      billing_cycles: createAnnualBillingCycle('1490.00'),
+      description: 'Growth plan - $1990/year (save $398 vs monthly). Includes branded loyalty token.',
+      billing_cycles: createAnnualBillingCycle('1990.00'),
     });
     plans.push(growthAnnual);
     console.log(`Growth Annual: ${growthAnnual.id}`);

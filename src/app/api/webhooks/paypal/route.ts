@@ -15,8 +15,8 @@ import {
 const PLAN_PRICES: Record<string, { monthly: string; annual: string }> = {
   BASIC: { monthly: '$49.00', annual: '$490.00' },
   PREMIUM: { monthly: '$99.00', annual: '$990.00' },
-  GROWTH: { monthly: '$149.00', annual: '$1,490.00' },
-  PRO: { monthly: '$199.00', annual: '$1,990.00' },
+  GROWTH: { monthly: '$199.00', annual: '$1,990.00' },
+  PRO: { monthly: 'Custom', annual: 'Custom' },
 };
 
 const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID;

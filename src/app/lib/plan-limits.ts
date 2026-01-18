@@ -5,11 +5,12 @@ import { prisma } from '@/app/lib/prisma';
 
 // Plan limits configuration
 // Updated pricing structure (Jan 2026)
-// Note: rewards = -1 means unlimited
+// Note: -1 means unlimited for members, locations, rewards, tokenSupply
+// walletType: 'none' | 'non-custodial' | 'custodial' | 'hybrid'
 export const PLAN_LIMITS = {
   STARTER: {
     members: 5,
-    locations: 1,
+    locations: 1, // Only Starter has location limit
     rewards: -1, // Unlimited rewards catalog
     customTiers: false,
     multipleMilestones: false,
@@ -18,10 +19,13 @@ export const PLAN_LIMITS = {
     pointsReminderEmails: false,
     posIntegration: false, // No POS integration
     pointsPerDollar: false, // No points per dollar spent
+    brandedToken: false, // No branded token
+    tokenSupply: 0,
+    walletType: 'none' as const,
   },
   BASIC: {
-    members: 150,
-    locations: 1,
+    members: 1000, // Increased from 150
+    locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
     customTiers: false,
     multipleMilestones: false,
@@ -30,10 +34,13 @@ export const PLAN_LIMITS = {
     pointsReminderEmails: true, // Points reminder emails enabled
     posIntegration: false, // No POS integration
     pointsPerDollar: false, // No points per dollar spent
+    brandedToken: false, // No branded token
+    tokenSupply: 0,
+    walletType: 'none' as const,
   },
   PREMIUM: {
-    members: 500,
-    locations: 3,
+    members: 25000, // Increased from 500
+    locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
     customTiers: false,
     multipleMilestones: false,
@@ -42,10 +49,13 @@ export const PLAN_LIMITS = {
     pointsReminderEmails: true,
     posIntegration: true, // POS integration (Square, Toast, Clover, Shopify)
     pointsPerDollar: true, // Points per dollar spent
+    brandedToken: false, // No branded token, USDC payouts only
+    tokenSupply: 0,
+    walletType: 'none' as const, // Uses standard USDC wallet connection
   },
   GROWTH: {
-    members: 2000,
-    locations: 10,
+    members: 100000, // Increased from 2,000
+    locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
     customTiers: true,
     multipleMilestones: true,
@@ -54,10 +64,14 @@ export const PLAN_LIMITS = {
     pointsReminderEmails: true,
     posIntegration: true, // POS integration (Square, Toast, Clover, Shopify)
     pointsPerDollar: true, // Points per dollar spent
+    brandedToken: true, // Basic branded token (merchant name, basic design)
+    tokenSupply: 1000000, // 1 million token supply
+    walletType: 'non-custodial' as const, // Non-custodial for education
   },
+  // PRO is internally called PRO but displayed as "Enterprise"
   PRO: {
-    members: 35000,
-    locations: 100,
+    members: -1, // Unlimited members
+    locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
     customTiers: true,
     multipleMilestones: true,
@@ -66,6 +80,9 @@ export const PLAN_LIMITS = {
     pointsReminderEmails: true,
     posIntegration: true, // POS integration (Square, Toast, Clover, Shopify)
     pointsPerDollar: true, // Points per dollar spent
+    brandedToken: true, // Full custom branded token
+    tokenSupply: -1, // Unlimited token supply
+    walletType: 'hybrid' as const, // Merchant chooses: custodial, non-custodial, or hybrid
   },
 } as const;
 
@@ -82,18 +99,24 @@ export type PlanType = keyof typeof PLAN_LIMITS;
 
 /**
  * Get the base member limit for a plan
+ * Returns -1 for unlimited members
  */
 export function getPlanMemberLimit(plan: string): number {
-  return PLAN_LIMITS[plan as PlanType]?.members || PLAN_LIMITS.STARTER.members;
+  const limit = PLAN_LIMITS[plan as PlanType]?.members;
+  if (limit === undefined) return PLAN_LIMITS.STARTER.members;
+  return limit; // Returns -1 for unlimited
 }
 
 /**
  * Get total member limit including addon slots
  * @param plan The merchant's current plan
  * @param additionalSlots Number of additional member slots purchased
+ * Returns -1 for unlimited (PRO/Enterprise plan)
  */
 export function getTotalMemberLimit(plan: string, additionalSlots: number = 0): number {
   const baseMemberLimit = getPlanMemberLimit(plan);
+  // If unlimited, return -1 regardless of addons
+  if (baseMemberLimit === -1) return -1;
   const addonMembers = additionalSlots * MEMBER_ADDON.membersPerSlot;
   return baseMemberLimit + addonMembers;
 }
@@ -187,8 +210,10 @@ export async function getMemberLimitStatus(merchantId: string): Promise<MemberLi
   const inGracePeriod = isInGracePeriod(merchant.downgradeGracePeriodEndsAt);
   const gracePeriodDaysRemaining = getGracePeriodDaysRemaining(merchant.downgradeGracePeriodEndsAt);
 
-  const remaining = Math.max(0, effectiveLimit - currentCount);
-  const percentUsed = effectiveLimit > 0 ? (currentCount / effectiveLimit) * 100 : 0;
+  // Handle unlimited members (effectiveLimit === -1)
+  const isUnlimited = effectiveLimit === -1;
+  const remaining = isUnlimited ? -1 : Math.max(0, effectiveLimit - currentCount);
+  const percentUsed = isUnlimited ? 0 : (effectiveLimit > 0 ? (currentCount / effectiveLimit) * 100 : 0);
 
   return {
     currentCount,
@@ -199,11 +224,11 @@ export async function getMemberLimitStatus(merchantId: string): Promise<MemberLi
     effectiveLimit,
     remaining,
     percentUsed,
-    isAtLimit: currentCount >= effectiveLimit,
-    isNearLimit: percentUsed >= 80,
+    isAtLimit: isUnlimited ? false : currentCount >= effectiveLimit,
+    isNearLimit: isUnlimited ? false : percentUsed >= 80,
     inGracePeriod,
     gracePeriodDaysRemaining,
-    canAddMembers: currentCount < effectiveLimit,
+    canAddMembers: isUnlimited ? true : currentCount < effectiveLimit,
     plan: merchant.plan,
     previousPlan: merchant.previousPlan,
   };
@@ -222,6 +247,11 @@ export async function canAddNewMember(merchantId: string): Promise<{
 
   if (!status) {
     return { allowed: false, reason: 'Merchant not found' };
+  }
+
+  // Unlimited plans (PRO/Enterprise) can always add members
+  if (status.effectiveLimit === -1) {
+    return { allowed: true, memberLimitStatus: status };
   }
 
   // Starter plan: strict limit, no addons, no grace period
@@ -293,9 +323,48 @@ export function hasPointsPerDollar(plan: string): boolean {
 
 /**
  * Get location limit for a plan
+ * Returns -1 for unlimited locations
  */
 export function getLocationLimit(plan: string): number {
-  return PLAN_LIMITS[plan as PlanType]?.locations || PLAN_LIMITS.STARTER.locations;
+  const limit = PLAN_LIMITS[plan as PlanType]?.locations;
+  if (limit === undefined) return PLAN_LIMITS.STARTER.locations;
+  return limit; // Returns -1 for unlimited
+}
+
+/**
+ * Check if plan has unlimited locations
+ */
+export function hasUnlimitedLocations(plan: string): boolean {
+  return getLocationLimit(plan) === -1;
+}
+
+/**
+ * Check if plan has branded token feature
+ */
+export function hasBrandedToken(plan: string): boolean {
+  return PLAN_LIMITS[plan as PlanType]?.brandedToken ?? false;
+}
+
+/**
+ * Get token supply limit for a plan
+ * Returns -1 for unlimited, 0 for no tokens
+ */
+export function getTokenSupplyLimit(plan: string): number {
+  return PLAN_LIMITS[plan as PlanType]?.tokenSupply ?? 0;
+}
+
+/**
+ * Get wallet type for a plan
+ */
+export function getWalletType(plan: string): 'none' | 'non-custodial' | 'custodial' | 'hybrid' {
+  return PLAN_LIMITS[plan as PlanType]?.walletType ?? 'none';
+}
+
+/**
+ * Check if plan has unlimited members
+ */
+export function hasUnlimitedMembers(plan: string): boolean {
+  return PLAN_LIMITS[plan as PlanType]?.members === -1;
 }
 
 /**

@@ -39,8 +39,8 @@ const PLAN_PRICES: Record<string, number> = {
   STARTER: 0,
   BASIC: 49,
   PREMIUM: 99,
-  GROWTH: 149,
-  PRO: 199,
+  GROWTH: 199,
+  PRO: 0, // Enterprise - custom pricing
 };
 
 export default function BillingSettings() {

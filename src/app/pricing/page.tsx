@@ -4,31 +4,28 @@ import styles from "./pricing.module.css";
 import PricingCards from "./PricingCards";
 
 export const metadata: Metadata = {
-  title: "Pricing - Loyalty Program Plans Starting at $49/month | Get On Blockchain",
+  title: "Pricing - Blockchain Loyalty Plans from $49-199/month | Get On Blockchain",
   description:
-    "Affordable loyalty program software for local businesses. Unlimited rewards, points never expire, member tiers, referral tracking, email marketing, USDC payouts on Polygon. POS integration with Square, Toast, Clover, Shopify. Points per dollar spent. Plans from $49-149/month. 7-day free trial.",
+    "The first blockchain-powered loyalty platform. Branded loyalty tokens, USDC stablecoin payouts on Polygon, non-custodial wallets, POS integration. Plans from $49-199/month with 7-day free trial.",
   keywords: [
-    "loyalty program pricing",
-    "customer rewards software cost",
-    "loyalty program plans",
-    "affordable loyalty software",
-    "small business rewards program",
-    "loyalty program free trial",
-    "QR rewards pricing",
-    "unlimited rewards",
-    "points never expire",
-    "USDC rewards",
-    "Polygon blockchain rewards",
+    "blockchain loyalty pricing",
+    "crypto rewards platform cost",
+    "branded loyalty token pricing",
+    "USDC rewards platform",
+    "Polygon blockchain loyalty",
+    "non-custodial wallet rewards",
     "POS integration loyalty",
     "Square loyalty integration",
     "Toast POS rewards",
     "Clover loyalty program",
     "Shopify rewards",
     "points per dollar spent",
+    "blockchain verified rewards",
+    "stablecoin payouts",
   ],
   openGraph: {
-    title: "Loyalty Program Pricing - Plans for Every Business Size",
-    description: "Unlimited rewards. Points never expire. Member tiers. Referral tracking. POS integration (Square, Toast, Clover, Shopify). Points per dollar spent. USDC payouts on Polygon. Start free, upgrade anytime.",
+    title: "Blockchain Loyalty Pricing - Plans from $49-199/month",
+    description: "Branded loyalty tokens. USDC payouts on Polygon. Non-custodial wallets. POS integration. Blockchain-verified rewards. Start free, upgrade anytime.",
     url: "https://getonblockchain.com/pricing",
   },
 };
@@ -40,13 +37,13 @@ export default function PricingPage() {
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1 className={styles.heroTitle}>
-            Web3 Rewards for Real-World Businesses
+            The First Blockchain-Powered Loyalty Platform
           </h1>
           <p className={styles.heroSubtitle}>
             Choose a plan that matches where your business is today—and where
             you want it to go. Every plan includes unlimited rewards, member
             tiers, referral tracking, and points that never expire.
-            Premium plans unlock USDC payouts on Polygon with ultra-low fees.
+            Premium unlocks USDC payouts. Growth gives you your own branded loyalty token.
           </p>
         </div>
       </section>
@@ -59,9 +56,9 @@ export default function PricingPage() {
       {/* FOOTNOTES */}
       <section className={styles.footnoteSection}>
         <p className={styles.footnoteSub}>
-          * Higher volumes, more locations, or very complex setups may require a
-          custom quote. Taxes, card/processor fees, and any on-chain gas costs
-          (when used) are separate.
+          * Need enterprise scale, custom tokens, or white-label solutions?{" "}
+          <a href="mailto:support@getonblockchain.com" style={{ color: '#244b7a' }}>Contact us</a>{" "}
+          for custom pricing. Taxes, card/processor fees, and on-chain gas costs are separate.
         </p>
       </section>
     </div>

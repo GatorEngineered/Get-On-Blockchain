@@ -98,16 +98,16 @@ export default function GettingStartedPage() {
         Get On Blockchain offers several plans to fit your business needs:
       </p>
       <ul>
-        <li><strong>Starter (Free):</strong> Up to 5 members, basic features</li>
-        <li><strong>Basic ($49/mo):</strong> Up to 1,000 members, QR-based loyalty</li>
-        <li><strong>Premium ($99/mo):</strong> Up to 5,000 members, USDC payouts, priority support</li>
-        <li><strong>Growth ($149/mo):</strong> Up to 15,000 members, multi-location, custom rules</li>
-        <li><strong>Pro ($199/mo):</strong> Up to 15 locations, white-label, API access</li>
+        <li><strong>Starter (Free):</strong> Up to 5 members, 1 location, basic QR-based loyalty</li>
+        <li><strong>Basic ($49/mo):</strong> Up to 1,000 members, unlimited locations, member tiers & referrals</li>
+        <li><strong>Premium ($99/mo):</strong> Up to 25,000 members, USDC payouts on Polygon, POS integration</li>
+        <li><strong>Growth ($199/mo):</strong> Up to 100,000 members, your own branded loyalty token, non-custodial wallets</li>
+        <li><strong>Enterprise:</strong> Unlimited members, custom token design, dedicated support - <Link href="mailto:support@getonblockchain.com">contact us</Link></li>
       </ul>
 
       <p>
-        Start with a 7-day free trial of Premium features, then choose the plan that works best
-        for your business size.
+        Start with a 7-day free trial, then choose the plan that works best
+        for your business size. Premium unlocks USDC payouts, Growth gives you your own branded token.
       </p>
 
       <h2>Next Steps</h2>

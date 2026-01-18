@@ -45,18 +45,19 @@ const PLAN_DETAILS = {
     name: 'Starter',
     price: 0,
     interval: 'Free',
-    description: 'Trial plan with basic features',
-    features: ['5 active members', '1 location', 'Unlimited rewards', 'Basic dashboard'],
+    description: 'Try our loyalty platform with no commitment',
+    features: ['5 active members', '1 location', 'Unlimited rewards', 'QR-based loyalty', 'Basic dashboard'],
   },
   BASIC: {
     name: 'Basic',
     price: 49,
     interval: 'month',
-    description: 'Points & rewards for small businesses',
+    description: 'Points & rewards for growing businesses',
     features: [
-      'Up to 150 active members',
-      '1 location',
+      'Up to 1,000 active members',
+      'Unlimited locations',
       'Unlimited rewards',
+      'Member tiers & referrals',
       'Points reminder emails',
       'Full dashboard & analytics',
       'Email support',
@@ -66,48 +67,51 @@ const PLAN_DETAILS = {
     name: 'Premium',
     price: 99,
     interval: 'month',
-    description: 'Everything in Basic + stablecoin rewards',
+    description: 'Blockchain-verified rewards with USDC payouts',
     features: [
-      'Up to 500 active members',
-      'Up to 3 locations',
+      'Up to 25,000 active members',
+      'Unlimited locations',
       'Unlimited rewards',
+      'All Basic features',
+      'Direct member messaging',
       'POS integration (Square, Toast, Clover, Shopify)',
       'Points per dollar spent',
-      'USDC stablecoin payouts',
+      'USDC payouts on Polygon',
       'Blockchain-verified rewards',
-      'Priority email support',
+      'Priority support',
     ],
   },
   GROWTH: {
     name: 'Growth',
-    price: 149,
+    price: 199,
     interval: 'month',
-    description: 'Scale your loyalty program',
+    description: 'Your own branded loyalty token on the blockchain',
     features: [
-      'Up to 2,000 active members',
-      'Up to 10 locations',
-      'Unlimited rewards',
-      'POS integration (Square, Toast, Clover, Shopify)',
-      'Points per dollar spent',
-      'Custom loyalty tiers',
-      'Multiple milestones',
+      'Up to 100,000 active members',
+      'Unlimited locations',
+      'All Premium features',
+      'Custom branded loyalty token',
+      'Non-custodial member wallets',
+      '1 million token supply',
+      'Custom loyalty tier thresholds',
+      'Multiple payout milestones',
       'Bulk email campaigns',
-      'Priority support',
+      'Advanced analytics',
     ],
   },
   PRO: {
     name: 'Enterprise',
-    price: 199,
-    interval: 'month',
-    description: 'High-volume businesses with custom workflows',
+    price: 0,
+    interval: 'Custom',
+    description: 'Fully customizable for high-volume businesses',
     features: [
-      'Up to 35,000 active members',
-      'Up to 100 locations',
-      'Unlimited rewards',
-      'POS integration (Square, Toast, Clover, Shopify)',
-      'Points per dollar spent',
-      'Custom workflows',
-      'NFT access',
+      'Unlimited active members',
+      'Unlimited locations',
+      'All Growth features',
+      'Custom branded token design',
+      'Unlimited token supply',
+      'Choose wallet type (custodial/non-custodial/hybrid)',
+      'Custom integrations',
       'Dedicated support',
     ],
   },
@@ -562,9 +566,9 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
                   </span>
                 </p>
                 <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#4b5563' }}>
-                  <li>150 members</li>
-                  <li>1 location</li>
-                  <li>3 rewards</li>
+                  <li>1,000 members</li>
+                  <li>Unlimited locations</li>
+                  <li>Unlimited rewards</li>
                 </ul>
                 <button
                   onClick={() => handleUpgrade('BASIC')}
@@ -615,10 +619,10 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
                   </span>
                 </p>
                 <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#065f46' }}>
-                  <li>500 members</li>
-                  <li>3 locations</li>
-                  <li>7 rewards</li>
-                  <li>USDC rewards</li>
+                  <li>25,000 members</li>
+                  <li>Unlimited locations</li>
+                  <li>POS integration</li>
+                  <li>USDC payouts</li>
                 </ul>
                 <button
                   onClick={() => handleUpgrade('PREMIUM')}
@@ -648,16 +652,16 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
             }}>
               <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Growth</h4>
               <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#244b7a', margin: '0 0 0.5rem' }}>
-                ${billingCycle === 'annual' ? '1,490' : '149'}
+                ${billingCycle === 'annual' ? '1,990' : '199'}
                 <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#6b7280' }}>
                   /{billingCycle === 'annual' ? 'year' : 'month'}
                 </span>
               </p>
               <ul style={{ margin: '0 0 1rem', padding: '0 0 0 1.25rem', fontSize: '0.85rem', color: '#4b5563' }}>
-                <li>2,000 members</li>
-                <li>10 locations</li>
-                <li>25 rewards</li>
-                <li>Custom tiers</li>
+                <li>100,000 members</li>
+                <li>Unlimited locations</li>
+                <li>Branded token</li>
+                <li>Non-custodial wallets</li>
               </ul>
               <button
                 onClick={() => handleUpgrade('GROWTH')}

@@ -6,8 +6,8 @@
  *
  * This creates:
  * - 1 Product: "GetOnBlockchain Loyalty Platform"
- * - 6 Plans: Basic Monthly ($49), Premium Monthly ($99), Growth Monthly ($149),
- *            Basic Annual ($490), Premium Annual ($990), Growth Annual ($1490)
+ * - 6 Plans: Basic Monthly ($49), Premium Monthly ($99), Growth Monthly ($199),
+ *            Basic Annual ($490), Premium Annual ($990), Growth Annual ($1990)
  */
 
 // IMPORTANT: Load environment variables FIRST before any other imports
@@ -103,24 +103,24 @@ async function setupPayPalPlans() {
     plans.push(premiumAnnual);
     console.log(`✅ Premium Annual: ${premiumAnnual.id}`);
 
-    // Plan 5: Growth Monthly ($149/mo with 7-day trial)
+    // Plan 5: Growth Monthly ($199/mo with 7-day trial)
     console.log('Creating Growth Monthly plan...');
     const growthMonthly = await createPlan({
       product_id: product.id,
       name: 'Growth Monthly',
-      description: 'Growth plan - $149/month with 7-day free trial',
-      billing_cycles: createTrialBillingCycles('149.00'),
+      description: 'Growth plan - $199/month with 7-day free trial. Includes branded loyalty token.',
+      billing_cycles: createTrialBillingCycles('199.00'),
     });
     plans.push(growthMonthly);
     console.log(`✅ Growth Monthly: ${growthMonthly.id}`);
 
-    // Plan 6: Growth Annual ($1490/year - save $298)
+    // Plan 6: Growth Annual ($1990/year - save $398)
     console.log('Creating Growth Annual plan...');
     const growthAnnual = await createPlan({
       product_id: product.id,
       name: 'Growth Annual',
-      description: 'Growth plan - $1490/year (save $298 vs monthly)',
-      billing_cycles: createAnnualBillingCycle('1490.00'),
+      description: 'Growth plan - $1990/year (save $398 vs monthly). Includes branded loyalty token.',
+      billing_cycles: createAnnualBillingCycle('1990.00'),
     });
     plans.push(growthAnnual);
     console.log(`✅ Growth Annual: ${growthAnnual.id}`);
