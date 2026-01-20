@@ -31,8 +31,13 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Session cookie is just the merchantId directly
-    const merchantId = sessionCookie.value;
+    // Parse session cookie (JSON with merchantId)
+    const session = JSON.parse(sessionCookie.value);
+    const merchantId = session.merchantId;
+
+    if (!merchantId) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
 
     // Check factory is configured
     if (!isTokenFactoryConfigured()) {

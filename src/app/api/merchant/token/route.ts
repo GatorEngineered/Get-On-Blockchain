@@ -33,8 +33,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Session cookie is just the merchantId directly
-    const merchantId = sessionCookie.value;
+    // Parse session cookie (JSON with merchantId)
+    const session = JSON.parse(sessionCookie.value);
+    const merchantId = session.merchantId;
+
+    if (!merchantId) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
 
     // Check merchant plan
     const merchant = await prisma.merchant.findUnique({
@@ -43,11 +48,7 @@ export async function GET() {
     });
 
     if (!merchant) {
-      console.error('[Token API] Merchant not found for ID:', merchantId);
-      return NextResponse.json({
-        error: 'Merchant not found',
-        debug: { merchantId: merchantId.substring(0, 8) + '...' }
-      }, { status: 404 });
+      return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
     }
 
     if (merchant.plan !== 'GROWTH' && merchant.plan !== 'PRO') {
@@ -97,8 +98,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Session cookie is just the merchantId directly
-    const merchantId = sessionCookie.value;
+    // Parse session cookie (JSON with merchantId)
+    const session = JSON.parse(sessionCookie.value);
+    const merchantId = session.merchantId;
+
+    if (!merchantId) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
 
     // Parse request body
     const body = await req.json();
@@ -154,8 +160,13 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Session cookie is just the merchantId directly
-    const merchantId = sessionCookie.value;
+    // Parse session cookie (JSON with merchantId)
+    const session = JSON.parse(sessionCookie.value);
+    const merchantId = session.merchantId;
+
+    if (!merchantId) {
+      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
 
     // Get merchant's token
     const token = await prisma.merchantToken.findUnique({
