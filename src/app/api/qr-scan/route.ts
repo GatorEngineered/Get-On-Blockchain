@@ -9,6 +9,7 @@ import {
   sendMemberLimitReachedEmail,
   sendMemberDeniedNotification,
 } from '@/lib/email/notifications';
+import { mintTokens } from '@/app/lib/token/token-minting-service';
 
 /**
  * POST /api/qr-scan
@@ -245,7 +246,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Track the scan event
-    await prisma.event.create({
+    const scanEvent = await prisma.event.create({
       data: {
         merchantId: business.merchantId,
         type: 'SCAN',
@@ -257,6 +258,26 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    // Mint branded tokens if merchant has a deployed token (Growth/Pro plan)
+    let tokensMinted = 0;
+    let tokenTxHash: string | null = null;
+    try {
+      const mintResult = await mintTokens({
+        memberId,
+        merchantId: business.merchantId,
+        amount: pointsToAward,
+        reason: 'QR code scan',
+        relatedEntityId: scanEvent.id,
+      });
+      if (mintResult.success && mintResult.amount) {
+        tokensMinted = mintResult.amount;
+        tokenTxHash = mintResult.txHash ?? null;
+      }
+    } catch (tokenError) {
+      // Log but don't fail the scan - points are still awarded
+      console.error('[QR Scan] Token minting error (non-blocking):', tokenError);
+    }
 
     // Calculate next tier info
     let nextTier = null;
@@ -286,6 +307,8 @@ export async function POST(req: NextRequest) {
       nextTier,
       canClaimPayout,
       payoutAmount: business.merchant.payoutAmountUSD,
+      tokensMinted,
+      tokenTxHash,
     });
   } catch (error: any) {
     console.error('[QR Scan] Error:', error);

@@ -112,6 +112,7 @@ model Merchant {
   payoutNotificationRequests PayoutNotificationRequest[] // Members waiting for funds
   referrals       Referral[]       // Member referrals for this merchant
   redemptionRequests RedemptionRequest[] // QR-verified redemption requests
+  merchantToken   MerchantToken?   // Branded token (Growth plan)
 }
 
 /// *
@@ -160,6 +161,8 @@ model Member {
   payoutNotificationRequests PayoutNotificationRequest[] // Waiting for merchant funds
   referralsSent      Referral[]       // Referrals this member has sent
   redemptionRequests RedemptionRequest[] // QR-verified redemption requests
+  tokenBalances      TokenBalance[]   // Branded token balances
+  tokenTransactions  TokenTransaction[] // Token transaction history
 }
 
 /// *
@@ -409,22 +412,30 @@ model Scan {
 }
 
 /// *
-///  * Member custodial wallets - auto-generated for members
+///  * Member wallets - auto-generated for members (hybrid custody)
+///  * Starts custodial, member can export to take full control
 ///  * Polygon network, encrypted private keys
 model MemberWallet {
-  id            String   @id @default(cuid())
-  memberId      String   @unique
-  walletAddress String   @unique
-  privateKeyEnc String
-  balance       Float    @default(0)
-  network       String   @default("polygon")
-  createdAt     DateTime @default(now())
-  member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id            String     @id @default(cuid())
+  memberId      String     @unique
+  walletAddress String     @unique
+  privateKeyEnc String     // Encrypted private key (null after export if non-custodial)
+  balance       Float      @default(0) // USDC balance for payouts
+  network       String     @default("polygon")
+
+  // Hybrid custody support
+  walletType    WalletType @default(CUSTODIAL)
+  isExported    Boolean    @default(false) // Has member exported their keys?
+  exportedAt    DateTime?  // When member claimed full ownership
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  member        Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 /// *
 ///  * Reward - customizable rewards catalog per merchant
-///  * Traditional rewards (in-store) or USDC payouts
+///  * Traditional rewards (in-store), USDC payouts, or token redemptions
 model Reward {
   id          String     @id @default(cuid())
   merchantId  String
@@ -433,6 +444,7 @@ model Reward {
   pointsCost  Int        // Points required to redeem
   rewardType  RewardKind @default(TRADITIONAL)
   usdcAmount  Float?     // For USDC payouts
+  tokenCost   Int?       // For TOKEN_REWARD: tokens to burn
   isActive    Boolean    @default(true)
   sortOrder   Int        @default(0) // For display ordering
   createdAt   DateTime   @default(now())
@@ -534,8 +546,9 @@ enum ReferralStatus {
 }
 
 enum RewardKind {
-  TRADITIONAL // Redeemed in-store (free item, discount, etc.)
-  USDC_PAYOUT // Crypto payout to member wallet
+  TRADITIONAL  // Redeemed in-store (free item, discount, etc.)
+  USDC_PAYOUT  // Crypto payout to member wallet
+  TOKEN_REWARD // Redeemed with branded tokens (Growth plan)
 }
 
 enum Plan {
@@ -684,4 +697,133 @@ enum RedemptionStatus {
   DECLINED  // Staff declined
   EXPIRED   // QR expired (not scanned in time)
   CANCELLED // Member cancelled before scanning
+}
+
+// ============================================================================
+// BRANDED TOKEN SYSTEM (Growth Plan)
+// ============================================================================
+
+/// *
+///  * MerchantToken - Branded ERC-20 token for Growth plan merchants
+///  * One token per merchant, deployed on Polygon
+model MerchantToken {
+  id              String   @id @default(cuid())
+  merchantId      String   @unique // One token per merchant
+
+  // Token metadata
+  tokenName       String   // "Joe's Coffee Token"
+  tokenSymbol     String   // "JCFT" (3-5 chars)
+  decimals        Int      @default(0) // Whole tokens only
+
+  // Blockchain deployment
+  contractAddress String?  // Polygon contract address (null until deployed)
+  network         String   @default("polygon-amoy") // polygon-amoy (testnet) or polygon (mainnet)
+  deployTxHash    String?  // Deployment transaction hash
+  deployedAt      DateTime?
+
+  // Supply tracking (cached from on-chain)
+  totalMinted     Int      @default(0)
+  totalBurned     Int      @default(0)
+  circulatingSupply Int    @default(0) // minted - burned
+  lastSyncedAt    DateTime?
+
+  // Status
+  isActive        Boolean  @default(true)
+  isPaused        Boolean  @default(false) // Emergency pause
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  tokenBalances   TokenBalance[]
+  tokenTransactions TokenTransaction[]
+
+  @@index([contractAddress])
+}
+
+/// *
+///  * TokenBalance - Member's balance of a specific merchant token
+///  * Cached from on-chain, synced periodically
+model TokenBalance {
+  id              String   @id @default(cuid())
+  merchantTokenId String
+  memberId        String
+
+  // Balance (cached from on-chain)
+  balance         Int      @default(0)
+  lastSyncedAt    DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchantToken   MerchantToken @relation(fields: [merchantTokenId], references: [id], onDelete: Cascade)
+  member          Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantTokenId, memberId])
+  @@index([merchantTokenId])
+  @@index([memberId])
+}
+
+/// *
+///  * TokenTransaction - On-chain token transactions
+///  * Tracks mints, transfers, and burns
+model TokenTransaction {
+  id              String   @id @default(cuid())
+  merchantTokenId String
+  memberId        String?  // Null for contract deployment
+
+  // Transaction type
+  type            TokenTxType
+  amount          Int      // Tokens minted/transferred/burned
+
+  // Blockchain details
+  txHash          String?  // Polygon transaction hash
+  fromAddress     String?  // Sender address (null for mint)
+  toAddress       String?  // Receiver address (null for burn)
+  blockNumber     Int?
+
+  // Status tracking
+  status          TokenTxStatus @default(PENDING)
+  errorMessage    String?
+  confirmedAt     DateTime?
+
+  // Gas tracking (for analytics)
+  gasUsed         Int?
+  gasPriceGwei    Float?
+
+  // Context
+  reason          String?  // "Earned from visit", "Redeemed reward", etc.
+  relatedEntityId String?  // scanId, redemptionId, etc.
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchantToken   MerchantToken @relation(fields: [merchantTokenId], references: [id], onDelete: Cascade)
+  member          Member?       @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@index([merchantTokenId])
+  @@index([memberId])
+  @@index([txHash])
+  @@index([status])
+}
+
+enum TokenTxType {
+  DEPLOY    // Contract deployment
+  MINT      // New tokens created (earn)
+  TRANSFER  // Token transfer between members
+  BURN      // Tokens destroyed (redeem)
+}
+
+enum TokenTxStatus {
+  PENDING   // Transaction submitted
+  CONFIRMED // Transaction confirmed on-chain
+  FAILED    // Transaction failed
+}
+
+enum WalletType {
+  CUSTODIAL      // GOB manages keys, member can export
+  NON_CUSTODIAL  // Member exported keys, full control
 }

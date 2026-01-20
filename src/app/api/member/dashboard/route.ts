@@ -153,6 +153,35 @@ export async function GET(req: NextRequest) {
       take: 20,
     });
 
+    // Get branded token balances (for Growth/Pro merchants)
+    const tokenBalances = await prisma.tokenBalance.findMany({
+      where: {
+        memberId: member.id,
+        balance: { gt: 0 }, // Only show non-zero balances
+      },
+      include: {
+        merchantToken: {
+          select: {
+            id: true,
+            merchantId: true,
+            tokenName: true,
+            tokenSymbol: true,
+            contractAddress: true,
+            network: true,
+            deployedAt: true,
+            circulatingSupply: true,
+            isActive: true,
+            merchant: {
+              select: {
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
     return NextResponse.json({
       member: {
         id: member.id,
@@ -201,6 +230,27 @@ export async function GET(req: NextRequest) {
         business: tx.business,
         merchant: tx.merchantMember?.merchant,
       })),
+      // Branded token balances (for Growth/Pro merchants)
+      tokenBalances: tokenBalances
+        .filter((tb) => tb.merchantToken.contractAddress) // Only deployed tokens
+        .map((tb) => ({
+          id: tb.id,
+          balance: tb.balance,
+          lastSyncedAt: tb.lastSyncedAt?.toISOString() || null,
+          token: {
+            id: tb.merchantToken.id,
+            merchantId: tb.merchantToken.merchantId,
+            name: tb.merchantToken.tokenName,
+            symbol: tb.merchantToken.tokenSymbol,
+            contractAddress: tb.merchantToken.contractAddress,
+            network: tb.merchantToken.network,
+            deployedAt: tb.merchantToken.deployedAt?.toISOString() || null,
+            circulatingSupply: tb.merchantToken.circulatingSupply,
+            isActive: tb.merchantToken.isActive,
+            merchantName: tb.merchantToken.merchant.name,
+            merchantSlug: tb.merchantToken.merchant.slug,
+          },
+        })),
     });
 
   } catch (error: any) {

@@ -16,6 +16,7 @@
 import { prisma } from '@/app/lib/prisma';
 import { randomBytes, createHash } from 'crypto';
 import { RedemptionStatus, RewardKind } from '@prisma/client';
+import { burnTokens } from '@/app/lib/token/token-minting-service';
 
 // QR code expiry time in minutes
 const QR_EXPIRY_MINUTES = 10;
@@ -71,6 +72,8 @@ export interface ConfirmRedemptionResult {
     pointsDeducted: number;
     newBalance: number;
     rewardName: string;
+    tokensBurned?: number;
+    tokenBurnTxHash?: string | null;
   };
   error?: string;
 }
@@ -470,6 +473,33 @@ export async function confirmRedemption(
         `Points: ${merchantMember.points} → ${result.newBalance}`
     );
 
+    // Burn tokens if this is a token-based reward (Growth/Pro plan)
+    // Also burn if merchant has tokens and the reward has a tokenCost
+    let tokensBurned = 0;
+    let tokenBurnTxHash: string | null = null;
+
+    const tokenCost = (redemption.reward as any).tokenCost;
+    if (redemption.reward.rewardType === 'TOKEN_REWARD' || tokenCost > 0) {
+      try {
+        const burnAmount = tokenCost || redemption.pointsCost;
+        const burnResult = await burnTokens({
+          memberId: redemption.memberId,
+          merchantId,
+          amount: burnAmount,
+          reason: `Redeemed: ${redemption.reward.name}`,
+          relatedEntityId: redemptionId,
+        });
+        if (burnResult.success && burnResult.amount) {
+          tokensBurned = burnResult.amount;
+          tokenBurnTxHash = burnResult.txHash ?? null;
+          console.log(`[Redemption] Burned ${tokensBurned} tokens for redemption ${redemptionId}`);
+        }
+      } catch (tokenError) {
+        // Log but don't fail the redemption - points were already deducted
+        console.error('[Redemption] Token burning error (non-blocking):', tokenError);
+      }
+    }
+
     return {
       success: true,
       transaction: {
@@ -477,6 +507,8 @@ export async function confirmRedemption(
         pointsDeducted: redemption.pointsCost,
         newBalance: result.newBalance,
         rewardName: redemption.reward.name,
+        tokensBurned,
+        tokenBurnTxHash,
       },
     };
   } catch (error: any) {

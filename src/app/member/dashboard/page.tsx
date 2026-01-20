@@ -89,6 +89,25 @@ type MerchantRewards = {
   referralPointsValue?: number;
 };
 
+type TokenBalance = {
+  id: string;
+  balance: number;
+  lastSyncedAt: string | null;
+  token: {
+    id: string;
+    merchantId: string;
+    name: string;
+    symbol: string;
+    contractAddress: string;
+    network: string;
+    deployedAt: string | null;
+    circulatingSupply: number;
+    isActive: boolean;
+    merchantName: string;
+    merchantSlug: string;
+  };
+};
+
 export default function MemberDashboardPage() {
   const router = useRouter();
 
@@ -96,6 +115,7 @@ export default function MemberDashboardPage() {
   const [member, setMember] = useState<Member | null>(null);
   const [transactions, setTransactions] = useState<RewardTransaction[]>([]);
   const [merchantRewards, setMerchantRewards] = useState<MerchantRewards[]>([]);
+  const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [claimingPayout, setClaimingPayout] = useState(false);
   const [payoutSuccess, setPayoutSuccess] = useState<string | null>(null);
@@ -162,6 +182,7 @@ export default function MemberDashboardPage() {
       const data = await res.json();
       setMember(data.member);
       setTransactions(data.transactions || []);
+      setTokenBalances(data.tokenBalances || []);
 
       // Fetch rewards and referral settings for each merchant the member is connected to
       if (data.member?.merchants?.length > 0) {
@@ -514,6 +535,131 @@ export default function MemberDashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Branded Token Balances (Growth/Pro Merchants) */}
+      {tokenBalances.length > 0 && (
+        <div style={{
+          marginTop: '1.5rem',
+          background: 'linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%)',
+          borderRadius: '1.5rem',
+          padding: '1.5rem',
+          boxShadow: '0 8px 24px rgba(139, 92, 246, 0.25)',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1rem',
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 style={{
+              color: 'white',
+              fontSize: '1.1rem',
+              fontWeight: '600',
+              margin: 0,
+            }}>
+              Your Branded Tokens
+            </h3>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '1rem',
+          }}>
+            {tokenBalances.map((tb) => (
+              <div
+                key={tb.id}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '1rem',
+                  padding: '1rem',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  marginBottom: '0.75rem',
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontWeight: '700',
+                    fontSize: '0.9rem',
+                  }}>
+                    {tb.token.symbol.slice(0, 2)}
+                  </div>
+                  <div>
+                    <p style={{
+                      color: 'white',
+                      fontWeight: '600',
+                      fontSize: '0.95rem',
+                      margin: 0,
+                    }}>
+                      {tb.token.symbol}
+                    </p>
+                    <p style={{
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '0.75rem',
+                      margin: 0,
+                    }}>
+                      {tb.token.merchantName}
+                    </p>
+                  </div>
+                </div>
+
+                <p style={{
+                  color: 'white',
+                  fontSize: '1.75rem',
+                  fontWeight: '700',
+                  margin: '0 0 0.5rem 0',
+                }}>
+                  {tb.balance.toLocaleString()}
+                </p>
+
+                <a
+                  href={`https://${tb.token.network === 'polygon' ? '' : 'amoy.'}polygonscan.com/address/${tb.token.contractAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    fontSize: '0.7rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  {tb.token.contractAddress.slice(0, 6)}...{tb.token.contractAddress.slice(-4)}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </div>
+            ))}
+          </div>
+
+          <p style={{
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '0.75rem',
+            marginTop: '1rem',
+            marginBottom: 0,
+          }}>
+            These are real blockchain tokens on Polygon. Earn more by visiting participating merchants!
+          </p>
+        </div>
+      )}
 
       {/* Payout Success Message */}
       {payoutSuccess && (

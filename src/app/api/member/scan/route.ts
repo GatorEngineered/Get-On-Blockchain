@@ -4,6 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 import crypto from "crypto";
 import { generateWallet } from "@/app/lib/blockchain/wallet";
 import { canAddNewMember } from "@/app/lib/plan-limits";
+import { mintTokensOnCheckIn } from "@/app/lib/token/token-minting-service";
 
 const QR_SECRET = process.env.QR_SECRET || "default-secret-change-in-production";
 
@@ -332,6 +333,25 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Mint branded tokens if merchant has a deployed token (Growth/Pro plan)
+    let tokensMinted = 0;
+    let tokenTxHash: string | null = null;
+    try {
+      const mintResult = await mintTokensOnCheckIn({
+        memberId,
+        merchantId: merchant.id,
+        pointsEarned: pointsToAward,
+        scanId: scan.id,
+      });
+      if (mintResult.success && mintResult.amount) {
+        tokensMinted = mintResult.amount;
+        tokenTxHash = mintResult.txHash ?? null;
+      }
+    } catch (tokenError) {
+      // Log but don't fail the scan - points are still awarded
+      console.error("Token minting error (non-blocking):", tokenError);
+    }
+
     return NextResponse.json({
       success: true,
       message: isNewMember
@@ -343,6 +363,8 @@ export async function POST(req: NextRequest) {
         totalPoints: updatedMerchantMember.points,
         tier: newTier,
         tierUpgrade: newTier !== updatedMerchantMember.tier,
+        tokensMinted,
+        tokenTxHash,
       },
       business: {
         name: qrCodeRecord.business.name,
