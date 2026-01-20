@@ -27,23 +27,14 @@ export async function GET() {
   try {
     // Get merchant from session
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('merchant_session');
+    const sessionCookie = cookieStore.get('gob_merchant_session');
 
     if (!sessionCookie?.value) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let session;
-    try {
-      session = JSON.parse(sessionCookie.value);
-    } catch {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
-
-    const merchantId = session.merchantId;
-    if (!merchantId) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    // Session cookie is just the merchantId directly
+    const merchantId = sessionCookie.value;
 
     // Check merchant plan
     const merchant = await prisma.merchant.findUnique({
@@ -96,23 +87,14 @@ export async function POST(req: NextRequest) {
   try {
     // Get merchant from session
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('merchant_session');
+    const sessionCookie = cookieStore.get('gob_merchant_session');
 
     if (!sessionCookie?.value) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let session;
-    try {
-      session = JSON.parse(sessionCookie.value);
-    } catch {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
-
-    const merchantId = session.merchantId;
-    if (!merchantId) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    // Session cookie is just the merchantId directly
+    const merchantId = sessionCookie.value;
 
     // Parse request body
     const body = await req.json();
@@ -162,23 +144,14 @@ export async function PUT(req: NextRequest) {
   try {
     // Get merchant from session
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('merchant_session');
+    const sessionCookie = cookieStore.get('gob_merchant_session');
 
     if (!sessionCookie?.value) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let session;
-    try {
-      session = JSON.parse(sessionCookie.value);
-    } catch {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
-
-    const merchantId = session.merchantId;
-    if (!merchantId) {
-      return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
-    }
+    // Session cookie is just the merchantId directly
+    const merchantId = sessionCookie.value;
 
     // Get merchant's token
     const token = await prisma.merchantToken.findUnique({
