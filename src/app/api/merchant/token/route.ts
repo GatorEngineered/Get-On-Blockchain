@@ -43,7 +43,11 @@ export async function GET() {
     });
 
     if (!merchant) {
-      return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
+      console.error('[Token API] Merchant not found for ID:', merchantId);
+      return NextResponse.json({
+        error: 'Merchant not found',
+        debug: { merchantId: merchantId.substring(0, 8) + '...' }
+      }, { status: 404 });
     }
 
     if (merchant.plan !== 'GROWTH' && merchant.plan !== 'PRO') {
