@@ -52,22 +52,25 @@ export default function BrandedTokenSettings({ merchantData, onUpdate }: Branded
   async function fetchToken() {
     try {
       setLoading(true);
+      setError('');
       const res = await fetch('/api/merchant/token');
-      if (res.status === 404) {
-        // No token exists yet
-        setToken(null);
-        // Pre-fill form with business name
-        if (merchantData?.businessName) {
-          setFormData({
-            tokenName: `${merchantData.businessName} Token`,
-            tokenSymbol: generateSymbol(merchantData.businessName),
-          });
-        }
-      } else if (!res.ok) {
-        throw new Error('Failed to fetch token');
-      } else {
-        const data = await res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Handle errors (403 for wrong plan, 500 for server error)
+        throw new Error(data.error || 'Failed to fetch token');
+      }
+
+      if (data.hasToken && data.token) {
+        // Token exists
         setToken(data.token);
+      } else {
+        // No token yet - use suggested values
+        setToken(null);
+        setFormData({
+          tokenName: data.suggestedName || `${merchantData?.name || 'My'} Token`,
+          tokenSymbol: data.suggestedSymbol || generateSymbol(merchantData?.name || 'TOKEN'),
+        });
       }
     } catch (err: any) {
       setError(err.message);
@@ -118,13 +121,14 @@ export default function BrandedTokenSettings({ merchantData, onUpdate }: Branded
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || 'Failed to create token');
       }
 
-      const data = await res.json();
-      setToken(data.token);
+      // Re-fetch to get the full token data
+      await fetchToken();
       setSuccess('Token configuration saved! You can now deploy it to the blockchain.');
     } catch (err: any) {
       setError(err.message);
