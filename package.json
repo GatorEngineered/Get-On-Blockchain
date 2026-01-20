@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
-    "@prisma/client": "^7.2.0",
+    "@prisma/client": "6.19.2",
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@react-native-async-storage/async-storage": "^1.24.0",
     "@sentry/nextjs": "^10.32.1",
@@ -71,7 +71,7 @@
     "eslint-config-next": "16.0.3",
     "hardhat": "^2.22.17",
     "hardhat-gas-reporter": "^1.0.10",
-    "prisma": "^7.2.0",
+    "prisma": "6.19.2",
     "solidity-coverage": "^0.8.17",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
