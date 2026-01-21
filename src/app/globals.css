@@ -2374,12 +2374,15 @@ input[type="radio"]:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  align-items: center;
+  text-align: center;
 }
 
 /* Points Display */
 .points-display {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.25rem;
 }
 
@@ -2420,6 +2423,7 @@ input[type="radio"]:focus-visible {
 .event-display {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
@@ -2457,6 +2461,7 @@ input[type="radio"]:focus-visible {
 .reward-display {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
 }
 
@@ -2481,8 +2486,9 @@ input[type="radio"]:focus-visible {
 /* Token Display */
 .token-display {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .token-icon {
@@ -2500,6 +2506,7 @@ input[type="radio"]:focus-visible {
 .token-info {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.25rem;
 }
 
