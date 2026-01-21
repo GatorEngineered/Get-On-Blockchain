@@ -2645,8 +2645,18 @@ input[type="radio"]:focus-visible {
     max-width: 100%;
   }
 
+  .feature-content {
+    text-align: center;
+    align-items: center;
+  }
+
   .feature-content h3 {
     font-size: 1.5rem;
+  }
+
+  .feature-list {
+    text-align: left;
+    display: inline-flex;
   }
 }
 
