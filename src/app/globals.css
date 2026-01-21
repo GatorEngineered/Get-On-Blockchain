@@ -2203,7 +2203,7 @@ input[type="radio"]:focus-visible {
    ========================================== */
 
 .features-section {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: var(--color-bg);
 }
 
 .features-section .section-header {
@@ -2222,12 +2222,52 @@ input[type="radio"]:focus-visible {
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
   align-items: center;
-  padding: 4rem 0;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 4rem 3rem;
+  border-radius: 32px;
+  margin-bottom: 2rem;
 }
 
 .feature-block:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+
+/* Alternating gradient backgrounds */
+.feature-block:nth-child(odd) {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #3a6a9a 100%);
+}
+
+.feature-block:nth-child(even) {
+  background: linear-gradient(135deg, #3a6a9a 0%, var(--color-primary) 100%);
+}
+
+/* Override text colors for gradient backgrounds */
+.feature-block .feature-content h3 {
+  color: white;
+}
+
+.feature-block .feature-description {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.feature-block .feature-list li {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-block .feature-list li::before {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.feature-block .feature-icon-purple,
+.feature-block .feature-icon-gold,
+.feature-block .feature-icon-green,
+.feature-block .feature-icon-blue,
+.feature-block .feature-icon-pink,
+.feature-block .feature-icon-indigo,
+.feature-block .feature-icon-teal {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
 }
 
 .feature-block-alt {
@@ -2324,7 +2364,11 @@ input[type="radio"]:focus-visible {
   border-radius: 24px;
   padding: 2rem;
   color: white;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
 }
 
 .feature-card-purple,
@@ -2334,7 +2378,7 @@ input[type="radio"]:focus-visible {
 .feature-card-pink,
 .feature-card-indigo,
 .feature-card-teal {
-  background: var(--color-primary);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .feature-card-header {
@@ -2612,7 +2656,7 @@ input[type="radio"]:focus-visible {
   .feature-block {
     grid-template-columns: 1fr;
     gap: 2.5rem;
-    padding: 3rem 0;
+    padding: 3rem 2rem;
   }
 
   .feature-block-alt {
@@ -2638,7 +2682,8 @@ input[type="radio"]:focus-visible {
   }
 
   .feature-block {
-    padding: 2rem 0;
+    padding: 2rem 1.5rem;
+    border-radius: 24px;
   }
 
   .feature-icon {
