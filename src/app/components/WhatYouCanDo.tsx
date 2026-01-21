@@ -6,7 +6,7 @@ export default function WhatYouCanDo() {
       <div className="container">
         <div className="section-header">
           <p className="eyebrow">What You Can Do</p>
-          <h2>Everything Traditional Loyalty Programs Can't</h2>
+          <h2>Everything Traditional Loyalty Programs <span className="hero-accent">Can&apos;t</span></h2>
           <p className="section-sub">
             This is how loyalty should work. Real ownership. Real community. Real rewards.
           </p>
@@ -20,7 +20,7 @@ export default function WhatYouCanDo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3>Points You Actually Own</h3>
+            <h3>Points You <span className="title-accent">Actually Own</span></h3>
             <p className="feature-description">
               No more expiring points. No more "use it or lose it." Your members earn points
               that grow forever—gamified, accumulating, and truly theirs. They don't restart
@@ -88,7 +88,7 @@ export default function WhatYouCanDo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
             </div>
-            <h3>Exclusive Perks & Events</h3>
+            <h3>Exclusive <span className="title-accent">Perks & Events</span></h3>
             <p className="feature-description">
               Create special moments. Host VIP events where members scan a QR to earn
               exclusive points and perks—labeled and tracked. Give your best customers
@@ -111,7 +111,7 @@ export default function WhatYouCanDo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
-            <h3>Good Deeds Rewarded</h3>
+            <h3>Good Deeds <span className="title-accent">Rewarded</span></h3>
             <p className="feature-description">
               See a customer help another? Notice someone going above and beyond?
               Reward them instantly. Direct points for the moments that matter.
@@ -171,7 +171,7 @@ export default function WhatYouCanDo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3>Your Brand, Your Token</h3>
+            <h3>Your Brand, <span className="title-accent">Your Token</span></h3>
             <p className="feature-description">
               Create a branded cryptocurrency token for your business. Members earn it,
               trade it, redeem it, or convert it. Real digital ownership on the blockchain.
@@ -194,7 +194,7 @@ export default function WhatYouCanDo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
-            <h3>Earn VIP Merchandise</h3>
+            <h3>Earn <span className="title-accent">VIP Merchandise</span></h3>
             <p className="feature-description">
               Let members earn exclusive merchandise with their points. Limited edition
               gear that shows their VIP status. They become walking ambassadors for
@@ -250,7 +250,7 @@ export default function WhatYouCanDo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
-            <h3>Direct Connection</h3>
+            <h3>Direct <span className="title-accent">Connection</span></h3>
             <p className="feature-description">
               Send personal thank-yous. Broadcast special announcements. Communicate
               directly with your community—individuals or groups. No algorithms,
@@ -273,7 +273,7 @@ export default function WhatYouCanDo() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
             </div>
-            <h3>Verifiable Everything</h3>
+            <h3>Verifiable <span className="title-accent">Everything</span></h3>
             <p className="feature-description">
               QR-based redemption that's instant and verified. No arguments about
               "I think I had points." Everything is tracked, transparent, and on
