@@ -2197,3 +2197,510 @@ input[type="radio"]:focus-visible {
   color: #6b7280;
   opacity: 1;
 }
+
+/* ==========================================
+   WHAT YOU CAN DO - FEATURE SECTIONS
+   ========================================== */
+
+.features-section {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.features-section .section-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.features-section .section-sub {
+  margin: 0 auto;
+  color: #6b7280;
+}
+
+/* Feature Blocks */
+.feature-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  padding: 4rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.feature-block:last-child {
+  border-bottom: none;
+}
+
+.feature-block-alt {
+  direction: rtl;
+}
+
+.feature-block-alt > * {
+  direction: ltr;
+}
+
+/* Feature Content */
+.feature-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feature-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.feature-icon-purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.feature-icon-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.feature-icon-green {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.feature-icon-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+.feature-icon-pink {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+  color: white;
+}
+
+.feature-icon-indigo {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+}
+
+.feature-icon-teal {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  color: white;
+}
+
+.feature-content h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.feature-description {
+  font-size: 1.05rem;
+  color: #4b5563;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.feature-list li::before {
+  content: "✓";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Feature Visual Cards */
+.feature-visual {
+  display: flex;
+  justify-content: center;
+}
+
+.feature-card {
+  width: 100%;
+  max-width: 380px;
+  border-radius: 24px;
+  padding: 2rem;
+  color: white;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+}
+
+.feature-card-purple {
+  background: linear-gradient(145deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+.feature-card-gold {
+  background: linear-gradient(145deg, #f59e0b 0%, #b45309 100%);
+}
+
+.feature-card-green {
+  background: linear-gradient(145deg, #10b981 0%, #047857 100%);
+}
+
+.feature-card-blue {
+  background: linear-gradient(145deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.feature-card-pink {
+  background: linear-gradient(145deg, #ec4899 0%, #be185d 100%);
+}
+
+.feature-card-indigo {
+  background: linear-gradient(145deg, #6366f1 0%, #4338ca 100%);
+}
+
+.feature-card-teal {
+  background: linear-gradient(145deg, #14b8a6 0%, #0f766e 100%);
+}
+
+.feature-card-header {
+  margin-bottom: 1.5rem;
+}
+
+.feature-card-badge {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.feature-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Points Display */
+.points-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.points-number {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.points-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.points-growth {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.points-footer {
+  margin-top: 0.5rem;
+}
+
+.points-never-expire {
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+}
+
+/* Event Display */
+.event-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.event-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.event-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.event-perks {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.perk-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+}
+
+.perk-icon {
+  font-size: 1rem;
+}
+
+/* Reward Display */
+.reward-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.reward-amount {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.reward-reason {
+  font-size: 0.95rem;
+  font-style: italic;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+.reward-from {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Token Display */
+.token-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.token-icon {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.token-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.token-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.token-balance {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.token-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.token-action {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Merch Display */
+.merch-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.merch-icon {
+  font-size: 3rem;
+}
+
+.merch-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.merch-cost {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.merch-points {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.merch-tag {
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Message Display */
+.message-display {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.message-body {
+  font-size: 0.95rem;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+.message-meta {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Verify Display */
+.verify-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.verify-check {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verify-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.verify-item {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.verify-hash {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-family: monospace;
+}
+
+/* Feature Sections Responsive */
+@media (max-width: 900px) {
+  .feature-block {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    padding: 3rem 0;
+  }
+
+  .feature-block-alt {
+    direction: ltr;
+  }
+
+  .feature-visual {
+    order: -1;
+  }
+
+  .feature-card {
+    max-width: 100%;
+  }
+
+  .feature-content h3 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .features-section .section-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .feature-block {
+    padding: 2rem 0;
+  }
+
+  .feature-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .feature-content h3 {
+    font-size: 1.35rem;
+  }
+
+  .feature-description {
+    font-size: 0.95rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
+  }
+
+  .points-number {
+    font-size: 2.5rem;
+  }
+}
