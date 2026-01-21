@@ -10,6 +10,7 @@ import HeroNew from "./components/HeroNew";
 import WhatYouCanDo from "./components/WhatYouCanDo";
 
 // Below the fold - lazy load for better performance
+const CustomerQuotes = lazy(() => import("./components/CustomerQuotes"));
 const Faq = lazy(() => import("./components/Faq"));
 const FinalCta = lazy(() => import("./components/FinalCta"));
 
@@ -23,6 +24,10 @@ export default function Home() {
           <WhatYouCanDo />
 
           {/* Below the fold - lazy loaded with Suspense */}
+          <Suspense fallback={<div className="section" style={{ minHeight: "400px" }} />}>
+            <CustomerQuotes />
+          </Suspense>
+
           <Suspense fallback={<div className="section" style={{ minHeight: "400px" }} />}>
             <Faq />
           </Suspense>
