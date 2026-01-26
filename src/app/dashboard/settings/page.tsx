@@ -15,9 +15,8 @@ import QRCodesSettings from './components/QRCodesSettings';
 import EventsSettings from './components/EventsSettings';
 import POSIntegrationSettings from './components/POSIntegrationSettings';
 import BrandedTokenSettings from './components/BrandedTokenSettings';
-import SpecialRewardsSettings from './components/SpecialRewardsSettings';
 
-type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'special-rewards' | 'qr-codes' | 'events' | 'pos-integrations' | 'email-marketing' | 'branded-token' | 'support';
+type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'events' | 'pos-integrations' | 'email-marketing' | 'branded-token' | 'support';
 
 export default function MerchantSettingsPage() {
   const router = useRouter();
@@ -161,16 +160,6 @@ export default function MerchantSettingsPage() {
             </button>
 
             <button
-              className={`${styles.navItem} ${activeTab === 'special-rewards' ? styles.active : ''}`}
-              onClick={() => handleTabChange('special-rewards')}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0A2.701 2.701 0 003 15.546M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18z" />
-              </svg>
-              Special Rewards
-            </button>
-
-            <button
               className={`${styles.navItem} ${activeTab === 'qr-codes' ? styles.active : ''}`}
               onClick={() => handleTabChange('qr-codes')}
             >
@@ -264,12 +253,6 @@ export default function MerchantSettingsPage() {
           )}
           {activeTab === 'rewards' && (
             <RewardsSettings
-              merchantData={merchantData}
-              onUpdate={handleDataUpdate}
-            />
-          )}
-          {activeTab === 'special-rewards' && (
-            <SpecialRewardsSettings
               merchantData={merchantData}
               onUpdate={handleDataUpdate}
             />

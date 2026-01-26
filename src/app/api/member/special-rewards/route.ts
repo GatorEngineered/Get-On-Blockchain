@@ -104,7 +104,6 @@ export async function GET() {
     });
 
     const currentYear = new Date().getFullYear();
-    const effectiveAnniversary = member.anniversaryDate || member.createdAt;
 
     // Build special rewards status for each merchant
     const specialRewards = merchantMembers.map((mm) => {
@@ -149,11 +148,11 @@ export async function GET() {
         };
       }
 
-      // Anniversary reward status
+      // Relationship Anniversary reward status
       let anniversaryReward = null;
-      if (merchant.anniversaryRewardEnabled) {
+      if (merchant.anniversaryRewardEnabled && member.anniversaryDate) {
         const { inWindow, daysUntil } = isAnniversaryInWindow(
-          effectiveAnniversary,
+          member.anniversaryDate,
           merchant.anniversaryRewardWindowDays
         );
 
@@ -167,7 +166,20 @@ export async function GET() {
           daysUntil,
           canClaim: inWindow && !alreadyClaimed,
           alreadyClaimed,
-          anniversaryDate: effectiveAnniversary.toISOString(),
+          anniversaryDate: member.anniversaryDate.toISOString(),
+        };
+      } else if (merchant.anniversaryRewardEnabled) {
+        // Anniversary reward is enabled but member hasn't set their relationship anniversary
+        anniversaryReward = {
+          enabled: true,
+          points: merchant.anniversaryRewardPoints,
+          windowDays: merchant.anniversaryRewardWindowDays,
+          inWindow: false,
+          daysUntil: null,
+          canClaim: false,
+          alreadyClaimed: false,
+          anniversaryDate: null,
+          needsAnniversarySet: true,
         };
       }
 
@@ -194,8 +206,8 @@ export async function GET() {
         birthday: member.birthMonth && member.birthDay
           ? { month: member.birthMonth, day: member.birthDay }
           : null,
-        anniversaryDate: effectiveAnniversary.toISOString(),
-        isCustomAnniversary: !!member.anniversaryDate,
+        hasAnniversary: !!member.anniversaryDate,
+        anniversaryDate: member.anniversaryDate?.toISOString() || null,
       },
     });
   } catch (error: any) {

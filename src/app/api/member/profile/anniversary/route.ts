@@ -1,5 +1,5 @@
 // src/app/api/member/profile/anniversary/route.ts
-// Get and update anniversary date (editable)
+// Get and update relationship/wedding anniversary date (editable)
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -19,7 +19,7 @@ async function getMemberIdFromSession(): Promise<string | null> {
   }
 }
 
-// GET - Get current anniversary date
+// GET - Get current relationship anniversary date
 export async function GET() {
   try {
     const memberId = await getMemberIdFromSession();
@@ -31,7 +31,6 @@ export async function GET() {
       where: { id: memberId },
       select: {
         anniversaryDate: true,
-        createdAt: true,
       },
     });
 
@@ -39,13 +38,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    // If no custom anniversary date, use createdAt as default
-    const anniversaryDate = member.anniversaryDate || member.createdAt;
-
     return NextResponse.json({
-      anniversaryDate: anniversaryDate.toISOString(),
-      isCustom: !!member.anniversaryDate,
-      joinDate: member.createdAt.toISOString(),
+      anniversaryDate: member.anniversaryDate?.toISOString() || null,
+      isSet: !!member.anniversaryDate,
     });
   } catch (error: any) {
     console.error('[Anniversary GET] Error:', error);
@@ -56,7 +51,7 @@ export async function GET() {
   }
 }
 
-// PUT - Set/update anniversary date
+// PUT - Set/update relationship anniversary date
 export async function PUT(req: NextRequest) {
   try {
     const memberId = await getMemberIdFromSession();
@@ -65,28 +60,7 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { anniversaryDate, useJoinDate } = body;
-
-    // If useJoinDate is true, clear custom anniversary date
-    if (useJoinDate) {
-      const updatedMember = await prisma.member.update({
-        where: { id: memberId },
-        data: {
-          anniversaryDate: null,
-        },
-        select: {
-          anniversaryDate: true,
-          createdAt: true,
-        },
-      });
-
-      return NextResponse.json({
-        message: 'Anniversary reset to join date',
-        anniversaryDate: updatedMember.createdAt.toISOString(),
-        isCustom: false,
-        joinDate: updatedMember.createdAt.toISOString(),
-      });
-    }
+    const { anniversaryDate } = body;
 
     // Validate anniversary date
     if (!anniversaryDate) {
@@ -104,7 +78,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Set custom anniversary date
+    // Set anniversary date
     const updatedMember = await prisma.member.update({
       where: { id: memberId },
       data: {
@@ -112,15 +86,13 @@ export async function PUT(req: NextRequest) {
       },
       select: {
         anniversaryDate: true,
-        createdAt: true,
       },
     });
 
     return NextResponse.json({
-      message: 'Anniversary date updated successfully',
+      message: 'Relationship anniversary date updated successfully',
       anniversaryDate: updatedMember.anniversaryDate!.toISOString(),
-      isCustom: true,
-      joinDate: updatedMember.createdAt.toISOString(),
+      isSet: true,
     });
   } catch (error: any) {
     console.error('[Anniversary PUT] Error:', error);

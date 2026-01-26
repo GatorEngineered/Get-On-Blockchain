@@ -58,8 +58,6 @@ export default function MemberSettingsPage() {
   const [birthdayDay, setBirthdayDay] = useState<number | null>(null);
   const [birthdayLocked, setBirthdayLocked] = useState(false);
   const [anniversaryDate, setAnniversaryDate] = useState<string>("");
-  const [isCustomAnniversary, setIsCustomAnniversary] = useState(false);
-  const [joinDate, setJoinDate] = useState<string>("");
   const [savingBirthday, setSavingBirthday] = useState(false);
   const [savingAnniversary, setSavingAnniversary] = useState(false);
   const [specialDaysError, setSpecialDaysError] = useState<string | null>(null);
@@ -195,9 +193,9 @@ export default function MemberSettingsPage() {
 
       if (anniversaryRes.ok) {
         const anniversaryData = await anniversaryRes.json();
-        setAnniversaryDate(anniversaryData.anniversaryDate.split("T")[0]);
-        setIsCustomAnniversary(anniversaryData.isCustom);
-        setJoinDate(anniversaryData.joinDate.split("T")[0]);
+        if (anniversaryData.anniversaryDate) {
+          setAnniversaryDate(anniversaryData.anniversaryDate.split("T")[0]);
+        }
       }
     } catch (err: any) {
       console.error("Failed to load special days:", err);
@@ -256,37 +254,7 @@ export default function MemberSettingsPage() {
         throw new Error(data.error || "Failed to save anniversary");
       }
 
-      setIsCustomAnniversary(true);
-      setSpecialDaysSuccess("Anniversary date updated!");
-      setTimeout(() => setSpecialDaysSuccess(null), 3000);
-    } catch (err: any) {
-      setSpecialDaysError(err.message);
-    } finally {
-      setSavingAnniversary(false);
-    }
-  }
-
-  async function handleResetAnniversary() {
-    setSavingAnniversary(true);
-    setSpecialDaysError(null);
-    setSpecialDaysSuccess(null);
-
-    try {
-      const res = await fetch("/api/member/profile/anniversary", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ useJoinDate: true }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to reset anniversary");
-      }
-
-      setAnniversaryDate(joinDate);
-      setIsCustomAnniversary(false);
-      setSpecialDaysSuccess("Anniversary reset to join date!");
+      setSpecialDaysSuccess("Relationship anniversary date updated!");
       setTimeout(() => setSpecialDaysSuccess(null), 3000);
     } catch (err: any) {
       setSpecialDaysError(err.message);
@@ -958,18 +926,18 @@ export default function MemberSettingsPage() {
               )}
             </div>
 
-            {/* Anniversary Section */}
+            {/* Relationship Anniversary Section */}
             <div className="special-days-section">
               <div className="special-days-header">
-                <div className="special-days-icon" style={{ background: "#dbeafe" }}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div className="special-days-icon" style={{ background: "#fce7f3" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#db2777" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem" }}>Anniversary</h3>
+                  <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem" }}>Relationship Anniversary</h3>
                   <p style={{ margin: 0, color: "#6b7280", fontSize: "0.875rem" }}>
-                    Your anniversary date for claiming anniversary rewards (can be changed anytime)
+                    Set your wedding or relationship anniversary to claim special rewards (can be changed anytime)
                   </p>
                 </div>
               </div>
@@ -983,29 +951,18 @@ export default function MemberSettingsPage() {
                     onChange={(e) => setAnniversaryDate(e.target.value)}
                     className="form-input"
                   />
-                  {isCustomAnniversary && joinDate && anniversaryDate !== joinDate && (
-                    <p className="field-hint">
-                      Your join date was {new Date(joinDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                    </p>
-                  )}
+                  <p className="field-hint">
+                    Enter your wedding or relationship anniversary date
+                  </p>
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
                   <button
                     className="primary-button"
                     onClick={handleSaveAnniversary}
-                    disabled={savingAnniversary}
+                    disabled={savingAnniversary || !anniversaryDate}
                   >
                     {savingAnniversary ? "Saving..." : "Save Anniversary"}
                   </button>
-                  {isCustomAnniversary && (
-                    <button
-                      className="secondary-button"
-                      onClick={handleResetAnniversary}
-                      disabled={savingAnniversary}
-                    >
-                      Reset to Join Date
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
@@ -1013,7 +970,7 @@ export default function MemberSettingsPage() {
             <div className="info-box">
               <h4>About Special Days Rewards</h4>
               <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
-                Participating merchants may offer bonus points on your birthday and anniversary.
+                Participating merchants may offer bonus points on your birthday and relationship anniversary.
                 Check each merchant's page to see if they offer these special rewards.
                 Each reward can only be claimed once per year within the merchant's specified window.
               </p>

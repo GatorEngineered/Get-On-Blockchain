@@ -44,8 +44,21 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
   const [savingReferral, setSavingReferral] = useState(false);
   const [referralSuccess, setReferralSuccess] = useState('');
 
+  // Special rewards (birthday/anniversary) state
+  const [birthdayEnabled, setBirthdayEnabled] = useState(false);
+  const [birthdayPoints, setBirthdayPoints] = useState(50);
+  const [birthdayWindowDays, setBirthdayWindowDays] = useState(7);
+  const [anniversaryEnabled, setAnniversaryEnabled] = useState(false);
+  const [anniversaryPoints, setAnniversaryPoints] = useState(50);
+  const [anniversaryWindowDays, setAnniversaryWindowDays] = useState(7);
+  const [savingSpecialRewards, setSavingSpecialRewards] = useState(false);
+  const [specialRewardsSuccess, setSpecialRewardsSuccess] = useState('');
+  const [birthdayClaimsThisYear, setBirthdayClaimsThisYear] = useState(0);
+  const [anniversaryClaimsThisYear, setAnniversaryClaimsThisYear] = useState(0);
+
   useEffect(() => {
     fetchRewards();
+    fetchSpecialRewardsSettings();
   }, []);
 
   async function fetchRewards() {
@@ -59,6 +72,58 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchSpecialRewardsSettings() {
+    try {
+      const res = await fetch('/api/merchant/settings/special-rewards');
+      if (res.ok) {
+        const data = await res.json();
+        setBirthdayEnabled(data.birthday.enabled);
+        setBirthdayPoints(data.birthday.points);
+        setBirthdayWindowDays(data.birthday.windowDays);
+        setBirthdayClaimsThisYear(data.birthday.claimsThisYear || 0);
+        setAnniversaryEnabled(data.anniversary.enabled);
+        setAnniversaryPoints(data.anniversary.points);
+        setAnniversaryWindowDays(data.anniversary.windowDays);
+        setAnniversaryClaimsThisYear(data.anniversary.claimsThisYear || 0);
+      }
+    } catch (err) {
+      console.error('Failed to fetch special rewards settings:', err);
+    }
+  }
+
+  async function handleSaveSpecialRewards() {
+    try {
+      setSavingSpecialRewards(true);
+      setError('');
+      setSpecialRewardsSuccess('');
+
+      const res = await fetch('/api/merchant/settings/special-rewards', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          birthdayRewardEnabled: birthdayEnabled,
+          birthdayRewardPoints: birthdayPoints,
+          birthdayRewardWindowDays: birthdayWindowDays,
+          anniversaryRewardEnabled: anniversaryEnabled,
+          anniversaryRewardPoints: anniversaryPoints,
+          anniversaryRewardWindowDays: anniversaryWindowDays,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to save special rewards settings');
+      }
+
+      setSpecialRewardsSuccess('Special rewards settings saved!');
+      setTimeout(() => setSpecialRewardsSuccess(''), 3000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSavingSpecialRewards(false);
     }
   }
 
@@ -452,6 +517,227 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             }}
           >
             {savingReferral ? 'Saving...' : 'Save Referral Settings'}
+          </button>
+        </div>
+      </div>
+
+      {/* Special Rewards (Birthday & Anniversary) Section */}
+      <div className={styles.infoCard} style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h4 className={styles.infoTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '1.25rem' }}>🎂</span>
+            Special Rewards
+          </h4>
+          <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
+            Reward members on their birthday and relationship anniversary to increase engagement
+          </p>
+        </div>
+
+        {specialRewardsSuccess && (
+          <div className={styles.successAlert} style={{ marginBottom: '1rem' }}>
+            {specialRewardsSuccess}
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          {/* Birthday Rewards */}
+          <div style={{
+            padding: '1rem',
+            background: '#fef3c7',
+            border: '1px solid #fcd34d',
+            borderRadius: '8px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <div>
+                <label style={{ fontWeight: '600', color: '#92400e' }}>
+                  Birthday Rewards
+                </label>
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#78350f' }}>
+                  Members can claim once per year around their birthday
+                </p>
+              </div>
+              <button
+                onClick={() => setBirthdayEnabled(!birthdayEnabled)}
+                style={{
+                  width: '50px',
+                  height: '28px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  background: birthdayEnabled ? '#f59e0b' : '#d1d5db',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'background 0.2s ease',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: birthdayEnabled ? '24px' : '2px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    background: 'white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    transition: 'left 0.2s ease',
+                  }}
+                />
+              </button>
+            </div>
+
+            {birthdayEnabled && (
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                <div style={{ flex: '1', minWidth: '120px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Points</label>
+                  <input
+                    type="number"
+                    value={birthdayPoints}
+                    onChange={(e) => setBirthdayPoints(parseInt(e.target.value) || 0)}
+                    min="1"
+                    max="10000"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #fcd34d',
+                      borderRadius: '6px',
+                      background: 'white',
+                    }}
+                  />
+                </div>
+                <div style={{ flex: '1', minWidth: '120px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Window (days)</label>
+                  <input
+                    type="number"
+                    value={birthdayWindowDays}
+                    onChange={(e) => setBirthdayWindowDays(parseInt(e.target.value) || 1)}
+                    min="1"
+                    max="30"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #fcd34d',
+                      borderRadius: '6px',
+                      background: 'white',
+                    }}
+                  />
+                </div>
+                {birthdayClaimsThisYear > 0 && (
+                  <div style={{ flex: '1', minWidth: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#78350f' }}>Claims this year</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e' }}>{birthdayClaimsThisYear}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Relationship Anniversary Rewards */}
+          <div style={{
+            padding: '1rem',
+            background: '#fce7f3',
+            border: '1px solid #f9a8d4',
+            borderRadius: '8px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <div>
+                <label style={{ fontWeight: '600', color: '#be185d' }}>
+                  Relationship Anniversary Rewards
+                </label>
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#9d174d' }}>
+                  Members can claim once per year around their wedding/relationship anniversary
+                </p>
+              </div>
+              <button
+                onClick={() => setAnniversaryEnabled(!anniversaryEnabled)}
+                style={{
+                  width: '50px',
+                  height: '28px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  background: anniversaryEnabled ? '#db2777' : '#d1d5db',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'background 0.2s ease',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: anniversaryEnabled ? '24px' : '2px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    background: 'white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    transition: 'left 0.2s ease',
+                  }}
+                />
+              </button>
+            </div>
+
+            {anniversaryEnabled && (
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                <div style={{ flex: '1', minWidth: '120px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Points</label>
+                  <input
+                    type="number"
+                    value={anniversaryPoints}
+                    onChange={(e) => setAnniversaryPoints(parseInt(e.target.value) || 0)}
+                    min="1"
+                    max="10000"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #f9a8d4',
+                      borderRadius: '6px',
+                      background: 'white',
+                    }}
+                  />
+                </div>
+                <div style={{ flex: '1', minWidth: '120px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Window (days)</label>
+                  <input
+                    type="number"
+                    value={anniversaryWindowDays}
+                    onChange={(e) => setAnniversaryWindowDays(parseInt(e.target.value) || 1)}
+                    min="1"
+                    max="30"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #f9a8d4',
+                      borderRadius: '6px',
+                      background: 'white',
+                    }}
+                  />
+                </div>
+                {anniversaryClaimsThisYear > 0 && (
+                  <div style={{ flex: '1', minWidth: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#9d174d' }}>Claims this year</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#be185d' }}>{anniversaryClaimsThisYear}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={handleSaveSpecialRewards}
+            disabled={savingSpecialRewards}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: savingSpecialRewards ? '#9ca3af' : 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: savingSpecialRewards ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              alignSelf: 'flex-start',
+            }}
+          >
+            {savingSpecialRewards ? 'Saving...' : 'Save Special Rewards Settings'}
           </button>
         </div>
       </div>

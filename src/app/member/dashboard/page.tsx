@@ -858,7 +858,7 @@ export default function MemberDashboardPage() {
                         alignItems: 'center',
                         gap: '0.5rem',
                         padding: '0.625rem 1rem',
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        background: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '8px',
@@ -868,7 +868,7 @@ export default function MemberDashboardPage() {
                         opacity: claimingSpecialReward ? 0.7 : 1,
                       }}
                     >
-                      <span>🎉</span>
+                      <span>💕</span>
                       {claimingSpecialReward === `anniversary-${sr.merchantId}`
                         ? 'Claiming...'
                         : `Claim Anniversary (+${sr.anniversaryReward.points} pts)`}

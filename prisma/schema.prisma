@@ -145,7 +145,7 @@ model Member {
   birthMonth      Int?              // 1-12 (month only, no year for privacy)
   birthDay        Int?              // 1-31
   birthdayLocked  Boolean @default(false) // Once set, cannot be changed
-  anniversaryDate DateTime?         // Custom anniversary date (defaults to createdAt if null)
+  anniversaryDate DateTime?         // Relationship/Wedding anniversary date (month, day, year)
 
   // Email preferences & verification
   emailVerified         Boolean   @default(false)

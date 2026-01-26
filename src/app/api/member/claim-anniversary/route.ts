@@ -67,7 +67,6 @@ export async function POST(req: NextRequest) {
       where: { id: memberId },
       select: {
         anniversaryDate: true,
-        createdAt: true,
       },
     });
 
@@ -75,8 +74,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    // Use custom anniversary or fall back to join date
-    const effectiveAnniversary = member.anniversaryDate || member.createdAt;
+    // Check if member has set their relationship anniversary
+    if (!member.anniversaryDate) {
+      return NextResponse.json(
+        { error: 'Please set your relationship anniversary in your profile settings to claim this reward' },
+        { status: 400 }
+      );
+    }
 
     // Get merchant settings
     const merchant = await prisma.merchant.findUnique({
@@ -107,7 +111,7 @@ export async function POST(req: NextRequest) {
 
     // Check if within anniversary window
     const inWindow = isWithinWindow(
-      effectiveAnniversary,
+      member.anniversaryDate,
       merchant.anniversaryRewardWindowDays
     );
 
@@ -167,7 +171,7 @@ export async function POST(req: NextRequest) {
         metadata: {
           pointsAwarded: merchant.anniversaryRewardPoints,
           year: currentYear,
-          anniversaryDate: effectiveAnniversary.toISOString(),
+          anniversaryDate: member.anniversaryDate.toISOString(),
         },
       },
     });
@@ -181,7 +185,7 @@ export async function POST(req: NextRequest) {
           memberId,
           type: 'EARN',
           amount: merchant.anniversaryRewardPoints,
-          reason: `Anniversary reward from ${merchant.name}`,
+          reason: `Relationship anniversary reward from ${merchant.name}`,
           status: 'SUCCESS',
         },
       });
