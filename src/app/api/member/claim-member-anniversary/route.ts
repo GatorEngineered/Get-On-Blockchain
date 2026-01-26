@@ -1,5 +1,5 @@
-// src/app/api/member/claim-anniversary/route.ts
-// Claim relationship anniversary reward for a merchant
+// src/app/api/member/claim-member-anniversary/route.ts
+// Claim member anniversary reward (based on join date) for a merchant
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -19,15 +19,15 @@ async function getMemberIdFromSession(): Promise<string | null> {
   }
 }
 
-// Helper to check if anniversary is within window
+// Helper to check if member anniversary is within window
 function isWithinWindow(
-  anniversaryDate: Date,
+  joinDate: Date,
   windowDays: number,
   checkDate: Date = new Date()
 ): boolean {
   const currentYear = checkDate.getFullYear();
-  const month = anniversaryDate.getMonth();
-  const day = anniversaryDate.getDate();
+  const month = joinDate.getMonth();
+  const day = joinDate.getDate();
 
   // Create target date for current year
   let targetDate = new Date(currentYear, month, day);
@@ -62,24 +62,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get member info
+    // Get member info (join date from createdAt)
     const member = await prisma.member.findUnique({
       where: { id: memberId },
       select: {
-        anniversaryDate: true,
+        createdAt: true,
       },
     });
 
     if (!member) {
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
-    }
-
-    // Check if member has set their relationship anniversary
-    if (!member.anniversaryDate) {
-      return NextResponse.json(
-        { error: 'Please set your relationship anniversary in your profile settings to claim this reward' },
-        { status: 400 }
-      );
     }
 
     // Get merchant settings
@@ -88,9 +80,9 @@ export async function POST(req: NextRequest) {
       select: {
         id: true,
         name: true,
-        relationshipAnniversaryRewardEnabled: true,
-        relationshipAnniversaryRewardPoints: true,
-        relationshipAnniversaryRewardWindowDays: true,
+        memberAnniversaryRewardEnabled: true,
+        memberAnniversaryRewardPoints: true,
+        memberAnniversaryRewardWindowDays: true,
         businesses: {
           select: { id: true },
           take: 1,
@@ -102,22 +94,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
     }
 
-    if (!merchant.relationshipAnniversaryRewardEnabled) {
+    if (!merchant.memberAnniversaryRewardEnabled) {
       return NextResponse.json(
-        { error: 'Relationship anniversary rewards are not enabled for this merchant' },
+        { error: 'Member anniversary rewards are not enabled for this merchant' },
         { status: 400 }
       );
     }
 
-    // Check if within anniversary window
+    // Check if within member anniversary window
     const inWindow = isWithinWindow(
-      member.anniversaryDate,
-      merchant.relationshipAnniversaryRewardWindowDays
+      member.createdAt,
+      merchant.memberAnniversaryRewardWindowDays
     );
 
     if (!inWindow) {
       return NextResponse.json(
-        { error: `Relationship anniversary rewards can only be claimed within ${merchant.relationshipAnniversaryRewardWindowDays} days of your anniversary` },
+        { error: `Member anniversary rewards can only be claimed within ${merchant.memberAnniversaryRewardWindowDays} days of your membership anniversary` },
         { status: 400 }
       );
     }
@@ -144,21 +136,21 @@ export async function POST(req: NextRequest) {
     const currentYear = new Date().getFullYear();
 
     // Check if already claimed this year
-    if (merchantMember.lastRelationshipAnniversaryClaimYear === currentYear) {
+    if (merchantMember.lastMemberAnniversaryClaimYear === currentYear) {
       return NextResponse.json(
-        { error: 'You have already claimed your relationship anniversary reward for this year' },
+        { error: 'You have already claimed your member anniversary reward for this year' },
         { status: 400 }
       );
     }
 
     // Award points and mark as claimed
-    const newPoints = merchantMember.points + merchant.relationshipAnniversaryRewardPoints;
+    const newPoints = merchantMember.points + merchant.memberAnniversaryRewardPoints;
 
     const updatedMerchantMember = await prisma.merchantMember.update({
       where: { id: merchantMember.id },
       data: {
         points: newPoints,
-        lastRelationshipAnniversaryClaimYear: currentYear,
+        lastMemberAnniversaryClaimYear: currentYear,
       },
     });
 
@@ -167,11 +159,11 @@ export async function POST(req: NextRequest) {
       data: {
         merchantId,
         memberId,
-        type: 'RELATIONSHIP_ANNIVERSARY_REWARD',
+        type: 'MEMBER_ANNIVERSARY_REWARD',
         metadata: {
-          pointsAwarded: merchant.relationshipAnniversaryRewardPoints,
+          pointsAwarded: merchant.memberAnniversaryRewardPoints,
           year: currentYear,
-          anniversaryDate: member.anniversaryDate.toISOString(),
+          joinDate: member.createdAt.toISOString(),
         },
       },
     });
@@ -184,8 +176,8 @@ export async function POST(req: NextRequest) {
           businessId: merchant.businesses[0].id,
           memberId,
           type: 'EARN',
-          amount: merchant.relationshipAnniversaryRewardPoints,
-          reason: `Relationship anniversary reward from ${merchant.name}`,
+          amount: merchant.memberAnniversaryRewardPoints,
+          reason: `Member anniversary reward from ${merchant.name}`,
           status: 'SUCCESS',
         },
       });
@@ -193,15 +185,15 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Happy Anniversary! You've earned ${merchant.relationshipAnniversaryRewardPoints} points from ${merchant.name}!`,
-      pointsAwarded: merchant.relationshipAnniversaryRewardPoints,
+      message: `Happy Member Anniversary! You've earned ${merchant.memberAnniversaryRewardPoints} points from ${merchant.name}!`,
+      pointsAwarded: merchant.memberAnniversaryRewardPoints,
       totalPoints: newPoints,
       merchantName: merchant.name,
     });
   } catch (error: any) {
-    console.error('[Claim Relationship Anniversary] Error:', error);
+    console.error('[Claim Member Anniversary] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to claim relationship anniversary reward', details: error.message },
+      { error: 'Failed to claim member anniversary reward', details: error.message },
       { status: 500 }
     );
   }

@@ -301,8 +301,45 @@ export default function MemberDashboardPage() {
     }
   }
 
-  async function claimAnniversaryReward(merchantId: string) {
-    setClaimingSpecialReward(`anniversary-${merchantId}`);
+  async function claimMemberAnniversaryReward(merchantId: string) {
+    setClaimingSpecialReward(`member-anniversary-${merchantId}`);
+    setSpecialRewardMessage(null);
+
+    try {
+      const res = await fetch("/api/member/claim-member-anniversary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ merchantId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to claim member anniversary reward");
+      }
+
+      setSpecialRewardMessage({
+        type: "success",
+        text: data.message,
+      });
+
+      // Refresh data
+      loadMemberData();
+      loadSpecialRewards();
+
+      setTimeout(() => setSpecialRewardMessage(null), 5000);
+    } catch (err: any) {
+      setSpecialRewardMessage({
+        type: "error",
+        text: err.message,
+      });
+    } finally {
+      setClaimingSpecialReward(null);
+    }
+  }
+
+  async function claimRelationshipAnniversaryReward(merchantId: string) {
+    setClaimingSpecialReward(`relationship-anniversary-${merchantId}`);
     setSpecialRewardMessage(null);
 
     try {
@@ -315,7 +352,7 @@ export default function MemberDashboardPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to claim anniversary reward");
+        throw new Error(data.error || "Failed to claim relationship anniversary reward");
       }
 
       setSpecialRewardMessage({
@@ -758,7 +795,7 @@ export default function MemberDashboardPage() {
 
       {/* Special Rewards Section */}
       {specialRewards.filter(sr =>
-        (sr.birthdayReward?.canClaim) || (sr.anniversaryReward?.canClaim)
+        (sr.birthdayReward?.canClaim) || (sr.memberAnniversaryReward?.canClaim) || (sr.relationshipAnniversaryReward?.canClaim)
       ).length > 0 && (
         <div style={{
           marginTop: '1.5rem',
@@ -804,7 +841,7 @@ export default function MemberDashboardPage() {
             flexDirection: 'column',
             gap: '1rem',
           }}>
-            {specialRewards.filter(sr => sr.birthdayReward?.canClaim || sr.anniversaryReward?.canClaim).map((sr) => (
+            {specialRewards.filter(sr => sr.birthdayReward?.canClaim || sr.memberAnniversaryReward?.canClaim || sr.relationshipAnniversaryReward?.canClaim).map((sr) => (
               <div
                 key={sr.merchantId}
                 style={{
@@ -849,10 +886,36 @@ export default function MemberDashboardPage() {
                     </button>
                   )}
 
-                  {sr.anniversaryReward?.canClaim && (
+                  {sr.memberAnniversaryReward?.canClaim && (
                     <button
-                      onClick={() => claimAnniversaryReward(sr.merchantId)}
-                      disabled={claimingSpecialReward === `anniversary-${sr.merchantId}`}
+                      onClick={() => claimMemberAnniversaryReward(sr.merchantId)}
+                      disabled={claimingSpecialReward === `member-anniversary-${sr.merchantId}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.625rem 1rem',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: '500',
+                        fontSize: '0.9rem',
+                        cursor: claimingSpecialReward ? 'not-allowed' : 'pointer',
+                        opacity: claimingSpecialReward ? 0.7 : 1,
+                      }}
+                    >
+                      <span>🎉</span>
+                      {claimingSpecialReward === `member-anniversary-${sr.merchantId}`
+                        ? 'Claiming...'
+                        : `Claim Member Anniversary (+${sr.memberAnniversaryReward.points} pts)`}
+                    </button>
+                  )}
+
+                  {sr.relationshipAnniversaryReward?.canClaim && (
+                    <button
+                      onClick={() => claimRelationshipAnniversaryReward(sr.merchantId)}
+                      disabled={claimingSpecialReward === `relationship-anniversary-${sr.merchantId}`}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -869,9 +932,9 @@ export default function MemberDashboardPage() {
                       }}
                     >
                       <span>💕</span>
-                      {claimingSpecialReward === `anniversary-${sr.merchantId}`
+                      {claimingSpecialReward === `relationship-anniversary-${sr.merchantId}`
                         ? 'Claiming...'
-                        : `Claim Anniversary (+${sr.anniversaryReward.points} pts)`}
+                        : `Claim Anniversary (+${sr.relationshipAnniversaryReward.points} pts)`}
                     </button>
                   )}
                 </div>

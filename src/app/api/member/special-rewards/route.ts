@@ -1,5 +1,5 @@
 // src/app/api/member/special-rewards/route.ts
-// Get available special rewards (birthday/anniversary) for each merchant
+// Get available special rewards (birthday/member anniversary/relationship anniversary) for each merchant
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -49,8 +49,8 @@ function isWithinWindow(
   return { inWindow, daysUntil: diffDays };
 }
 
-// Helper to check if anniversary is within window
-function isAnniversaryInWindow(
+// Helper to check if a full date anniversary is within window
+function isDateAnniversaryInWindow(
   anniversaryDate: Date,
   windowDays: number,
   checkDate: Date = new Date()
@@ -95,9 +95,12 @@ export async function GET() {
             birthdayRewardEnabled: true,
             birthdayRewardPoints: true,
             birthdayRewardWindowDays: true,
-            anniversaryRewardEnabled: true,
-            anniversaryRewardPoints: true,
-            anniversaryRewardWindowDays: true,
+            memberAnniversaryRewardEnabled: true,
+            memberAnniversaryRewardPoints: true,
+            memberAnniversaryRewardWindowDays: true,
+            relationshipAnniversaryRewardEnabled: true,
+            relationshipAnniversaryRewardPoints: true,
+            relationshipAnniversaryRewardWindowDays: true,
           },
         },
       },
@@ -148,32 +151,54 @@ export async function GET() {
         };
       }
 
-      // Relationship Anniversary reward status
-      let anniversaryReward = null;
-      if (merchant.anniversaryRewardEnabled && member.anniversaryDate) {
-        const { inWindow, daysUntil } = isAnniversaryInWindow(
-          member.anniversaryDate,
-          merchant.anniversaryRewardWindowDays
+      // Member Anniversary reward status (based on join date)
+      let memberAnniversaryReward = null;
+      if (merchant.memberAnniversaryRewardEnabled) {
+        const { inWindow, daysUntil } = isDateAnniversaryInWindow(
+          member.createdAt,
+          merchant.memberAnniversaryRewardWindowDays
         );
 
-        const alreadyClaimed = mm.lastAnniversaryClaimYear === currentYear;
+        const alreadyClaimed = mm.lastMemberAnniversaryClaimYear === currentYear;
 
-        anniversaryReward = {
+        memberAnniversaryReward = {
           enabled: true,
-          points: merchant.anniversaryRewardPoints,
-          windowDays: merchant.anniversaryRewardWindowDays,
+          points: merchant.memberAnniversaryRewardPoints,
+          windowDays: merchant.memberAnniversaryRewardWindowDays,
+          inWindow,
+          daysUntil,
+          canClaim: inWindow && !alreadyClaimed,
+          alreadyClaimed,
+          joinDate: member.createdAt.toISOString(),
+        };
+      }
+
+      // Relationship Anniversary reward status (based on member-set date)
+      let relationshipAnniversaryReward = null;
+      if (merchant.relationshipAnniversaryRewardEnabled && member.anniversaryDate) {
+        const { inWindow, daysUntil } = isDateAnniversaryInWindow(
+          member.anniversaryDate,
+          merchant.relationshipAnniversaryRewardWindowDays
+        );
+
+        const alreadyClaimed = mm.lastRelationshipAnniversaryClaimYear === currentYear;
+
+        relationshipAnniversaryReward = {
+          enabled: true,
+          points: merchant.relationshipAnniversaryRewardPoints,
+          windowDays: merchant.relationshipAnniversaryRewardWindowDays,
           inWindow,
           daysUntil,
           canClaim: inWindow && !alreadyClaimed,
           alreadyClaimed,
           anniversaryDate: member.anniversaryDate.toISOString(),
         };
-      } else if (merchant.anniversaryRewardEnabled) {
-        // Anniversary reward is enabled but member hasn't set their relationship anniversary
-        anniversaryReward = {
+      } else if (merchant.relationshipAnniversaryRewardEnabled) {
+        // Relationship anniversary reward is enabled but member hasn't set date
+        relationshipAnniversaryReward = {
           enabled: true,
-          points: merchant.anniversaryRewardPoints,
-          windowDays: merchant.anniversaryRewardWindowDays,
+          points: merchant.relationshipAnniversaryRewardPoints,
+          windowDays: merchant.relationshipAnniversaryRewardWindowDays,
           inWindow: false,
           daysUntil: null,
           canClaim: false,
@@ -189,13 +214,14 @@ export async function GET() {
         merchantSlug: merchant.slug,
         memberPoints: mm.points,
         birthdayReward,
-        anniversaryReward,
+        memberAnniversaryReward,
+        relationshipAnniversaryReward,
       };
     });
 
     // Filter to only include merchants with at least one special reward enabled
     const activeSpecialRewards = specialRewards.filter(
-      (sr) => sr.birthdayReward || sr.anniversaryReward
+      (sr) => sr.birthdayReward || sr.memberAnniversaryReward || sr.relationshipAnniversaryReward
     );
 
     return NextResponse.json({
@@ -206,8 +232,9 @@ export async function GET() {
         birthday: member.birthMonth && member.birthDay
           ? { month: member.birthMonth, day: member.birthDay }
           : null,
-        hasAnniversary: !!member.anniversaryDate,
-        anniversaryDate: member.anniversaryDate?.toISOString() || null,
+        joinDate: member.createdAt.toISOString(),
+        hasRelationshipAnniversary: !!member.anniversaryDate,
+        relationshipAnniversaryDate: member.anniversaryDate?.toISOString() || null,
       },
     });
   } catch (error: any) {

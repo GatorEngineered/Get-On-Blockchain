@@ -1,5 +1,5 @@
 // src/app/api/merchant/settings/special-rewards/route.ts
-// Get and update birthday/anniversary reward settings for merchants
+// Get and update birthday/member anniversary/relationship anniversary reward settings for merchants
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
@@ -34,9 +34,12 @@ export async function GET() {
         birthdayRewardEnabled: true,
         birthdayRewardPoints: true,
         birthdayRewardWindowDays: true,
-        anniversaryRewardEnabled: true,
-        anniversaryRewardPoints: true,
-        anniversaryRewardWindowDays: true,
+        memberAnniversaryRewardEnabled: true,
+        memberAnniversaryRewardPoints: true,
+        memberAnniversaryRewardWindowDays: true,
+        relationshipAnniversaryRewardEnabled: true,
+        relationshipAnniversaryRewardPoints: true,
+        relationshipAnniversaryRewardWindowDays: true,
       },
     });
 
@@ -47,7 +50,7 @@ export async function GET() {
     // Get claim statistics
     const currentYear = new Date().getFullYear();
 
-    const [birthdayClaims, anniversaryClaims] = await Promise.all([
+    const [birthdayClaims, memberAnniversaryClaims, relationshipAnniversaryClaims] = await Promise.all([
       prisma.merchantMember.count({
         where: {
           merchantId,
@@ -57,7 +60,13 @@ export async function GET() {
       prisma.merchantMember.count({
         where: {
           merchantId,
-          lastAnniversaryClaimYear: currentYear,
+          lastMemberAnniversaryClaimYear: currentYear,
+        },
+      }),
+      prisma.merchantMember.count({
+        where: {
+          merchantId,
+          lastRelationshipAnniversaryClaimYear: currentYear,
         },
       }),
     ]);
@@ -69,11 +78,17 @@ export async function GET() {
         windowDays: merchant.birthdayRewardWindowDays,
         claimsThisYear: birthdayClaims,
       },
-      anniversary: {
-        enabled: merchant.anniversaryRewardEnabled,
-        points: merchant.anniversaryRewardPoints,
-        windowDays: merchant.anniversaryRewardWindowDays,
-        claimsThisYear: anniversaryClaims,
+      memberAnniversary: {
+        enabled: merchant.memberAnniversaryRewardEnabled,
+        points: merchant.memberAnniversaryRewardPoints,
+        windowDays: merchant.memberAnniversaryRewardWindowDays,
+        claimsThisYear: memberAnniversaryClaims,
+      },
+      relationshipAnniversary: {
+        enabled: merchant.relationshipAnniversaryRewardEnabled,
+        points: merchant.relationshipAnniversaryRewardPoints,
+        windowDays: merchant.relationshipAnniversaryRewardWindowDays,
+        claimsThisYear: relationshipAnniversaryClaims,
       },
     });
   } catch (error: any) {
@@ -109,12 +124,18 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const {
+      // Birthday
       birthdayRewardEnabled,
       birthdayRewardPoints,
       birthdayRewardWindowDays,
-      anniversaryRewardEnabled,
-      anniversaryRewardPoints,
-      anniversaryRewardWindowDays,
+      // Member Anniversary
+      memberAnniversaryRewardEnabled,
+      memberAnniversaryRewardPoints,
+      memberAnniversaryRewardWindowDays,
+      // Relationship Anniversary
+      relationshipAnniversaryRewardEnabled,
+      relationshipAnniversaryRewardPoints,
+      relationshipAnniversaryRewardWindowDays,
     } = body;
 
     // Build update data (only include fields that are provided)
@@ -145,29 +166,54 @@ export async function PUT(req: NextRequest) {
       updateData.birthdayRewardWindowDays = birthdayRewardWindowDays;
     }
 
-    // Anniversary settings
-    if (typeof anniversaryRewardEnabled === 'boolean') {
-      updateData.anniversaryRewardEnabled = anniversaryRewardEnabled;
+    // Member Anniversary settings
+    if (typeof memberAnniversaryRewardEnabled === 'boolean') {
+      updateData.memberAnniversaryRewardEnabled = memberAnniversaryRewardEnabled;
     }
 
-    if (typeof anniversaryRewardPoints === 'number') {
-      if (anniversaryRewardPoints < 1 || anniversaryRewardPoints > 10000) {
+    if (typeof memberAnniversaryRewardPoints === 'number') {
+      if (memberAnniversaryRewardPoints < 1 || memberAnniversaryRewardPoints > 10000) {
         return NextResponse.json(
-          { error: 'Anniversary reward points must be between 1 and 10000' },
+          { error: 'Member anniversary reward points must be between 1 and 10000' },
           { status: 400 }
         );
       }
-      updateData.anniversaryRewardPoints = anniversaryRewardPoints;
+      updateData.memberAnniversaryRewardPoints = memberAnniversaryRewardPoints;
     }
 
-    if (typeof anniversaryRewardWindowDays === 'number') {
-      if (anniversaryRewardWindowDays < 1 || anniversaryRewardWindowDays > 30) {
+    if (typeof memberAnniversaryRewardWindowDays === 'number') {
+      if (memberAnniversaryRewardWindowDays < 1 || memberAnniversaryRewardWindowDays > 30) {
         return NextResponse.json(
-          { error: 'Anniversary reward window must be between 1 and 30 days' },
+          { error: 'Member anniversary reward window must be between 1 and 30 days' },
           { status: 400 }
         );
       }
-      updateData.anniversaryRewardWindowDays = anniversaryRewardWindowDays;
+      updateData.memberAnniversaryRewardWindowDays = memberAnniversaryRewardWindowDays;
+    }
+
+    // Relationship Anniversary settings
+    if (typeof relationshipAnniversaryRewardEnabled === 'boolean') {
+      updateData.relationshipAnniversaryRewardEnabled = relationshipAnniversaryRewardEnabled;
+    }
+
+    if (typeof relationshipAnniversaryRewardPoints === 'number') {
+      if (relationshipAnniversaryRewardPoints < 1 || relationshipAnniversaryRewardPoints > 10000) {
+        return NextResponse.json(
+          { error: 'Relationship anniversary reward points must be between 1 and 10000' },
+          { status: 400 }
+        );
+      }
+      updateData.relationshipAnniversaryRewardPoints = relationshipAnniversaryRewardPoints;
+    }
+
+    if (typeof relationshipAnniversaryRewardWindowDays === 'number') {
+      if (relationshipAnniversaryRewardWindowDays < 1 || relationshipAnniversaryRewardWindowDays > 30) {
+        return NextResponse.json(
+          { error: 'Relationship anniversary reward window must be between 1 and 30 days' },
+          { status: 400 }
+        );
+      }
+      updateData.relationshipAnniversaryRewardWindowDays = relationshipAnniversaryRewardWindowDays;
     }
 
     // Update merchant settings
@@ -178,9 +224,12 @@ export async function PUT(req: NextRequest) {
         birthdayRewardEnabled: true,
         birthdayRewardPoints: true,
         birthdayRewardWindowDays: true,
-        anniversaryRewardEnabled: true,
-        anniversaryRewardPoints: true,
-        anniversaryRewardWindowDays: true,
+        memberAnniversaryRewardEnabled: true,
+        memberAnniversaryRewardPoints: true,
+        memberAnniversaryRewardWindowDays: true,
+        relationshipAnniversaryRewardEnabled: true,
+        relationshipAnniversaryRewardPoints: true,
+        relationshipAnniversaryRewardWindowDays: true,
       },
     });
 
@@ -193,10 +242,15 @@ export async function PUT(req: NextRequest) {
         points: merchant.birthdayRewardPoints,
         windowDays: merchant.birthdayRewardWindowDays,
       },
-      anniversary: {
-        enabled: merchant.anniversaryRewardEnabled,
-        points: merchant.anniversaryRewardPoints,
-        windowDays: merchant.anniversaryRewardWindowDays,
+      memberAnniversary: {
+        enabled: merchant.memberAnniversaryRewardEnabled,
+        points: merchant.memberAnniversaryRewardPoints,
+        windowDays: merchant.memberAnniversaryRewardWindowDays,
+      },
+      relationshipAnniversary: {
+        enabled: merchant.relationshipAnniversaryRewardEnabled,
+        points: merchant.relationshipAnniversaryRewardPoints,
+        windowDays: merchant.relationshipAnniversaryRewardWindowDays,
       },
     });
   } catch (error: any) {

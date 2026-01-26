@@ -103,9 +103,16 @@ model Merchant {
   birthdayRewardEnabled       Boolean @default(false)
   birthdayRewardPoints        Int     @default(50)
   birthdayRewardWindowDays    Int     @default(7)  // Days before/after birthday to claim
-  anniversaryRewardEnabled    Boolean @default(false)
-  anniversaryRewardPoints     Int     @default(50)
-  anniversaryRewardWindowDays Int     @default(7)  // Days before/after anniversary to claim
+
+  // Member Anniversary (based on join date / createdAt)
+  memberAnniversaryRewardEnabled    Boolean @default(false)
+  memberAnniversaryRewardPoints     Int     @default(50)
+  memberAnniversaryRewardWindowDays Int     @default(7)  // Days before/after join anniversary to claim
+
+  // Relationship Anniversary (wedding/relationship date set by member)
+  relationshipAnniversaryRewardEnabled    Boolean @default(false)
+  relationshipAnniversaryRewardPoints     Int     @default(50)
+  relationshipAnniversaryRewardWindowDays Int     @default(7)  // Days before/after relationship anniversary to claim
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -212,8 +219,9 @@ model MerchantMember {
   isCustodial   Boolean?
 
   // Special Rewards Claim Tracking (one claim per year)
-  lastBirthdayClaimYear    Int? // e.g., 2026 - prevents double claim same year
-  lastAnniversaryClaimYear Int? // e.g., 2026 - prevents double claim same year
+  lastBirthdayClaimYear              Int? // e.g., 2026 - prevents double claim same year
+  lastMemberAnniversaryClaimYear     Int? // For membership anniversary (join date)
+  lastRelationshipAnniversaryClaimYear Int? // For relationship/wedding anniversary
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -593,7 +601,8 @@ enum EventType {
   REFERRAL_SENT
   REFERRAL_CONVERTED
   BIRTHDAY_REWARD
-  ANNIVERSARY_REWARD
+  MEMBER_ANNIVERSARY_REWARD
+  RELATIONSHIP_ANNIVERSARY_REWARD
 }
 
 enum MerchantPlan {

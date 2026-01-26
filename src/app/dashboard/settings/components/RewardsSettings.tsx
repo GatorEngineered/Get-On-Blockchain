@@ -44,17 +44,23 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
   const [savingReferral, setSavingReferral] = useState(false);
   const [referralSuccess, setReferralSuccess] = useState('');
 
-  // Special rewards (birthday/anniversary) state
+  // Special rewards (birthday/anniversaries) state
   const [birthdayEnabled, setBirthdayEnabled] = useState(false);
   const [birthdayPoints, setBirthdayPoints] = useState(50);
   const [birthdayWindowDays, setBirthdayWindowDays] = useState(7);
-  const [anniversaryEnabled, setAnniversaryEnabled] = useState(false);
-  const [anniversaryPoints, setAnniversaryPoints] = useState(50);
-  const [anniversaryWindowDays, setAnniversaryWindowDays] = useState(7);
+  const [birthdayClaimsThisYear, setBirthdayClaimsThisYear] = useState(0);
+  // Member Anniversary (join date)
+  const [memberAnniversaryEnabled, setMemberAnniversaryEnabled] = useState(false);
+  const [memberAnniversaryPoints, setMemberAnniversaryPoints] = useState(50);
+  const [memberAnniversaryWindowDays, setMemberAnniversaryWindowDays] = useState(7);
+  const [memberAnniversaryClaimsThisYear, setMemberAnniversaryClaimsThisYear] = useState(0);
+  // Relationship Anniversary (wedding/relationship)
+  const [relationshipAnniversaryEnabled, setRelationshipAnniversaryEnabled] = useState(false);
+  const [relationshipAnniversaryPoints, setRelationshipAnniversaryPoints] = useState(50);
+  const [relationshipAnniversaryWindowDays, setRelationshipAnniversaryWindowDays] = useState(7);
+  const [relationshipAnniversaryClaimsThisYear, setRelationshipAnniversaryClaimsThisYear] = useState(0);
   const [savingSpecialRewards, setSavingSpecialRewards] = useState(false);
   const [specialRewardsSuccess, setSpecialRewardsSuccess] = useState('');
-  const [birthdayClaimsThisYear, setBirthdayClaimsThisYear] = useState(0);
-  const [anniversaryClaimsThisYear, setAnniversaryClaimsThisYear] = useState(0);
 
   useEffect(() => {
     fetchRewards();
@@ -80,14 +86,21 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
       const res = await fetch('/api/merchant/settings/special-rewards');
       if (res.ok) {
         const data = await res.json();
+        // Birthday
         setBirthdayEnabled(data.birthday.enabled);
         setBirthdayPoints(data.birthday.points);
         setBirthdayWindowDays(data.birthday.windowDays);
         setBirthdayClaimsThisYear(data.birthday.claimsThisYear || 0);
-        setAnniversaryEnabled(data.anniversary.enabled);
-        setAnniversaryPoints(data.anniversary.points);
-        setAnniversaryWindowDays(data.anniversary.windowDays);
-        setAnniversaryClaimsThisYear(data.anniversary.claimsThisYear || 0);
+        // Member Anniversary
+        setMemberAnniversaryEnabled(data.memberAnniversary.enabled);
+        setMemberAnniversaryPoints(data.memberAnniversary.points);
+        setMemberAnniversaryWindowDays(data.memberAnniversary.windowDays);
+        setMemberAnniversaryClaimsThisYear(data.memberAnniversary.claimsThisYear || 0);
+        // Relationship Anniversary
+        setRelationshipAnniversaryEnabled(data.relationshipAnniversary.enabled);
+        setRelationshipAnniversaryPoints(data.relationshipAnniversary.points);
+        setRelationshipAnniversaryWindowDays(data.relationshipAnniversary.windowDays);
+        setRelationshipAnniversaryClaimsThisYear(data.relationshipAnniversary.claimsThisYear || 0);
       }
     } catch (err) {
       console.error('Failed to fetch special rewards settings:', err);
@@ -104,12 +117,18 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          // Birthday
           birthdayRewardEnabled: birthdayEnabled,
           birthdayRewardPoints: birthdayPoints,
           birthdayRewardWindowDays: birthdayWindowDays,
-          anniversaryRewardEnabled: anniversaryEnabled,
-          anniversaryRewardPoints: anniversaryPoints,
-          anniversaryRewardWindowDays: anniversaryWindowDays,
+          // Member Anniversary
+          memberAnniversaryRewardEnabled: memberAnniversaryEnabled,
+          memberAnniversaryRewardPoints: memberAnniversaryPoints,
+          memberAnniversaryRewardWindowDays: memberAnniversaryWindowDays,
+          // Relationship Anniversary
+          relationshipAnniversaryRewardEnabled: relationshipAnniversaryEnabled,
+          relationshipAnniversaryRewardPoints: relationshipAnniversaryPoints,
+          relationshipAnniversaryRewardWindowDays: relationshipAnniversaryWindowDays,
         }),
       });
 
@@ -631,7 +650,98 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             )}
           </div>
 
-          {/* Relationship Anniversary Rewards */}
+          {/* Member Anniversary Rewards (Join Date) */}
+          <div style={{
+            padding: '1rem',
+            background: '#dbeafe',
+            border: '1px solid #93c5fd',
+            borderRadius: '8px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+              <div>
+                <label style={{ fontWeight: '600', color: '#1e40af' }}>
+                  Member Anniversary Rewards
+                </label>
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#1e3a8a' }}>
+                  Members can claim once per year on their membership anniversary (join date)
+                </p>
+              </div>
+              <button
+                onClick={() => setMemberAnniversaryEnabled(!memberAnniversaryEnabled)}
+                style={{
+                  width: '50px',
+                  height: '28px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  background: memberAnniversaryEnabled ? '#3b82f6' : '#d1d5db',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'background 0.2s ease',
+                }}
+              >
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: memberAnniversaryEnabled ? '24px' : '2px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    background: 'white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    transition: 'left 0.2s ease',
+                  }}
+                />
+              </button>
+            </div>
+
+            {memberAnniversaryEnabled && (
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                <div style={{ flex: '1', minWidth: '120px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Points</label>
+                  <input
+                    type="number"
+                    value={memberAnniversaryPoints}
+                    onChange={(e) => setMemberAnniversaryPoints(parseInt(e.target.value) || 0)}
+                    min="1"
+                    max="10000"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #93c5fd',
+                      borderRadius: '6px',
+                      background: 'white',
+                    }}
+                  />
+                </div>
+                <div style={{ flex: '1', minWidth: '120px' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Window (days)</label>
+                  <input
+                    type="number"
+                    value={memberAnniversaryWindowDays}
+                    onChange={(e) => setMemberAnniversaryWindowDays(parseInt(e.target.value) || 1)}
+                    min="1"
+                    max="30"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #93c5fd',
+                      borderRadius: '6px',
+                      background: 'white',
+                    }}
+                  />
+                </div>
+                {memberAnniversaryClaimsThisYear > 0 && (
+                  <div style={{ flex: '1', minWidth: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#1e3a8a' }}>Claims this year</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e40af' }}>{memberAnniversaryClaimsThisYear}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Relationship Anniversary Rewards (Wedding/Relationship Date) */}
           <div style={{
             padding: '1rem',
             background: '#fce7f3',
@@ -648,13 +758,13 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                 </p>
               </div>
               <button
-                onClick={() => setAnniversaryEnabled(!anniversaryEnabled)}
+                onClick={() => setRelationshipAnniversaryEnabled(!relationshipAnniversaryEnabled)}
                 style={{
                   width: '50px',
                   height: '28px',
                   borderRadius: '14px',
                   border: 'none',
-                  background: anniversaryEnabled ? '#db2777' : '#d1d5db',
+                  background: relationshipAnniversaryEnabled ? '#db2777' : '#d1d5db',
                   cursor: 'pointer',
                   position: 'relative',
                   transition: 'background 0.2s ease',
@@ -664,7 +774,7 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                   style={{
                     position: 'absolute',
                     top: '2px',
-                    left: anniversaryEnabled ? '24px' : '2px',
+                    left: relationshipAnniversaryEnabled ? '24px' : '2px',
                     width: '24px',
                     height: '24px',
                     borderRadius: '12px',
@@ -676,14 +786,14 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
               </button>
             </div>
 
-            {anniversaryEnabled && (
+            {relationshipAnniversaryEnabled && (
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
                 <div style={{ flex: '1', minWidth: '120px' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Points</label>
                   <input
                     type="number"
-                    value={anniversaryPoints}
-                    onChange={(e) => setAnniversaryPoints(parseInt(e.target.value) || 0)}
+                    value={relationshipAnniversaryPoints}
+                    onChange={(e) => setRelationshipAnniversaryPoints(parseInt(e.target.value) || 0)}
                     min="1"
                     max="10000"
                     style={{
@@ -699,8 +809,8 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Window (days)</label>
                   <input
                     type="number"
-                    value={anniversaryWindowDays}
-                    onChange={(e) => setAnniversaryWindowDays(parseInt(e.target.value) || 1)}
+                    value={relationshipAnniversaryWindowDays}
+                    onChange={(e) => setRelationshipAnniversaryWindowDays(parseInt(e.target.value) || 1)}
                     min="1"
                     max="30"
                     style={{
@@ -712,10 +822,10 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                     }}
                   />
                 </div>
-                {anniversaryClaimsThisYear > 0 && (
+                {relationshipAnniversaryClaimsThisYear > 0 && (
                   <div style={{ flex: '1', minWidth: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <span style={{ fontSize: '0.8rem', color: '#9d174d' }}>Claims this year</span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#be185d' }}>{anniversaryClaimsThisYear}</span>
+                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#be185d' }}>{relationshipAnniversaryClaimsThisYear}</span>
                   </div>
                 )}
               </div>
