@@ -99,6 +99,14 @@ model Merchant {
   referralEnabled     Boolean @default(true)
   referralPointsValue Int     @default(50) // Points awarded when referral converts
 
+  // Birthday & Anniversary Reward Settings
+  birthdayRewardEnabled       Boolean @default(false)
+  birthdayRewardPoints        Int     @default(50)
+  birthdayRewardWindowDays    Int     @default(7)  // Days before/after birthday to claim
+  anniversaryRewardEnabled    Boolean @default(false)
+  anniversaryRewardPoints     Int     @default(50)
+  anniversaryRewardWindowDays Int     @default(7)  // Days before/after anniversary to claim
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   businesses      Business[]
@@ -113,6 +121,7 @@ model Merchant {
   referrals       Referral[]       // Member referrals for this merchant
   redemptionRequests RedemptionRequest[] // QR-verified redemption requests
   merchantToken   MerchantToken?   // Branded token (Growth plan)
+  eventQRCodes    EventQRCode[]    // Event-specific QR codes
 }
 
 /// *
@@ -131,6 +140,12 @@ model Member {
 
   // Password authentication (optional - members can use magic link OR password OR wallet)
   passwordHash String?
+
+  // Birthday & Anniversary (Special Rewards)
+  birthMonth      Int?              // 1-12 (month only, no year for privacy)
+  birthDay        Int?              // 1-31
+  birthdayLocked  Boolean @default(false) // Once set, cannot be changed
+  anniversaryDate DateTime?         // Custom anniversary date (defaults to createdAt if null)
 
   // Email preferences & verification
   emailVerified         Boolean   @default(false)
@@ -163,6 +178,7 @@ model Member {
   redemptionRequests RedemptionRequest[] // QR-verified redemption requests
   tokenBalances      TokenBalance[]   // Branded token balances
   tokenTransactions  TokenTransaction[] // Token transaction history
+  eventScans         EventScan[]      // Event QR code scans
 }
 
 /// *
@@ -194,6 +210,10 @@ model MerchantMember {
   walletAddress String?
   walletNetwork String?
   isCustodial   Boolean?
+
+  // Special Rewards Claim Tracking (one claim per year)
+  lastBirthdayClaimYear    Int? // e.g., 2026 - prevents double claim same year
+  lastAnniversaryClaimYear Int? // e.g., 2026 - prevents double claim same year
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -561,6 +581,7 @@ enum Plan {
 
 enum EventType {
   SCAN
+  EVENT_SCAN
   CONNECT_WALLET
   CREATE_EMAIL
   REWARD_EARNED
@@ -571,6 +592,8 @@ enum EventType {
   PAYOUT_SUCCESS_NOTIFY
   REFERRAL_SENT
   REFERRAL_CONVERTED
+  BIRTHDAY_REWARD
+  ANNIVERSARY_REWARD
 }
 
 enum MerchantPlan {
@@ -826,4 +849,72 @@ enum TokenTxStatus {
 enum WalletType {
   CUSTODIAL      // GOB manages keys, member can export
   NON_CUSTODIAL  // Member exported keys, full control
+}
+
+// ============================================================================
+// EVENT QR CODE SYSTEM
+// ============================================================================
+
+/// *
+///  * EventQRCode - Special QR codes for merchant events
+///  * One-time scan per member per event, expires after event ends
+model EventQRCode {
+  id              String   @id @default(cuid())
+  merchantId      String
+
+  // Event details
+  name            String   // "VIP Tasting Night", "Grand Opening", etc.
+  description     String?  // Optional event description
+
+  // Event timing
+  eventDate       DateTime // The date of the event
+  scanWindowStart DateTime // When members can start scanning
+  scanWindowEnd   DateTime // When scanning ends (QR expires after this)
+
+  // Rewards
+  pointsAwarded   Int      @default(50) // Points for attending/scanning
+
+  // QR Code data (same pattern as regular QR codes)
+  code            String   @unique // Unique QR code string
+  signature       String   // HMAC signature for verification
+
+  // Status
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  eventScans      EventScan[]
+
+  @@index([merchantId])
+  @@index([eventDate])
+  @@index([scanWindowEnd])
+}
+
+/// *
+///  * EventScan - Track member scans of event QR codes
+///  * Enforces one scan per member per event
+model EventScan {
+  id              String   @id @default(cuid())
+  eventQRCodeId   String
+  memberId        String
+
+  // Points and blockchain
+  pointsAwarded   Int
+  txHash          String?  // Token minting transaction hash (Growth/Pro)
+  status          String   @default("pending") // pending, confirmed, failed
+
+  scannedAt       DateTime @default(now())
+  confirmedAt     DateTime?
+
+  // Relations
+  eventQRCode     EventQRCode @relation(fields: [eventQRCodeId], references: [id], onDelete: Cascade)
+  member          Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // Ensure one scan per member per event
+  @@unique([eventQRCodeId, memberId])
+  @@index([memberId])
+  @@index([eventQRCodeId])
 }

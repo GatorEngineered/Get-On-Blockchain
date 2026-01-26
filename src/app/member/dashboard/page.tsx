@@ -153,8 +153,17 @@ export default function MemberDashboardPage() {
     text: string;
   } | null>(null);
 
+  // Special rewards state
+  const [specialRewards, setSpecialRewards] = useState<any[]>([]);
+  const [claimingSpecialReward, setClaimingSpecialReward] = useState<string | null>(null);
+  const [specialRewardMessage, setSpecialRewardMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
   useEffect(() => {
     loadMemberData();
+    loadSpecialRewards();
   }, []);
 
   async function loadMemberData() {
@@ -240,6 +249,92 @@ export default function MemberDashboardPage() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadSpecialRewards() {
+    try {
+      const res = await fetch("/api/member/special-rewards");
+      if (res.ok) {
+        const data = await res.json();
+        setSpecialRewards(data.specialRewards || []);
+      }
+    } catch (err) {
+      console.error("Failed to load special rewards:", err);
+    }
+  }
+
+  async function claimBirthdayReward(merchantId: string) {
+    setClaimingSpecialReward(`birthday-${merchantId}`);
+    setSpecialRewardMessage(null);
+
+    try {
+      const res = await fetch("/api/member/claim-birthday", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ merchantId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to claim birthday reward");
+      }
+
+      setSpecialRewardMessage({
+        type: "success",
+        text: data.message,
+      });
+
+      // Refresh data
+      loadMemberData();
+      loadSpecialRewards();
+
+      setTimeout(() => setSpecialRewardMessage(null), 5000);
+    } catch (err: any) {
+      setSpecialRewardMessage({
+        type: "error",
+        text: err.message,
+      });
+    } finally {
+      setClaimingSpecialReward(null);
+    }
+  }
+
+  async function claimAnniversaryReward(merchantId: string) {
+    setClaimingSpecialReward(`anniversary-${merchantId}`);
+    setSpecialRewardMessage(null);
+
+    try {
+      const res = await fetch("/api/member/claim-anniversary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ merchantId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to claim anniversary reward");
+      }
+
+      setSpecialRewardMessage({
+        type: "success",
+        text: data.message,
+      });
+
+      // Refresh data
+      loadMemberData();
+      loadSpecialRewards();
+
+      setTimeout(() => setSpecialRewardMessage(null), 5000);
+    } catch (err: any) {
+      setSpecialRewardMessage({
+        type: "error",
+        text: err.message,
+      });
+    } finally {
+      setClaimingSpecialReward(null);
     }
   }
 
@@ -658,6 +753,131 @@ export default function MemberDashboardPage() {
           }}>
             These are real blockchain tokens on Polygon. Earn more by visiting participating merchants!
           </p>
+        </div>
+      )}
+
+      {/* Special Rewards Section */}
+      {specialRewards.filter(sr =>
+        (sr.birthdayReward?.canClaim) || (sr.anniversaryReward?.canClaim)
+      ).length > 0 && (
+        <div style={{
+          marginTop: '1.5rem',
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+          borderRadius: '1.5rem',
+          padding: '1.5rem',
+          boxShadow: '0 8px 24px rgba(217, 119, 6, 0.15)',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1rem',
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+            </svg>
+            <h3 style={{
+              color: '#92400e',
+              fontSize: '1.1rem',
+              fontWeight: '600',
+              margin: 0,
+            }}>
+              Special Rewards Available!
+            </h3>
+          </div>
+
+          {specialRewardMessage && (
+            <div style={{
+              padding: '0.75rem 1rem',
+              background: specialRewardMessage.type === 'success' ? '#dcfce7' : '#fee2e2',
+              borderRadius: '8px',
+              marginBottom: '1rem',
+              color: specialRewardMessage.type === 'success' ? '#166534' : '#991b1b',
+              fontSize: '0.9rem',
+            }}>
+              {specialRewardMessage.text}
+            </div>
+          )}
+
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}>
+            {specialRewards.filter(sr => sr.birthdayReward?.canClaim || sr.anniversaryReward?.canClaim).map((sr) => (
+              <div
+                key={sr.merchantId}
+                style={{
+                  background: 'white',
+                  borderRadius: '1rem',
+                  padding: '1rem 1.25rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                }}
+              >
+                <p style={{
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  margin: '0 0 0.75rem 0',
+                }}>
+                  {sr.merchantName}
+                </p>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                  {sr.birthdayReward?.canClaim && (
+                    <button
+                      onClick={() => claimBirthdayReward(sr.merchantId)}
+                      disabled={claimingSpecialReward === `birthday-${sr.merchantId}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.625rem 1rem',
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: '500',
+                        fontSize: '0.9rem',
+                        cursor: claimingSpecialReward ? 'not-allowed' : 'pointer',
+                        opacity: claimingSpecialReward ? 0.7 : 1,
+                      }}
+                    >
+                      <span>🎂</span>
+                      {claimingSpecialReward === `birthday-${sr.merchantId}`
+                        ? 'Claiming...'
+                        : `Claim Birthday (+${sr.birthdayReward.points} pts)`}
+                    </button>
+                  )}
+
+                  {sr.anniversaryReward?.canClaim && (
+                    <button
+                      onClick={() => claimAnniversaryReward(sr.merchantId)}
+                      disabled={claimingSpecialReward === `anniversary-${sr.merchantId}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.625rem 1rem',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: '500',
+                        fontSize: '0.9rem',
+                        cursor: claimingSpecialReward ? 'not-allowed' : 'pointer',
+                        opacity: claimingSpecialReward ? 0.7 : 1,
+                      }}
+                    >
+                      <span>🎉</span>
+                      {claimingSpecialReward === `anniversary-${sr.merchantId}`
+                        ? 'Claiming...'
+                        : `Claim Anniversary (+${sr.anniversaryReward.points} pts)`}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

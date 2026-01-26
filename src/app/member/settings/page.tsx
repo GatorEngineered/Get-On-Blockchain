@@ -51,7 +51,19 @@ export default function MemberSettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
 
   // Active tab
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "wallet" | "notifications">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "wallet" | "notifications" | "special-days">("profile");
+
+  // Special days (birthday/anniversary) state
+  const [birthdayMonth, setBirthdayMonth] = useState<number | null>(null);
+  const [birthdayDay, setBirthdayDay] = useState<number | null>(null);
+  const [birthdayLocked, setBirthdayLocked] = useState(false);
+  const [anniversaryDate, setAnniversaryDate] = useState<string>("");
+  const [isCustomAnniversary, setIsCustomAnniversary] = useState(false);
+  const [joinDate, setJoinDate] = useState<string>("");
+  const [savingBirthday, setSavingBirthday] = useState(false);
+  const [savingAnniversary, setSavingAnniversary] = useState(false);
+  const [specialDaysError, setSpecialDaysError] = useState<string | null>(null);
+  const [specialDaysSuccess, setSpecialDaysSuccess] = useState<string | null>(null);
 
   // Email preferences state
   const [emailPreferences, setEmailPreferences] = useState<EmailPreferences | null>(null);
@@ -157,6 +169,131 @@ export default function MemberSettingsPage() {
       loadEmailPreferences();
     }
   }, [activeTab, emailPreferences]);
+
+  // Load special days data when switching to that tab
+  useEffect(() => {
+    if (activeTab === "special-days") {
+      loadSpecialDays();
+    }
+  }, [activeTab]);
+
+  async function loadSpecialDays() {
+    try {
+      const [birthdayRes, anniversaryRes] = await Promise.all([
+        fetch("/api/member/profile/birthday"),
+        fetch("/api/member/profile/anniversary"),
+      ]);
+
+      if (birthdayRes.ok) {
+        const birthdayData = await birthdayRes.json();
+        if (birthdayData.birthday) {
+          setBirthdayMonth(birthdayData.birthday.month);
+          setBirthdayDay(birthdayData.birthday.day);
+        }
+        setBirthdayLocked(birthdayData.isLocked);
+      }
+
+      if (anniversaryRes.ok) {
+        const anniversaryData = await anniversaryRes.json();
+        setAnniversaryDate(anniversaryData.anniversaryDate.split("T")[0]);
+        setIsCustomAnniversary(anniversaryData.isCustom);
+        setJoinDate(anniversaryData.joinDate.split("T")[0]);
+      }
+    } catch (err: any) {
+      console.error("Failed to load special days:", err);
+      setSpecialDaysError("Failed to load special days data");
+    }
+  }
+
+  async function handleSaveBirthday() {
+    if (!birthdayMonth || !birthdayDay) {
+      setSpecialDaysError("Please select both month and day");
+      return;
+    }
+
+    setSavingBirthday(true);
+    setSpecialDaysError(null);
+    setSpecialDaysSuccess(null);
+
+    try {
+      const res = await fetch("/api/member/profile/birthday", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month: birthdayMonth, day: birthdayDay }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save birthday");
+      }
+
+      setBirthdayLocked(true);
+      setSpecialDaysSuccess("Birthday saved! This cannot be changed.");
+      setTimeout(() => setSpecialDaysSuccess(null), 3000);
+    } catch (err: any) {
+      setSpecialDaysError(err.message);
+    } finally {
+      setSavingBirthday(false);
+    }
+  }
+
+  async function handleSaveAnniversary() {
+    setSavingAnniversary(true);
+    setSpecialDaysError(null);
+    setSpecialDaysSuccess(null);
+
+    try {
+      const res = await fetch("/api/member/profile/anniversary", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ anniversaryDate }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save anniversary");
+      }
+
+      setIsCustomAnniversary(true);
+      setSpecialDaysSuccess("Anniversary date updated!");
+      setTimeout(() => setSpecialDaysSuccess(null), 3000);
+    } catch (err: any) {
+      setSpecialDaysError(err.message);
+    } finally {
+      setSavingAnniversary(false);
+    }
+  }
+
+  async function handleResetAnniversary() {
+    setSavingAnniversary(true);
+    setSpecialDaysError(null);
+    setSpecialDaysSuccess(null);
+
+    try {
+      const res = await fetch("/api/member/profile/anniversary", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ useJoinDate: true }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to reset anniversary");
+      }
+
+      setAnniversaryDate(joinDate);
+      setIsCustomAnniversary(false);
+      setSpecialDaysSuccess("Anniversary reset to join date!");
+      setTimeout(() => setSpecialDaysSuccess(null), 3000);
+    } catch (err: any) {
+      setSpecialDaysError(err.message);
+    } finally {
+      setSavingAnniversary(false);
+    }
+  }
 
   async function handleUpdateProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -332,6 +469,15 @@ export default function MemberSettingsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             Notifications
+          </button>
+          <button
+            className={`tab ${activeTab === "special-days" ? "active" : ""}`}
+            onClick={() => setActiveTab("special-days")}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0A2.701 2.701 0 003 15.546M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18z" />
+            </svg>
+            Special Days
           </button>
         </div>
 
@@ -718,6 +864,160 @@ export default function MemberSettingsPage() {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* Special Days Tab */}
+        {activeTab === "special-days" && (
+          <div className="tab-content">
+            <h2>Special Days</h2>
+            <p className="tab-description">Set your birthday and anniversary for special rewards</p>
+
+            {specialDaysError && <div className="message error">{specialDaysError}</div>}
+            {specialDaysSuccess && <div className="message success">{specialDaysSuccess}</div>}
+
+            {/* Birthday Section */}
+            <div className="special-days-section">
+              <div className="special-days-header">
+                <div className="special-days-icon" style={{ background: "#fef3c7" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem" }}>Birthday</h3>
+                  <p style={{ margin: 0, color: "#6b7280", fontSize: "0.875rem" }}>
+                    {birthdayLocked
+                      ? "Your birthday is set and cannot be changed"
+                      : "Set your birthday once to claim birthday rewards from participating merchants"}
+                  </p>
+                </div>
+              </div>
+
+              {birthdayLocked ? (
+                <div className="special-days-locked">
+                  <span className="locked-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Locked
+                  </span>
+                  <span className="locked-value">
+                    {birthdayMonth && birthdayDay
+                      ? `${new Date(2000, birthdayMonth - 1, birthdayDay).toLocaleDateString("en-US", { month: "long", day: "numeric" })}`
+                      : "Not set"}
+                  </span>
+                </div>
+              ) : (
+                <div className="special-days-form">
+                  <div className="form-row">
+                    <div className="form-field">
+                      <label>Month</label>
+                      <select
+                        value={birthdayMonth || ""}
+                        onChange={(e) => setBirthdayMonth(parseInt(e.target.value) || null)}
+                        className="form-select"
+                      >
+                        <option value="">Select month</option>
+                        {[
+                          "January", "February", "March", "April", "May", "June",
+                          "July", "August", "September", "October", "November", "December"
+                        ].map((month, i) => (
+                          <option key={i} value={i + 1}>{month}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-field">
+                      <label>Day</label>
+                      <select
+                        value={birthdayDay || ""}
+                        onChange={(e) => setBirthdayDay(parseInt(e.target.value) || null)}
+                        className="form-select"
+                      >
+                        <option value="">Select day</option>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                          <option key={day} value={day}>{day}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="special-days-warning">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Warning: Once saved, your birthday cannot be changed.</span>
+                  </div>
+                  <button
+                    className="primary-button"
+                    onClick={handleSaveBirthday}
+                    disabled={savingBirthday || !birthdayMonth || !birthdayDay}
+                  >
+                    {savingBirthday ? "Saving..." : "Save Birthday"}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Anniversary Section */}
+            <div className="special-days-section">
+              <div className="special-days-header">
+                <div className="special-days-icon" style={{ background: "#dbeafe" }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style={{ margin: "0 0 0.25rem 0", fontSize: "1.1rem" }}>Anniversary</h3>
+                  <p style={{ margin: 0, color: "#6b7280", fontSize: "0.875rem" }}>
+                    Your anniversary date for claiming anniversary rewards (can be changed anytime)
+                  </p>
+                </div>
+              </div>
+
+              <div className="special-days-form">
+                <div className="form-field">
+                  <label>Anniversary Date</label>
+                  <input
+                    type="date"
+                    value={anniversaryDate}
+                    onChange={(e) => setAnniversaryDate(e.target.value)}
+                    className="form-input"
+                  />
+                  {isCustomAnniversary && joinDate && anniversaryDate !== joinDate && (
+                    <p className="field-hint">
+                      Your join date was {new Date(joinDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                    </p>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+                  <button
+                    className="primary-button"
+                    onClick={handleSaveAnniversary}
+                    disabled={savingAnniversary}
+                  >
+                    {savingAnniversary ? "Saving..." : "Save Anniversary"}
+                  </button>
+                  {isCustomAnniversary && (
+                    <button
+                      className="secondary-button"
+                      onClick={handleResetAnniversary}
+                      disabled={savingAnniversary}
+                    >
+                      Reset to Join Date
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="info-box">
+              <h4>About Special Days Rewards</h4>
+              <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
+                Participating merchants may offer bonus points on your birthday and anniversary.
+                Check each merchant's page to see if they offer these special rewards.
+                Each reward can only be claimed once per year within the merchant's specified window.
+              </p>
+            </div>
           </div>
         )}
       </div>
@@ -1232,6 +1532,109 @@ const pageStyles = `
   .toggle-switch input:disabled + .toggle-slider {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  /* Special Days Styles */
+  .special-days-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .special-days-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .special-days-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .special-days-form {
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .special-days-locked {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f3f4f6;
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+
+  .locked-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    background: #e5e7eb;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  .locked-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .special-days-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #fef3c7;
+    border-radius: 8px;
+    margin: 1rem 0;
+    color: #92400e;
+    font-size: 0.875rem;
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .form-select:focus {
+    outline: none;
+    border-color: #244b7a;
+    box-shadow: 0 0 0 3px rgba(36, 75, 122, 0.1);
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #244b7a;
+    box-shadow: 0 0 0 3px rgba(36, 75, 122, 0.1);
   }
 
   @media (max-width: 640px) {
