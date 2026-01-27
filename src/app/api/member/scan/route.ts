@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { generateWallet } from "@/app/lib/blockchain/wallet";
 import { canAddNewMember } from "@/app/lib/plan-limits";
 import { mintTokensOnCheckIn } from "@/app/lib/token/token-minting-service";
+import { isHappyHourActive, calculateMultipliedPoints } from "@/app/lib/happy-hour";
 
 const QR_SECRET = process.env.QR_SECRET || "default-secret-change-in-production";
 
@@ -264,8 +265,22 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Award points for this scan
-    const pointsToAward = merchant.earnPerVisit;
+    // Check if happy hour is active and apply multiplier
+    const happyHourStatus = isHappyHourActive({
+      happyHourEnabled: merchant.happyHourEnabled,
+      happyHourMultiplier: merchant.happyHourMultiplier,
+      happyHourStartTime: merchant.happyHourStartTime,
+      happyHourEndTime: merchant.happyHourEndTime,
+      happyHourDaysOfWeek: merchant.happyHourDaysOfWeek as number[] | null,
+      happyHourTimezone: merchant.happyHourTimezone,
+    });
+
+    // Award points for this scan (with happy hour multiplier if active)
+    const basePoints = merchant.earnPerVisit;
+    const { points: pointsToAward, wasMultiplied, multiplier } = calculateMultipliedPoints(
+      basePoints,
+      happyHourStatus
+    );
 
     // Update merchant-level points (aggregated across all locations)
     const updatedMerchantMember = await prisma.merchantMember.update({
@@ -352,14 +367,27 @@ export async function POST(req: NextRequest) {
       console.error("Token minting error (non-blocking):", tokenError);
     }
 
+    // Build message based on whether happy hour is active
+    let message: string;
+    if (wasMultiplied) {
+      message = isNewMember
+        ? `Welcome! You received ${merchant.welcomePoints} welcome points + ${pointsToAward} visit points (${multiplier}x Happy Hour bonus)!`
+        : `Happy Hour! You earned ${pointsToAward} points (${multiplier}x bonus)!`;
+    } else {
+      message = isNewMember
+        ? `Welcome! You received ${merchant.welcomePoints} welcome points + ${pointsToAward} visit points!`
+        : `Success! You earned ${pointsToAward} points!`;
+    }
+
     return NextResponse.json({
       success: true,
-      message: isNewMember
-        ? `Welcome! You received ${merchant.welcomePoints} welcome points + ${pointsToAward} visit points!`
-        : `Success! You earned ${pointsToAward} points!`,
+      message,
       scan: {
         id: scan.id,
         pointsAwarded: pointsToAward,
+        basePoints,
+        wasHappyHour: wasMultiplied,
+        happyHourMultiplier: wasMultiplied ? multiplier : null,
         totalPoints: updatedMerchantMember.points,
         tier: newTier,
         tierUpgrade: newTier !== updatedMerchantMember.tier,

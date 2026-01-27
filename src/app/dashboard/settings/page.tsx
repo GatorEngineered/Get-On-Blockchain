@@ -15,8 +15,9 @@ import QRCodesSettings from './components/QRCodesSettings';
 import EventsSettings from './components/EventsSettings';
 import POSIntegrationSettings from './components/POSIntegrationSettings';
 import BrandedTokenSettings from './components/BrandedTokenSettings';
+import HappyHourSettings from './components/HappyHourSettings';
 
-type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'events' | 'pos-integrations' | 'email-marketing' | 'branded-token' | 'support';
+type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'events' | 'happy-hour' | 'pos-integrations' | 'email-marketing' | 'branded-token' | 'support';
 
 export default function MerchantSettingsPage() {
   const router = useRouter();
@@ -180,6 +181,16 @@ export default function MerchantSettingsPage() {
             </button>
 
             <button
+              className={`${styles.navItem} ${activeTab === 'happy-hour' ? styles.active : ''}`}
+              onClick={() => handleTabChange('happy-hour')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Happy Hour
+            </button>
+
+            <button
               className={`${styles.navItem} ${activeTab === 'pos-integrations' ? styles.active : ''}`}
               onClick={() => handleTabChange('pos-integrations')}
             >
@@ -265,6 +276,12 @@ export default function MerchantSettingsPage() {
           {activeTab === 'events' && (
             <EventsSettings
               merchantData={merchantData}
+            />
+          )}
+          {activeTab === 'happy-hour' && (
+            <HappyHourSettings
+              merchantData={merchantData}
+              onUpdate={handleDataUpdate}
             />
           )}
           {activeTab === 'pos-integrations' && (

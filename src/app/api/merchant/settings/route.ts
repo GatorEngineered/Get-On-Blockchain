@@ -167,6 +167,13 @@ export async function GET(req: NextRequest) {
       // Referral settings
       referralEnabled: merchant.referralEnabled,
       referralPointsValue: merchant.referralPointsValue,
+      // Happy Hour settings
+      happyHourEnabled: merchant.happyHourEnabled,
+      happyHourMultiplier: merchant.happyHourMultiplier,
+      happyHourStartTime: merchant.happyHourStartTime,
+      happyHourEndTime: merchant.happyHourEndTime,
+      happyHourDaysOfWeek: merchant.happyHourDaysOfWeek,
+      happyHourTimezone: merchant.happyHourTimezone,
     });
   } catch (error: any) {
     console.error('[Merchant Settings] Error:', error);
@@ -200,7 +207,17 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { referralEnabled, referralPointsValue } = body;
+    const {
+      referralEnabled,
+      referralPointsValue,
+      // Happy Hour settings
+      happyHourEnabled,
+      happyHourMultiplier,
+      happyHourStartTime,
+      happyHourEndTime,
+      happyHourDaysOfWeek,
+      happyHourTimezone,
+    } = body;
 
     // Build update data (only include fields that are provided)
     const updateData: any = {};
@@ -220,6 +237,61 @@ export async function PUT(req: NextRequest) {
       updateData.referralPointsValue = referralPointsValue;
     }
 
+    // Happy Hour settings
+    if (typeof happyHourEnabled === 'boolean') {
+      updateData.happyHourEnabled = happyHourEnabled;
+    }
+
+    if (typeof happyHourMultiplier === 'number') {
+      if (happyHourMultiplier < 1 || happyHourMultiplier > 10) {
+        return NextResponse.json(
+          { error: 'Happy Hour multiplier must be between 1 and 10' },
+          { status: 400 }
+        );
+      }
+      updateData.happyHourMultiplier = happyHourMultiplier;
+    }
+
+    if (typeof happyHourStartTime === 'string') {
+      // Validate time format (HH:mm)
+      if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(happyHourStartTime)) {
+        return NextResponse.json(
+          { error: 'Invalid start time format. Use HH:mm (e.g., 14:00)' },
+          { status: 400 }
+        );
+      }
+      updateData.happyHourStartTime = happyHourStartTime;
+    }
+
+    if (typeof happyHourEndTime === 'string') {
+      // Validate time format (HH:mm)
+      if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(happyHourEndTime)) {
+        return NextResponse.json(
+          { error: 'Invalid end time format. Use HH:mm (e.g., 17:00)' },
+          { status: 400 }
+        );
+      }
+      updateData.happyHourEndTime = happyHourEndTime;
+    }
+
+    if (Array.isArray(happyHourDaysOfWeek)) {
+      // Validate days (0-6)
+      const validDays = happyHourDaysOfWeek.every(
+        (d) => typeof d === 'number' && d >= 0 && d <= 6
+      );
+      if (!validDays) {
+        return NextResponse.json(
+          { error: 'Invalid days of week. Use 0-6 (0=Sunday, 6=Saturday)' },
+          { status: 400 }
+        );
+      }
+      updateData.happyHourDaysOfWeek = happyHourDaysOfWeek;
+    }
+
+    if (typeof happyHourTimezone === 'string') {
+      updateData.happyHourTimezone = happyHourTimezone;
+    }
+
     // Update merchant settings
     const merchant = await prisma.merchant.update({
       where: { id: merchantId },
@@ -228,15 +300,27 @@ export async function PUT(req: NextRequest) {
         id: true,
         referralEnabled: true,
         referralPointsValue: true,
+        happyHourEnabled: true,
+        happyHourMultiplier: true,
+        happyHourStartTime: true,
+        happyHourEndTime: true,
+        happyHourDaysOfWeek: true,
+        happyHourTimezone: true,
       },
     });
 
-    console.log(`[Merchant Settings] Updated referral settings for merchant ${merchantId}`);
+    console.log(`[Merchant Settings] Updated settings for merchant ${merchantId}`);
 
     return NextResponse.json({
       success: true,
       referralEnabled: merchant.referralEnabled,
       referralPointsValue: merchant.referralPointsValue,
+      happyHourEnabled: merchant.happyHourEnabled,
+      happyHourMultiplier: merchant.happyHourMultiplier,
+      happyHourStartTime: merchant.happyHourStartTime,
+      happyHourEndTime: merchant.happyHourEndTime,
+      happyHourDaysOfWeek: merchant.happyHourDaysOfWeek,
+      happyHourTimezone: merchant.happyHourTimezone,
     });
   } catch (error: any) {
     console.error('[Merchant Settings] Error updating settings:', error);

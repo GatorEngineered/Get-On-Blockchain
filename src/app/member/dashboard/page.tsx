@@ -16,6 +16,14 @@ type MerchantMember = {
     payoutEnabled: boolean;
     payoutMilestonePoints: number;
     payoutAmountUSD: number;
+    earnPerVisit?: number;
+    happyHour?: {
+      isActive: boolean;
+      multiplier: number;
+      startTime: string | null;
+      endTime: string | null;
+      earnPerVisitWithMultiplier: number;
+    };
     businesses: {
       id: string;
       slug: string;
@@ -1473,6 +1481,24 @@ export default function MemberDashboardPage() {
                   border: "1px solid #e5e7eb",
                 }}
               >
+                {/* Happy Hour Banner */}
+                {mm.merchant.happyHour?.isActive && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.75rem 1rem',
+                    background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                  }}>
+                    <span style={{ fontSize: '1.25rem' }}>🎉</span>
+                    <span style={{ fontWeight: '600', color: '#92400e' }}>
+                      Happy Hour Active! Earn {mm.merchant.happyHour.multiplier}x points ({mm.merchant.happyHour.earnPerVisitWithMultiplier} pts/visit)
+                    </span>
+                  </div>
+                )}
+
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                   <div>
                     <h4 style={{ margin: 0, marginBottom: "0.5rem", color: "#1f2937", fontSize: "1.25rem" }}>

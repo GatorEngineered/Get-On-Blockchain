@@ -1,8 +1,8 @@
 // src/app/api/member/dashboard/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-
 import { PrismaClient } from '@prisma/client';
+import { isHappyHourActive } from '@/app/lib/happy-hour';
 
  
 
@@ -97,6 +97,14 @@ export async function GET(req: NextRequest) {
             payoutEnabled: true,
             payoutMilestonePoints: true,
             payoutAmountUSD: true,
+            // Happy Hour settings
+            happyHourEnabled: true,
+            happyHourMultiplier: true,
+            happyHourStartTime: true,
+            happyHourEndTime: true,
+            happyHourDaysOfWeek: true,
+            happyHourTimezone: true,
+            earnPerVisit: true,
             businesses: {
               select: {
                 id: true,
@@ -191,32 +199,55 @@ export async function GET(req: NextRequest) {
         walletAddress: member.walletAddress,
         tier: member.tier,
         // Return merchant-level memberships with aggregated points
-        merchants: merchantMembers.map((mm) => ({
-          id: mm.id,
-          merchantId: mm.merchantId,
-          merchant: mm.merchant,
-          walletAddress: mm.walletAddress,
-          walletNetwork: mm.walletNetwork,
-          isCustodial: mm.isCustodial,
-          points: mm.points, // Aggregated across all locations
-          tier: mm.tier,
-          // Include location breakdown for analytics
-          locations: mm.merchant.businesses.map((business) => {
-            const visitData = visitMap.get(business.id);
-            return {
-              id: business.id,
-              slug: business.slug,
-              name: business.name,
-              locationNickname: business.locationNickname,
-              address: business.address,
-              city: business.city,
-              state: business.state,
-              visitCount: visitData?.visitCount || 0,
-              lastVisitAt: visitData?.lastVisitAt?.toISOString() || null,
-              firstVisitAt: visitData?.firstVisitAt?.toISOString() || null,
-            };
-          }),
-        })),
+        merchants: merchantMembers.map((mm) => {
+          // Check happy hour status for this merchant
+          const happyHourStatus = isHappyHourActive({
+            happyHourEnabled: mm.merchant.happyHourEnabled,
+            happyHourMultiplier: mm.merchant.happyHourMultiplier,
+            happyHourStartTime: mm.merchant.happyHourStartTime,
+            happyHourEndTime: mm.merchant.happyHourEndTime,
+            happyHourDaysOfWeek: mm.merchant.happyHourDaysOfWeek as number[] | null,
+            happyHourTimezone: mm.merchant.happyHourTimezone,
+          });
+
+          return {
+            id: mm.id,
+            merchantId: mm.merchantId,
+            merchant: {
+              ...mm.merchant,
+              happyHour: {
+                isActive: happyHourStatus.isActive,
+                multiplier: happyHourStatus.multiplier,
+                startTime: happyHourStatus.startTime,
+                endTime: happyHourStatus.endTime,
+                earnPerVisitWithMultiplier: happyHourStatus.isActive
+                  ? Math.floor(mm.merchant.earnPerVisit * happyHourStatus.multiplier)
+                  : mm.merchant.earnPerVisit,
+              },
+            },
+            walletAddress: mm.walletAddress,
+            walletNetwork: mm.walletNetwork,
+            isCustodial: mm.isCustodial,
+            points: mm.points, // Aggregated across all locations
+            tier: mm.tier,
+            // Include location breakdown for analytics
+            locations: mm.merchant.businesses.map((business) => {
+              const visitData = visitMap.get(business.id);
+              return {
+                id: business.id,
+                slug: business.slug,
+                name: business.name,
+                locationNickname: business.locationNickname,
+                address: business.address,
+                city: business.city,
+                state: business.state,
+                visitCount: visitData?.visitCount || 0,
+                lastVisitAt: visitData?.lastVisitAt?.toISOString() || null,
+                firstVisitAt: visitData?.firstVisitAt?.toISOString() || null,
+              };
+            }),
+          };
+        }),
       },
       transactions: transactions.map((tx) => ({
         id: tx.id,
