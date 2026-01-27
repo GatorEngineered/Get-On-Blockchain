@@ -915,13 +915,23 @@ export default function MemberSettingsPage() {
                     </svg>
                     <span>Warning: Once saved, your birthday cannot be changed.</span>
                   </div>
-                  <button
-                    className="primary-button"
-                    onClick={handleSaveBirthday}
-                    disabled={savingBirthday || !birthdayMonth || !birthdayDay}
-                  >
-                    {savingBirthday ? "Saving..." : "Save Birthday"}
-                  </button>
+                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                    <button
+                      className="primary-button"
+                      onClick={handleSaveBirthday}
+                      disabled={savingBirthday || !birthdayMonth || !birthdayDay}
+                    >
+                      {savingBirthday ? "Saving..." : "Save Birthday"}
+                    </button>
+                    {specialDaysSuccess && specialDaysSuccess.includes("Birthday") && (
+                      <span style={{ color: "#059669", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Saved!
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -955,7 +965,7 @@ export default function MemberSettingsPage() {
                     Enter your wedding or relationship anniversary date
                   </p>
                 </div>
-                <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+                <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem", alignItems: "center" }}>
                   <button
                     className="primary-button"
                     onClick={handleSaveAnniversary}
@@ -963,6 +973,14 @@ export default function MemberSettingsPage() {
                   >
                     {savingAnniversary ? "Saving..." : "Save Anniversary"}
                   </button>
+                  {specialDaysSuccess && specialDaysSuccess.includes("anniversary") && (
+                    <span style={{ color: "#059669", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      Saved!
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
