@@ -16,8 +16,9 @@ import EventsSettings from './components/EventsSettings';
 import POSIntegrationSettings from './components/POSIntegrationSettings';
 import BrandedTokenSettings from './components/BrandedTokenSettings';
 import HappyHourSettings from './components/HappyHourSettings';
+import SocialLinksSettings from './components/SocialLinksSettings';
 
-type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'events' | 'happy-hour' | 'pos-integrations' | 'email-marketing' | 'branded-token' | 'support';
+type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'events' | 'happy-hour' | 'pos-integrations' | 'email-marketing' | 'social-links' | 'branded-token' | 'support';
 
 export default function MerchantSettingsPage() {
   const router = useRouter();
@@ -211,6 +212,16 @@ export default function MerchantSettingsPage() {
             </button>
 
             <button
+              className={`${styles.navItem} ${activeTab === 'social-links' ? styles.active : ''}`}
+              onClick={() => handleTabChange('social-links')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Social Links
+            </button>
+
+            <button
               className={`${styles.navItem} ${activeTab === 'branded-token' ? styles.active : ''}`}
               onClick={() => handleTabChange('branded-token')}
             >
@@ -292,6 +303,12 @@ export default function MerchantSettingsPage() {
           )}
           {activeTab === 'email-marketing' && (
             <EmailMarketingSettings
+              merchantData={merchantData}
+              onUpdate={handleDataUpdate}
+            />
+          )}
+          {activeTab === 'social-links' && (
+            <SocialLinksSettings
               merchantData={merchantData}
               onUpdate={handleDataUpdate}
             />

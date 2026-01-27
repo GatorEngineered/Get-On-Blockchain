@@ -37,6 +37,8 @@ export default function MemberRegisterPage() {
   // Get return URL and merchant slug from query params
   const returnTo = searchParams.get("returnTo") || "/member/dashboard";
   const merchantSlug = searchParams.get("merchant");
+  const referralCode = searchParams.get("ref");
+  const referralSource = searchParams.get("src");
 
   // Calculate password strength
   const getPasswordStrength = (password: string): PasswordStrength => {
@@ -93,6 +95,8 @@ export default function MemberRegisterPage() {
           phone: formData.phone || undefined,
           password: formData.password,
           merchantSlug: merchantSlug || undefined,
+          referralCode: referralCode || undefined,
+          referralSource: referralSource || undefined,
         }),
       });
 

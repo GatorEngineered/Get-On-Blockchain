@@ -28,10 +28,12 @@ const prisma = new PrismaClient();
  * - address: string (optional)
  * - password: string (required, min 8 chars, uppercase, lowercase, number, special)
  * - merchantSlug: string (optional) - for tracking registration source
+ * - referralCode: string (optional) - referral code from link-based sharing
+ * - referralSource: string (optional) - how the referral link was shared (twitter, facebook, etc.)
  */
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, phone, address, password, merchantSlug } =
+    const { firstName, lastName, email, phone, address, password, merchantSlug, referralCode, referralSource } =
       await req.json();
 
     // Validate required fields
@@ -170,7 +172,124 @@ export async function POST(req: NextRequest) {
     );
 
     // =========================================================================
-    // REFERRAL CONVERSION: Check if any pending referrals exist for this email
+    // LINK-BASED REFERRAL: If referralCode provided, create and process referral
+    // =========================================================================
+    if (referralCode) {
+      // Look up the referrer by their referral code
+      const referrerMerchantMember = await prisma.merchantMember.findUnique({
+        where: { referralCode },
+        include: {
+          merchant: {
+            select: {
+              id: true,
+              name: true,
+              loginEmail: true,
+              referralPointsValue: true,
+              referralEnabled: true,
+            },
+          },
+          member: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      });
+
+      if (referrerMerchantMember && referrerMerchantMember.merchant.referralEnabled) {
+        // Check if this isn't a self-referral
+        if (referrerMerchantMember.memberId !== member.id) {
+          // Check if there isn't already a pending email referral for this
+          const existingReferral = await prisma.referral.findFirst({
+            where: {
+              referrerId: referrerMerchantMember.memberId,
+              merchantId: referrerMerchantMember.merchantId,
+              referredEmail: normalizedEmail,
+            },
+          });
+
+          if (!existingReferral) {
+            // Create a new referral record from the link
+            const pointsToAward = referrerMerchantMember.merchant.referralPointsValue;
+
+            // Award points and create converted referral in one transaction
+            await prisma.$transaction([
+              // Award points to referrer
+              prisma.merchantMember.update({
+                where: { id: referrerMerchantMember.id },
+                data: {
+                  points: { increment: pointsToAward },
+                },
+              }),
+              // Create already-converted referral record
+              prisma.referral.create({
+                data: {
+                  referrerId: referrerMerchantMember.memberId,
+                  merchantId: referrerMerchantMember.merchantId,
+                  referredEmail: normalizedEmail,
+                  status: 'CONVERTED',
+                  pointsAwarded: pointsToAward,
+                  convertedAt: new Date(),
+                  source: referralSource || 'link',
+                },
+              }),
+              // Log referral conversion event
+              prisma.event.create({
+                data: {
+                  memberId: referrerMerchantMember.memberId,
+                  merchantId: referrerMerchantMember.merchantId,
+                  type: 'REFERRAL_CONVERTED',
+                  metadata: {
+                    referredEmail: normalizedEmail,
+                    referredMemberId: member.id,
+                    pointsAwarded: pointsToAward,
+                    source: referralSource || 'link',
+                  },
+                },
+              }),
+              // Note: RewardTransaction not created for link referrals as it requires a businessId
+              // Points are already awarded via MerchantMember update above
+            ]);
+
+            console.log(
+              `[Link Referral] Member ${referrerMerchantMember.memberId} earned ${pointsToAward} points for referring ${member.email} (source: ${referralSource || 'link'})`
+            );
+
+            // Send notification emails (non-blocking)
+            const referrerName = referrerMerchantMember.member.firstName
+              ? `${referrerMerchantMember.member.firstName} ${referrerMerchantMember.member.lastName}`
+              : referrerMerchantMember.member.email;
+
+            sendReferralConvertedEmail({
+              referrerEmail: referrerMerchantMember.member.email,
+              referrerName: referrerMerchantMember.member.firstName || 'there',
+              referredEmail: normalizedEmail,
+              merchantName: referrerMerchantMember.merchant.name,
+              pointsAwarded: pointsToAward,
+            }).catch((err) => {
+              console.error('[Link Referral] Failed to send converted email:', err);
+            });
+
+            sendMerchantReferralConvertedNotification({
+              merchantEmail: referrerMerchantMember.merchant.loginEmail,
+              merchantName: referrerMerchantMember.merchant.name,
+              referrerName,
+              referrerEmail: referrerMerchantMember.member.email,
+              newMemberEmail: normalizedEmail,
+              pointsAwarded: pointsToAward,
+            }).catch((err) => {
+              console.error('[Link Referral] Failed to send merchant notification:', err);
+            });
+          }
+        }
+      }
+    }
+
+    // =========================================================================
+    // EMAIL-BASED REFERRAL: Check if any pending referrals exist for this email
     // =========================================================================
     const pendingReferrals = await prisma.referral.findMany({
       where: {

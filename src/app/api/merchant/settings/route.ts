@@ -174,6 +174,11 @@ export async function GET(req: NextRequest) {
       happyHourEndTime: merchant.happyHourEndTime,
       happyHourDaysOfWeek: merchant.happyHourDaysOfWeek,
       happyHourTimezone: merchant.happyHourTimezone,
+      // Social Links
+      instagramUrl: merchant.instagramUrl,
+      facebookUrl: merchant.facebookUrl,
+      twitterUrl: merchant.twitterUrl,
+      tiktokUrl: merchant.tiktokUrl,
     });
   } catch (error: any) {
     console.error('[Merchant Settings] Error:', error);
@@ -217,6 +222,11 @@ export async function PUT(req: NextRequest) {
       happyHourEndTime,
       happyHourDaysOfWeek,
       happyHourTimezone,
+      // Social Links
+      instagramUrl,
+      facebookUrl,
+      twitterUrl,
+      tiktokUrl,
     } = body;
 
     // Build update data (only include fields that are provided)
@@ -292,6 +302,20 @@ export async function PUT(req: NextRequest) {
       updateData.happyHourTimezone = happyHourTimezone;
     }
 
+    // Social Links (accept string or null to clear)
+    if (instagramUrl !== undefined) {
+      updateData.instagramUrl = instagramUrl || null;
+    }
+    if (facebookUrl !== undefined) {
+      updateData.facebookUrl = facebookUrl || null;
+    }
+    if (twitterUrl !== undefined) {
+      updateData.twitterUrl = twitterUrl || null;
+    }
+    if (tiktokUrl !== undefined) {
+      updateData.tiktokUrl = tiktokUrl || null;
+    }
+
     // Update merchant settings
     const merchant = await prisma.merchant.update({
       where: { id: merchantId },
@@ -306,6 +330,10 @@ export async function PUT(req: NextRequest) {
         happyHourEndTime: true,
         happyHourDaysOfWeek: true,
         happyHourTimezone: true,
+        instagramUrl: true,
+        facebookUrl: true,
+        twitterUrl: true,
+        tiktokUrl: true,
       },
     });
 
@@ -321,6 +349,10 @@ export async function PUT(req: NextRequest) {
       happyHourEndTime: merchant.happyHourEndTime,
       happyHourDaysOfWeek: merchant.happyHourDaysOfWeek,
       happyHourTimezone: merchant.happyHourTimezone,
+      instagramUrl: merchant.instagramUrl,
+      facebookUrl: merchant.facebookUrl,
+      twitterUrl: merchant.twitterUrl,
+      tiktokUrl: merchant.tiktokUrl,
     });
   } catch (error: any) {
     console.error('[Merchant Settings] Error updating settings:', error);

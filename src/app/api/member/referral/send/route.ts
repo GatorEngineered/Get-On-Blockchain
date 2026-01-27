@@ -150,6 +150,7 @@ export async function POST(req: NextRequest) {
         merchantId: merchantId,
         referredEmail: referredEmail.toLowerCase(),
         status: 'PENDING',
+        source: 'email', // Track that this was an email-based referral
       },
     });
 

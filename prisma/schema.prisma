@@ -122,6 +122,12 @@ model Merchant {
   happyHourDaysOfWeek   Json?   // [0,1,2,3,4,5,6] where 0=Sunday, 6=Saturday
   happyHourTimezone     String  @default("America/Los_Angeles")
 
+  // Social Media Links (for member dashboard display)
+  instagramUrl    String?
+  facebookUrl     String?
+  twitterUrl      String?
+  tiktokUrl       String?
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   businesses      Business[]
@@ -230,6 +236,9 @@ model MerchantMember {
   lastBirthdayClaimYear              Int? // e.g., 2026 - prevents double claim same year
   lastMemberAnniversaryClaimYear     Int? // For membership anniversary (join date)
   lastRelationshipAnniversaryClaimYear Int? // For relationship/wedding anniversary
+
+  // Referral Code (unique shareable link)
+  referralCode String? @unique // 8-char alphanumeric code e.g., "ABC12345"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -562,6 +571,7 @@ model Referral {
   referredEmail String         // Email address of referred friend
   status        ReferralStatus @default(PENDING)
   pointsAwarded Int?           // Points given when converted (null until converted)
+  source        String?        // How referral was shared: "email", "link", "twitter", "facebook", "whatsapp", "copy"
   createdAt     DateTime       @default(now())
   convertedAt   DateTime?      // When the referral was converted (friend signed up)
 

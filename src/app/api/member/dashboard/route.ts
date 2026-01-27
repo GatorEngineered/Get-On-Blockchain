@@ -105,6 +105,11 @@ export async function GET(req: NextRequest) {
             happyHourDaysOfWeek: true,
             happyHourTimezone: true,
             earnPerVisit: true,
+            // Social Links
+            instagramUrl: true,
+            facebookUrl: true,
+            twitterUrl: true,
+            tiktokUrl: true,
             businesses: {
               select: {
                 id: true,
