@@ -72,9 +72,13 @@
 }
 
 .billingToggleBtnActive {
-  background: #244b7a;
-  color: #ffffff;
+  background: #244b7a !important;
+  color: #ffffff !important;
   box-shadow: 0 2px 8px rgba(36, 75, 122, 0.25);
+}
+
+.billingToggleBtnActive:hover {
+  color: #ffffff !important;
 }
 
 .billingToggleBadge {
