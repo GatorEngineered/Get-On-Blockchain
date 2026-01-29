@@ -109,7 +109,7 @@ export default function WhatYouCanDo() {
         </div>
 
         {/* Exclusive Perks */}
-        <div className="feature-block feature-block-alt">
+        <div className="feature-block">
           <div className="feature-visual">
             <div className="feature-card feature-card-gold">
               <div className="feature-card-header">
