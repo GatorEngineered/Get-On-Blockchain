@@ -2266,7 +2266,8 @@ input[type="radio"]:focus-visible {
 .feature-icon-blue,
 .feature-icon-pink,
 .feature-icon-indigo,
-.feature-icon-teal {
+.feature-icon-teal,
+.feature-icon-rose {
   background: var(--color-primary);
   color: white;
 }
@@ -2338,6 +2339,11 @@ input[type="radio"]:focus-visible {
 .feature-card-pink,
 .feature-card-teal {
   background: var(--color-primary);
+}
+
+/* Rose card - soft pink gradient for special days */
+.feature-card-rose {
+  background: linear-gradient(135deg, #be185d 0%, #db2777 50%, #ec4899 100%);
 }
 
 /* Even sections - accent color */
@@ -2481,6 +2487,54 @@ input[type="radio"]:focus-visible {
   margin-top: 0.5rem;
   font-size: 0.85rem;
   opacity: 0.8;
+}
+
+/* Special Day Display */
+.special-day-display {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.special-day-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 1rem;
+  border-radius: 12px;
+}
+
+.special-day-icon {
+  font-size: 2rem;
+}
+
+.special-day-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.special-day-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.special-day-reward {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.special-day-footer {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-align: center;
 }
 
 /* Token Display */

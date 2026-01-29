@@ -57,8 +57,59 @@ export default function WhatYouCanDo() {
           </div>
         </div>
 
-        {/* Exclusive Perks */}
+        {/* Special Days - Birthday & Anniversary */}
         <div className="feature-block">
+          <div className="feature-visual">
+            <div className="feature-card feature-card-rose">
+              <div className="feature-card-header">
+                <span className="feature-card-badge">Special Day Reward</span>
+              </div>
+              <div className="feature-card-content">
+                <div className="special-day-display">
+                  <div className="special-day-item">
+                    <span className="special-day-icon">🎂</span>
+                    <div className="special-day-info">
+                      <span className="special-day-title">Happy Birthday!</span>
+                      <span className="special-day-reward">+200 bonus points</span>
+                    </div>
+                  </div>
+                  <div className="special-day-item">
+                    <span className="special-day-icon">💕</span>
+                    <div className="special-day-info">
+                      <span className="special-day-title">Happy Anniversary!</span>
+                      <span className="special-day-reward">+150 bonus points</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="special-day-footer">
+                  <span>Automatic rewards on their special days</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="feature-content">
+            <div className="feature-icon feature-icon-rose">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
+            </div>
+            <h3>Celebrate <span className="title-accent">Their Special Days</span></h3>
+            <p className="feature-description">
+              Birthdays. Anniversaries. The moments that matter most to your members.
+              Automatically reward them on their special days and make them feel truly
+              valued. Personal touches that build lifelong loyalty.
+            </p>
+            <ul className="feature-list">
+              <li>Birthday bonus points—automatic</li>
+              <li>Relationship anniversary rewards</li>
+              <li>Customizable reward amounts</li>
+              <li>Personal messages on their day</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Exclusive Perks */}
+        <div className="feature-block feature-block-alt">
           <div className="feature-visual">
             <div className="feature-card feature-card-gold">
               <div className="feature-card-header">
