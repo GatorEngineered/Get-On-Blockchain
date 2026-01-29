@@ -605,8 +605,8 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             </div>
 
             {birthdayEnabled && (
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                <div style={{ flex: '1', minWidth: '120px' }}>
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', marginTop: '0.75rem' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Points</label>
                   <input
                     type="number"
@@ -615,15 +615,16 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                     min="1"
                     max="10000"
                     style={{
-                      width: '100%',
+                      width: '80px',
                       padding: '0.5rem',
                       border: '1px solid #fcd34d',
                       borderRadius: '6px',
                       background: 'white',
+                      textAlign: 'center',
                     }}
                   />
                 </div>
-                <div style={{ flex: '1', minWidth: '120px' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Window (days)</label>
                   <input
                     type="number"
@@ -632,16 +633,17 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                     min="1"
                     max="30"
                     style={{
-                      width: '100%',
+                      width: '80px',
                       padding: '0.5rem',
                       border: '1px solid #fcd34d',
                       borderRadius: '6px',
                       background: 'white',
+                      textAlign: 'center',
                     }}
                   />
                 </div>
                 {birthdayClaimsThisYear > 0 && (
-                  <div style={{ flex: '1', minWidth: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <span style={{ fontSize: '0.8rem', color: '#78350f' }}>Claims this year</span>
                     <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e' }}>{birthdayClaimsThisYear}</span>
                   </div>
@@ -696,8 +698,8 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             </div>
 
             {memberAnniversaryEnabled && (
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                <div style={{ flex: '1', minWidth: '120px' }}>
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', marginTop: '0.75rem' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Points</label>
                   <input
                     type="number"
@@ -706,15 +708,16 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                     min="1"
                     max="10000"
                     style={{
-                      width: '100%',
+                      width: '80px',
                       padding: '0.5rem',
                       border: '1px solid #93c5fd',
                       borderRadius: '6px',
                       background: 'white',
+                      textAlign: 'center',
                     }}
                   />
                 </div>
-                <div style={{ flex: '1', minWidth: '120px' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Window (days)</label>
                   <input
                     type="number"
@@ -723,16 +726,17 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                     min="1"
                     max="30"
                     style={{
-                      width: '100%',
+                      width: '80px',
                       padding: '0.5rem',
                       border: '1px solid #93c5fd',
                       borderRadius: '6px',
                       background: 'white',
+                      textAlign: 'center',
                     }}
                   />
                 </div>
                 {memberAnniversaryClaimsThisYear > 0 && (
-                  <div style={{ flex: '1', minWidth: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <span style={{ fontSize: '0.8rem', color: '#1e3a8a' }}>Claims this year</span>
                     <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e40af' }}>{memberAnniversaryClaimsThisYear}</span>
                   </div>
@@ -787,8 +791,8 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             </div>
 
             {relationshipAnniversaryEnabled && (
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                <div style={{ flex: '1', minWidth: '120px' }}>
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', marginTop: '0.75rem' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Points</label>
                   <input
                     type="number"
@@ -797,15 +801,16 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                     min="1"
                     max="10000"
                     style={{
-                      width: '100%',
+                      width: '80px',
                       padding: '0.5rem',
                       border: '1px solid #f9a8d4',
                       borderRadius: '6px',
                       background: 'white',
+                      textAlign: 'center',
                     }}
                   />
                 </div>
-                <div style={{ flex: '1', minWidth: '120px' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Window (days)</label>
                   <input
                     type="number"
@@ -814,16 +819,17 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
                     min="1"
                     max="30"
                     style={{
-                      width: '100%',
+                      width: '80px',
                       padding: '0.5rem',
                       border: '1px solid #f9a8d4',
                       borderRadius: '6px',
                       background: 'white',
+                      textAlign: 'center',
                     }}
                   />
                 </div>
                 {relationshipAnniversaryClaimsThisYear > 0 && (
-                  <div style={{ flex: '1', minWidth: '120px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <span style={{ fontSize: '0.8rem', color: '#9d174d' }}>Claims this year</span>
                     <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#be185d' }}>{relationshipAnniversaryClaimsThisYear}</span>
                   </div>
