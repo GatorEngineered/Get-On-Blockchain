@@ -368,6 +368,30 @@ export function hasUnlimitedMembers(plan: string): boolean {
 }
 
 /**
+ * Check if plan has external API access (Premium+)
+ * This includes: API keys, webhooks, widgets, product-specific points
+ */
+export function hasExternalApiAccess(plan: string): boolean {
+  // PREMIUM, GROWTH, and PRO have API access
+  return ['PREMIUM', 'GROWTH', 'PRO'].includes(plan);
+}
+
+/**
+ * Check if plan has social engagement features (Premium+)
+ * Allows members to earn points for social media actions
+ */
+export function hasSocialEngagement(plan: string): boolean {
+  return ['PREMIUM', 'GROWTH', 'PRO'].includes(plan);
+}
+
+/**
+ * Check if plan has product-specific points rules (Premium+)
+ */
+export function hasProductPointsRules(plan: string): boolean {
+  return ['PREMIUM', 'GROWTH', 'PRO'].includes(plan);
+}
+
+/**
  * Check if a reward is over the plan limit
  * Used to determine if reward should be greyed out
  * Note: -1 limit means unlimited (all rewards active)

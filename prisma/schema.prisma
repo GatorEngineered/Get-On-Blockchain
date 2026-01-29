@@ -143,6 +143,10 @@ model Merchant {
   redemptionRequests RedemptionRequest[] // QR-verified redemption requests
   merchantToken   MerchantToken?   // Branded token (Growth plan)
   eventQRCodes    EventQRCode[]    // Event-specific QR codes
+  apiKeys         ApiKey[]         // External API keys (Premium+)
+  externalOrders  ExternalOrder[]  // Orders from external systems
+  pointsRules     PointsRule[]     // Custom points rules (product, category, action)
+  socialEngagements SocialEngagement[] // Member social engagements
 }
 
 /// *
@@ -200,6 +204,8 @@ model Member {
   tokenBalances      TokenBalance[]   // Branded token balances
   tokenTransactions  TokenTransaction[] // Token transaction history
   eventScans         EventScan[]      // Event QR code scans
+  externalOrders     ExternalOrder[]  // Orders linked to this member
+  socialEngagements  SocialEngagement[] // Social media engagements
 }
 
 /// *
@@ -944,4 +950,237 @@ model EventScan {
   @@unique([eventQRCodeId, memberId])
   @@index([memberId])
   @@index([eventQRCodeId])
+}
+
+// ============================================================================
+// EXTERNAL API INTEGRATION SYSTEM (Premium+)
+// ============================================================================
+
+/// *
+///  * ApiKey - Secure API keys for external integrations
+///  * Allows merchants to integrate with their own systems (Shopify, WooCommerce, custom)
+model ApiKey {
+  id              String   @id @default(cuid())
+  merchantId      String
+
+  // Key details
+  name            String   // "Shopify Integration", "Website Widget", etc.
+  keyPrefix       String   // First 8 chars shown: "gob_live_abc12345..."
+  keyHash         String   // SHA-256 hash of full key (never store plaintext!)
+
+  // Permissions (what this key can do)
+  permissions     Json     @default("[\"read:members\", \"write:points\", \"read:rewards\"]")
+  // Available: read:members, write:members, read:points, write:points,
+  //            read:rewards, write:rewards, read:orders, write:orders
+
+  // Rate limiting
+  rateLimit       Int      @default(1000) // Requests per hour
+
+  // Security
+  lastUsedAt      DateTime?
+  lastUsedIP      String?
+  isActive        Boolean  @default(true)
+  expiresAt       DateTime? // Optional expiration
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  apiUsageLogs    ApiUsageLog[]
+
+  @@index([merchantId])
+  @@index([keyHash])
+  @@index([keyPrefix])
+}
+
+/// *
+///  * ApiUsageLog - Track API usage for rate limiting and analytics
+model ApiUsageLog {
+  id          String   @id @default(cuid())
+  apiKeyId    String
+
+  // Request details
+  endpoint    String   // "/api/v1/points/award"
+  method      String   // "POST"
+  statusCode  Int      // 200, 400, 401, etc.
+
+  // Performance
+  responseTime Int?    // Milliseconds
+
+  // Client info
+  ipAddress   String?
+  userAgent   String?
+
+  createdAt   DateTime @default(now())
+
+  // Relations
+  apiKey      ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@index([apiKeyId])
+  @@index([createdAt])
+  @@index([endpoint])
+}
+
+/// *
+///  * ExternalOrder - Orders received via webhook or API
+///  * Used to award points for external e-commerce transactions
+model ExternalOrder {
+  id              String   @id @default(cuid())
+  merchantId      String
+
+  // External reference
+  externalId      String   // Order ID from external system
+  externalSource  String   // "shopify", "woocommerce", "webhook", "api"
+
+  // Customer matching
+  customerEmail   String
+  memberId        String?  // Linked member (null if not found/created)
+
+  // Order details
+  orderTotal      Float    // Total order amount
+  currency        String   @default("USD")
+  orderDate       DateTime @default(now())
+
+  // Points awarded
+  pointsAwarded   Int?     // Points given for this order
+  pointsAwardedAt DateTime?
+
+  // Status
+  status          String   @default("pending") // pending, processed, failed, duplicate
+  errorMessage    String?
+
+  // Product-level data (optional, for product-specific points)
+  lineItems       Json?    // [{ sku, name, quantity, price, category }]
+
+  // Idempotency
+  idempotencyKey  String?  @unique // Prevent duplicate processing
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  member          Member?  @relation(fields: [memberId], references: [id], onDelete: SetNull)
+
+  @@unique([merchantId, externalId, externalSource])
+  @@index([merchantId])
+  @@index([customerEmail])
+  @@index([memberId])
+  @@index([status])
+}
+
+/// *
+///  * PointsRule - Custom points rules for products, categories, or actions
+///  * Allows merchants to set bonus points for specific items or behaviors
+model PointsRule {
+  id              String   @id @default(cuid())
+  merchantId      String
+
+  // Rule name/description
+  name            String   // "Double Points on Dresses", "Follow Instagram Bonus"
+  description     String?
+
+  // Rule type
+  ruleType        String   // "product", "category", "action", "time"
+
+  // Targeting (depends on ruleType)
+  // For product: { sku: "ABC123" } or { skus: ["ABC", "DEF"] }
+  // For category: { category: "dresses" } or { categories: ["shoes", "bags"] }
+  // For action: { action: "instagram_follow" } or { action: "review" }
+  // For time: { startTime: "14:00", endTime: "17:00", days: [1,2,3,4,5] }
+  targetConfig    Json
+
+  // Reward configuration
+  pointsType      String   @default("multiplier") // "multiplier", "bonus", "fixed"
+  // multiplier: multiply base points (2.0 = double)
+  // bonus: add flat bonus points
+  // fixed: override with fixed points amount
+  pointsValue     Float    // 2.0 for double, 50 for bonus, etc.
+
+  // Validity
+  startDate       DateTime?
+  endDate         DateTime?
+  isActive        Boolean  @default(true)
+
+  // Limits
+  maxUsesTotal    Int?     // Max times this rule can be used total
+  maxUsesPerMember Int?    // Max times per member
+  currentUses     Int      @default(0)
+
+  // Priority (higher = applied first)
+  priority        Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  pointsRuleUsages PointsRuleUsage[]
+
+  @@index([merchantId])
+  @@index([ruleType])
+  @@index([isActive])
+}
+
+/// *
+///  * PointsRuleUsage - Track usage of points rules
+model PointsRuleUsage {
+  id              String   @id @default(cuid())
+  pointsRuleId    String
+  memberId        String
+
+  // What triggered the rule
+  triggeredBy     String?  // orderId, scanId, actionId, etc.
+  pointsAwarded   Int      // Points given from this rule
+
+  usedAt          DateTime @default(now())
+
+  // Relations
+  pointsRule      PointsRule @relation(fields: [pointsRuleId], references: [id], onDelete: Cascade)
+
+  @@index([pointsRuleId])
+  @@index([memberId])
+}
+
+/// *
+///  * SocialEngagement - Track member social media engagements for points
+///  * Members earn points for following, sharing, reviewing, etc.
+model SocialEngagement {
+  id              String   @id @default(cuid())
+  merchantId      String
+  memberId        String
+
+  // Engagement details
+  engagementType  String   // "instagram_follow", "facebook_follow", "twitter_follow",
+                           // "tiktok_follow", "google_review", "share", "photo_upload"
+
+  // Verification
+  proofUrl        String?  // URL to the review, post, etc.
+  verificationMethod String @default("self_reported") // "self_reported", "oauth", "manual"
+  isVerified      Boolean  @default(false)
+  verifiedAt      DateTime?
+  verifiedBy      String?  // Staff ID who verified (for manual)
+
+  // Points
+  pointsAwarded   Int?     // Points given (null if pending verification)
+  pointsAwardedAt DateTime?
+
+  // Status
+  status          String   @default("pending") // pending, approved, rejected
+  rejectionReason String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  member          Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate claims
+  @@unique([merchantId, memberId, engagementType])
+  @@index([merchantId])
+  @@index([memberId])
+  @@index([engagementType])
+  @@index([status])
 }
