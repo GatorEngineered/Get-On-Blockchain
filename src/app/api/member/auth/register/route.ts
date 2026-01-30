@@ -186,6 +186,7 @@ export async function POST(req: NextRequest) {
               loginEmail: true,
               referralPointsValue: true,
               referralEnabled: true,
+              businesses: { select: { id: true }, take: 1 }, // Get first business for transaction
             },
           },
           member: {
@@ -216,7 +217,7 @@ export async function POST(req: NextRequest) {
             const pointsToAward = referrerMerchantMember.merchant.referralPointsValue;
 
             // Award points and create converted referral in one transaction
-            await prisma.$transaction([
+            const transactionOps = [
               // Award points to referrer
               prisma.merchantMember.update({
                 where: { id: referrerMerchantMember.id },
@@ -250,9 +251,26 @@ export async function POST(req: NextRequest) {
                   },
                 },
               }),
-              // Note: RewardTransaction not created for link referrals as it requires a businessId
-              // Points are already awarded via MerchantMember update above
-            ]);
+            ];
+
+            // Create RewardTransaction for transaction history if business exists
+            if (referrerMerchantMember.merchant.businesses.length > 0) {
+              transactionOps.push(
+                prisma.rewardTransaction.create({
+                  data: {
+                    merchantMemberId: referrerMerchantMember.id,
+                    businessId: referrerMerchantMember.merchant.businesses[0].id,
+                    memberId: referrerMerchantMember.memberId,
+                    type: 'EARN',
+                    amount: pointsToAward,
+                    reason: `Referral bonus - ${normalizedEmail} joined ${referrerMerchantMember.merchant.name}`,
+                    status: 'SUCCESS',
+                  },
+                })
+              );
+            }
+
+            await prisma.$transaction(transactionOps);
 
             console.log(
               `[Link Referral] Member ${referrerMerchantMember.memberId} earned ${pointsToAward} points for referring ${member.email} (source: ${referralSource || 'link'})`
@@ -312,6 +330,7 @@ export async function POST(req: NextRequest) {
             loginEmail: true,
             referralPointsValue: true,
             referralEnabled: true,
+            businesses: { select: { id: true }, take: 1 }, // Get first business for transaction
           },
         },
       },
@@ -348,7 +367,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Award points to referrer and update referral status
-        await prisma.$transaction([
+        const emailReferralOps = [
           // Update referrer's points
           prisma.merchantMember.update({
             where: { id: merchantMember.id },
@@ -381,7 +400,26 @@ export async function POST(req: NextRequest) {
               },
             },
           }),
-        ]);
+        ];
+
+        // Create RewardTransaction for transaction history if business exists
+        if (referral.merchant.businesses.length > 0) {
+          emailReferralOps.push(
+            prisma.rewardTransaction.create({
+              data: {
+                merchantMemberId: merchantMember.id,
+                businessId: referral.merchant.businesses[0].id,
+                memberId: referral.referrerId,
+                type: 'EARN',
+                amount: pointsToAward,
+                reason: `Referral bonus - ${normalizedEmail} joined ${referral.merchant.name}`,
+                status: 'SUCCESS',
+              },
+            })
+          );
+        }
+
+        await prisma.$transaction(emailReferralOps);
 
         const referrerName = referral.referrer.firstName && referral.referrer.lastName
           ? `${referral.referrer.firstName} ${referral.referrer.lastName}`

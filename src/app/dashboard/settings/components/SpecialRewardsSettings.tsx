@@ -8,19 +8,29 @@ interface SpecialRewardsSettingsProps {
   onUpdate?: (data: any) => void;
 }
 
+interface AvailableReward {
+  id: string;
+  name: string;
+  description: string | null;
+  pointsCost: number;
+}
+
 interface SpecialRewardsData {
   birthday: {
     enabled: boolean;
     points: number;
     windowDays: number;
+    rewardId: string | null;
     claimsThisYear: number;
   };
   anniversary: {
     enabled: boolean;
     points: number;
     windowDays: number;
+    rewardId: string | null;
     claimsThisYear: number;
   };
+  availableRewards: AvailableReward[];
 }
 
 export default function SpecialRewardsSettings({ merchantData, onUpdate }: SpecialRewardsSettingsProps) {
@@ -34,9 +44,12 @@ export default function SpecialRewardsSettings({ merchantData, onUpdate }: Speci
   const [birthdayEnabled, setBirthdayEnabled] = useState(false);
   const [birthdayPoints, setBirthdayPoints] = useState(50);
   const [birthdayWindowDays, setBirthdayWindowDays] = useState(7);
+  const [birthdayRewardId, setBirthdayRewardId] = useState<string | null>(null);
   const [anniversaryEnabled, setAnniversaryEnabled] = useState(false);
   const [anniversaryPoints, setAnniversaryPoints] = useState(50);
   const [anniversaryWindowDays, setAnniversaryWindowDays] = useState(7);
+  const [anniversaryRewardId, setAnniversaryRewardId] = useState<string | null>(null);
+  const [availableRewards, setAvailableRewards] = useState<AvailableReward[]>([]);
 
   useEffect(() => {
     fetchSettings();
@@ -56,9 +69,13 @@ export default function SpecialRewardsSettings({ merchantData, onUpdate }: Speci
       setBirthdayEnabled(responseData.birthday.enabled);
       setBirthdayPoints(responseData.birthday.points);
       setBirthdayWindowDays(responseData.birthday.windowDays);
-      setAnniversaryEnabled(responseData.anniversary.enabled);
-      setAnniversaryPoints(responseData.anniversary.points);
-      setAnniversaryWindowDays(responseData.anniversary.windowDays);
+      setBirthdayRewardId(responseData.birthday.rewardId || null);
+      // Use relationshipAnniversary from API
+      setAnniversaryEnabled(responseData.relationshipAnniversary?.enabled || false);
+      setAnniversaryPoints(responseData.relationshipAnniversary?.points || 50);
+      setAnniversaryWindowDays(responseData.relationshipAnniversary?.windowDays || 7);
+      setAnniversaryRewardId(responseData.relationshipAnniversary?.rewardId || null);
+      setAvailableRewards(responseData.availableRewards || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -79,9 +96,11 @@ export default function SpecialRewardsSettings({ merchantData, onUpdate }: Speci
           birthdayRewardEnabled: birthdayEnabled,
           birthdayRewardPoints: birthdayPoints,
           birthdayRewardWindowDays: birthdayWindowDays,
-          anniversaryRewardEnabled: anniversaryEnabled,
-          anniversaryRewardPoints: anniversaryPoints,
-          anniversaryRewardWindowDays: anniversaryWindowDays,
+          birthdayRewardId: birthdayRewardId,
+          relationshipAnniversaryRewardEnabled: anniversaryEnabled,
+          relationshipAnniversaryRewardPoints: anniversaryPoints,
+          relationshipAnniversaryRewardWindowDays: anniversaryWindowDays,
+          relationshipAnniversaryRewardId: anniversaryRewardId,
         }),
       });
 
@@ -192,6 +211,29 @@ export default function SpecialRewardsSettings({ merchantData, onUpdate }: Speci
               </div>
             </div>
 
+            {/* Optional Free Reward */}
+            <div className={styles.settingRow} style={{ marginTop: '1rem' }}>
+              <div className={styles.settingField} style={{ flex: 1 }}>
+                <label className={styles.settingLabel}>Bonus Free Reward (Optional)</label>
+                <select
+                  className={styles.settingInput}
+                  value={birthdayRewardId || ''}
+                  onChange={(e) => setBirthdayRewardId(e.target.value || null)}
+                  style={{ width: '100%' }}
+                >
+                  <option value="">Points only (no free reward)</option>
+                  {availableRewards.map((reward) => (
+                    <option key={reward.id} value={reward.id}>
+                      {reward.name} (normally {reward.pointsCost} pts)
+                    </option>
+                  ))}
+                </select>
+                <p className={styles.settingHint}>
+                  In addition to points, member receives this reward for free on their birthday
+                </p>
+              </div>
+            </div>
+
             {data && (
               <div className={styles.statsRow}>
                 <div className={styles.statItem}>
@@ -257,10 +299,33 @@ export default function SpecialRewardsSettings({ merchantData, onUpdate }: Speci
               </div>
             </div>
 
+            {/* Optional Free Reward */}
+            <div className={styles.settingRow} style={{ marginTop: '1rem' }}>
+              <div className={styles.settingField} style={{ flex: 1 }}>
+                <label className={styles.settingLabel}>Bonus Free Reward (Optional)</label>
+                <select
+                  className={styles.settingInput}
+                  value={anniversaryRewardId || ''}
+                  onChange={(e) => setAnniversaryRewardId(e.target.value || null)}
+                  style={{ width: '100%' }}
+                >
+                  <option value="">Points only (no free reward)</option>
+                  {availableRewards.map((reward) => (
+                    <option key={reward.id} value={reward.id}>
+                      {reward.name} (normally {reward.pointsCost} pts)
+                    </option>
+                  ))}
+                </select>
+                <p className={styles.settingHint}>
+                  In addition to points, member receives this reward for free on their anniversary
+                </p>
+              </div>
+            </div>
+
             {data && (
               <div className={styles.statsRow}>
                 <div className={styles.statItem}>
-                  <span className={styles.statValue}>{data.anniversary.claimsThisYear}</span>
+                  <span className={styles.statValue}>{data.relationshipAnniversary?.claimsThisYear || 0}</span>
                   <span className={styles.statLabel}>Claims this year</span>
                 </div>
               </div>

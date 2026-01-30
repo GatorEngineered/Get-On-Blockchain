@@ -507,7 +507,7 @@
   background: #e5e7eb;
 }
 
-/* Responsive */
+/* Responsive - Tablet */
 @media (max-width: 768px) {
   .headerRow {
     flex-direction: column;
@@ -536,6 +536,7 @@
 
   .rewardActions button {
     flex: 1;
+    min-width: 80px;
   }
 
   .infoGrid {
@@ -548,6 +549,136 @@
 
   .cancelButton,
   .saveButton {
+    width: 100%;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+  }
+
+  .rewardCard {
+    padding: 1rem;
+  }
+
+  .rewardName {
+    font-size: 1rem;
+  }
+
+  .rewardDescription {
+    font-size: 0.85rem;
+  }
+
+  .rewardDetails {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .pointsValue {
+    font-size: 1.25rem;
+  }
+
+  .rewardActions {
+    width: 100%;
+  }
+
+  .rewardActions button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .toggleButton,
+  .editButton,
+  .deleteButton {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .emptyState {
+    padding: 2rem 1rem;
+  }
+
+  .emptyTitle {
+    font-size: 1rem;
+  }
+
+  .emptyText {
+    font-size: 0.85rem;
+  }
+
+  .infoCard {
+    padding: 1rem;
+  }
+
+  .infoTitle {
+    font-size: 0.9rem;
+  }
+
+  .infoItem {
+    font-size: 0.85rem;
+  }
+
+  .modal {
+    max-height: 85vh;
+    margin: 0.5rem;
+  }
+
+  .modalHeader {
+    padding: 1rem;
+  }
+
+  .modalTitle {
+    font-size: 1.1rem;
+  }
+
+  .form {
+    padding: 1rem;
+  }
+
+  .formGroup {
+    margin-bottom: 1rem;
+  }
+
+  .label {
+    font-size: 0.85rem;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    padding: 0.625rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .rewardCard {
+    padding: 0.75rem;
+  }
+
+  .rewardBadges {
+    flex-wrap: wrap;
+  }
+
+  .typeBadge,
+  .inactiveBadge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .rewardActions {
+    flex-direction: column;
+  }
+
+  .rewardActions button {
     width: 100%;
   }
 }

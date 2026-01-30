@@ -23,6 +23,13 @@ model Business {
   zipCode            String?
   contactEmail       String
   industry           String? // "restaurant", "gym", "salon", "retail"
+
+  // Business Hours (for rate limiting based on business days)
+  businessOpenTime   String?  // 24-hour format "HH:mm" (e.g., "09:00")
+  businessCloseTime  String?  // 24-hour format "HH:mm" (e.g., "21:00")
+  businessDaysOpen   Json?    // Array of days open [0,1,2,3,4,5,6] where 0=Sunday
+  businessTimezone   String   @default("America/Los_Angeles")
+
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   merchantId         String?
@@ -103,16 +110,19 @@ model Merchant {
   birthdayRewardEnabled       Boolean @default(false)
   birthdayRewardPoints        Int     @default(50)
   birthdayRewardWindowDays    Int     @default(7)  // Days before/after birthday to claim
+  birthdayRewardId            String? // Optional: Free reward from catalog instead of/in addition to points
 
   // Member Anniversary (based on join date / createdAt)
   memberAnniversaryRewardEnabled    Boolean @default(false)
   memberAnniversaryRewardPoints     Int     @default(50)
   memberAnniversaryRewardWindowDays Int     @default(7)  // Days before/after join anniversary to claim
+  memberAnniversaryRewardId         String? // Optional: Free reward from catalog
 
   // Relationship Anniversary (wedding/relationship date set by member)
   relationshipAnniversaryRewardEnabled    Boolean @default(false)
   relationshipAnniversaryRewardPoints     Int     @default(50)
   relationshipAnniversaryRewardWindowDays Int     @default(7)  // Days before/after relationship anniversary to claim
+  relationshipAnniversaryRewardId         String? // Optional: Free reward from catalog
 
   // Happy Hour / Time-based Multiplier Settings
   happyHourEnabled      Boolean @default(false)

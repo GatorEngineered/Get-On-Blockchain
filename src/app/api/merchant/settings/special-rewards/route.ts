@@ -34,13 +34,32 @@ export async function GET() {
         birthdayRewardEnabled: true,
         birthdayRewardPoints: true,
         birthdayRewardWindowDays: true,
+        birthdayRewardId: true,
         memberAnniversaryRewardEnabled: true,
         memberAnniversaryRewardPoints: true,
         memberAnniversaryRewardWindowDays: true,
+        memberAnniversaryRewardId: true,
         relationshipAnniversaryRewardEnabled: true,
         relationshipAnniversaryRewardPoints: true,
         relationshipAnniversaryRewardWindowDays: true,
+        relationshipAnniversaryRewardId: true,
       },
+    });
+
+    // Fetch available rewards for selection
+    const availableRewards = await prisma.reward.findMany({
+      where: {
+        merchantId,
+        isActive: true,
+        rewardType: 'TRADITIONAL', // Only traditional rewards (not USDC payouts)
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        pointsCost: true,
+      },
+      orderBy: { name: 'asc' },
     });
 
     if (!merchant) {
@@ -76,20 +95,24 @@ export async function GET() {
         enabled: merchant.birthdayRewardEnabled,
         points: merchant.birthdayRewardPoints,
         windowDays: merchant.birthdayRewardWindowDays,
+        rewardId: merchant.birthdayRewardId,
         claimsThisYear: birthdayClaims,
       },
       memberAnniversary: {
         enabled: merchant.memberAnniversaryRewardEnabled,
         points: merchant.memberAnniversaryRewardPoints,
         windowDays: merchant.memberAnniversaryRewardWindowDays,
+        rewardId: merchant.memberAnniversaryRewardId,
         claimsThisYear: memberAnniversaryClaims,
       },
       relationshipAnniversary: {
         enabled: merchant.relationshipAnniversaryRewardEnabled,
         points: merchant.relationshipAnniversaryRewardPoints,
         windowDays: merchant.relationshipAnniversaryRewardWindowDays,
+        rewardId: merchant.relationshipAnniversaryRewardId,
         claimsThisYear: relationshipAnniversaryClaims,
       },
+      availableRewards, // List of rewards that can be selected for special occasions
     });
   } catch (error: any) {
     console.error('[Special Rewards Settings GET] Error:', error);
@@ -128,14 +151,17 @@ export async function PUT(req: NextRequest) {
       birthdayRewardEnabled,
       birthdayRewardPoints,
       birthdayRewardWindowDays,
+      birthdayRewardId,
       // Member Anniversary
       memberAnniversaryRewardEnabled,
       memberAnniversaryRewardPoints,
       memberAnniversaryRewardWindowDays,
+      memberAnniversaryRewardId,
       // Relationship Anniversary
       relationshipAnniversaryRewardEnabled,
       relationshipAnniversaryRewardPoints,
       relationshipAnniversaryRewardWindowDays,
+      relationshipAnniversaryRewardId,
     } = body;
 
     // Build update data (only include fields that are provided)
@@ -166,6 +192,25 @@ export async function PUT(req: NextRequest) {
       updateData.birthdayRewardWindowDays = birthdayRewardWindowDays;
     }
 
+    // Birthday reward selection (can be null to remove, or a valid reward ID)
+    if (birthdayRewardId !== undefined) {
+      if (birthdayRewardId === null || birthdayRewardId === '') {
+        updateData.birthdayRewardId = null;
+      } else {
+        // Verify reward belongs to this merchant
+        const reward = await prisma.reward.findFirst({
+          where: { id: birthdayRewardId, merchantId },
+        });
+        if (!reward) {
+          return NextResponse.json(
+            { error: 'Invalid birthday reward selection' },
+            { status: 400 }
+          );
+        }
+        updateData.birthdayRewardId = birthdayRewardId;
+      }
+    }
+
     // Member Anniversary settings
     if (typeof memberAnniversaryRewardEnabled === 'boolean') {
       updateData.memberAnniversaryRewardEnabled = memberAnniversaryRewardEnabled;
@@ -189,6 +234,24 @@ export async function PUT(req: NextRequest) {
         );
       }
       updateData.memberAnniversaryRewardWindowDays = memberAnniversaryRewardWindowDays;
+    }
+
+    // Member anniversary reward selection
+    if (memberAnniversaryRewardId !== undefined) {
+      if (memberAnniversaryRewardId === null || memberAnniversaryRewardId === '') {
+        updateData.memberAnniversaryRewardId = null;
+      } else {
+        const reward = await prisma.reward.findFirst({
+          where: { id: memberAnniversaryRewardId, merchantId },
+        });
+        if (!reward) {
+          return NextResponse.json(
+            { error: 'Invalid member anniversary reward selection' },
+            { status: 400 }
+          );
+        }
+        updateData.memberAnniversaryRewardId = memberAnniversaryRewardId;
+      }
     }
 
     // Relationship Anniversary settings
@@ -216,6 +279,24 @@ export async function PUT(req: NextRequest) {
       updateData.relationshipAnniversaryRewardWindowDays = relationshipAnniversaryRewardWindowDays;
     }
 
+    // Relationship anniversary reward selection
+    if (relationshipAnniversaryRewardId !== undefined) {
+      if (relationshipAnniversaryRewardId === null || relationshipAnniversaryRewardId === '') {
+        updateData.relationshipAnniversaryRewardId = null;
+      } else {
+        const reward = await prisma.reward.findFirst({
+          where: { id: relationshipAnniversaryRewardId, merchantId },
+        });
+        if (!reward) {
+          return NextResponse.json(
+            { error: 'Invalid relationship anniversary reward selection' },
+            { status: 400 }
+          );
+        }
+        updateData.relationshipAnniversaryRewardId = relationshipAnniversaryRewardId;
+      }
+    }
+
     // Update merchant settings
     const merchant = await prisma.merchant.update({
       where: { id: merchantId },
@@ -224,12 +305,15 @@ export async function PUT(req: NextRequest) {
         birthdayRewardEnabled: true,
         birthdayRewardPoints: true,
         birthdayRewardWindowDays: true,
+        birthdayRewardId: true,
         memberAnniversaryRewardEnabled: true,
         memberAnniversaryRewardPoints: true,
         memberAnniversaryRewardWindowDays: true,
+        memberAnniversaryRewardId: true,
         relationshipAnniversaryRewardEnabled: true,
         relationshipAnniversaryRewardPoints: true,
         relationshipAnniversaryRewardWindowDays: true,
+        relationshipAnniversaryRewardId: true,
       },
     });
 
@@ -241,16 +325,19 @@ export async function PUT(req: NextRequest) {
         enabled: merchant.birthdayRewardEnabled,
         points: merchant.birthdayRewardPoints,
         windowDays: merchant.birthdayRewardWindowDays,
+        rewardId: merchant.birthdayRewardId,
       },
       memberAnniversary: {
         enabled: merchant.memberAnniversaryRewardEnabled,
         points: merchant.memberAnniversaryRewardPoints,
         windowDays: merchant.memberAnniversaryRewardWindowDays,
+        rewardId: merchant.memberAnniversaryRewardId,
       },
       relationshipAnniversary: {
         enabled: merchant.relationshipAnniversaryRewardEnabled,
         points: merchant.relationshipAnniversaryRewardPoints,
         windowDays: merchant.relationshipAnniversaryRewardWindowDays,
+        rewardId: merchant.relationshipAnniversaryRewardId,
       },
     });
   } catch (error: any) {

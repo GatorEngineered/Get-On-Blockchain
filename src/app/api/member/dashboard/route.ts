@@ -262,6 +262,7 @@ export async function GET(req: NextRequest) {
         usdcAmount: tx.usdcAmount,
         status: tx.status,
         txHash: tx.txHash,
+        reason: tx.reason, // Include reason for transaction description (birthday, anniversary, referral, etc.)
         createdAt: tx.createdAt.toISOString(),
         business: tx.business,
         merchant: tx.merchantMember?.merchant,

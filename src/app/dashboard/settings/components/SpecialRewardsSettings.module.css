@@ -282,7 +282,7 @@
   font-size: 0.9rem;
 }
 
-/* Responsive */
+/* Responsive - Tablet */
 @media (max-width: 768px) {
   .settingRow {
     grid-template-columns: 1fr;
@@ -303,5 +303,140 @@
 
   .saveButton {
     width: 100%;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .infoCard {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .infoTitle {
+    font-size: 0.9rem;
+  }
+
+  .infoText {
+    font-size: 0.85rem;
+  }
+
+  .infoList {
+    font-size: 0.85rem;
+    padding-left: 1.25rem;
+  }
+
+  .rewardSection {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .rewardIconWrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .rewardIconWrapper svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .rewardTitle {
+    font-size: 1rem;
+  }
+
+  .rewardDescription {
+    font-size: 0.8rem;
+  }
+
+  .toggleSwitch {
+    width: 44px;
+    height: 24px;
+  }
+
+  .toggleSlider:before {
+    height: 18px;
+    width: 18px;
+  }
+
+  .toggleSwitch input:checked + .toggleSlider:before {
+    transform: translateX(20px);
+  }
+
+  .rewardSettings {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .settingLabel {
+    font-size: 0.8rem;
+  }
+
+  .settingInput {
+    padding: 0.625rem;
+    font-size: 0.9rem;
+  }
+
+  .settingHint {
+    font-size: 0.75rem;
+  }
+
+  .statsRow {
+    padding: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .statValue {
+    font-size: 1.25rem;
+  }
+
+  .statLabel {
+    font-size: 0.8rem;
+  }
+
+  .saveButtonWrapper {
+    margin-top: 1.5rem;
+  }
+
+  .saveButton {
+    padding: 0.625rem 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  .errorMessage,
+  .successMessage {
+    font-size: 0.85rem;
+    padding: 0.625rem 0.875rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+  .rewardHeader {
+    gap: 0.75rem;
+  }
+
+  .rewardIconWrapper {
+    width: 36px;
+    height: 36px;
+  }
+
+  .rewardIconWrapper svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .settingRow {
+    gap: 1rem;
   }
 }

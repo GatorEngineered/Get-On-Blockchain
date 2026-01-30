@@ -90,12 +90,22 @@ export async function POST(req: NextRequest) {
         birthdayRewardEnabled: true,
         birthdayRewardPoints: true,
         birthdayRewardWindowDays: true,
+        birthdayRewardId: true, // Optional reward from catalog
         businesses: {
           select: { id: true },
           take: 1,
         },
       },
     });
+
+    // Fetch optional reward details if configured
+    let birthdayReward: { id: string; name: string; description: string | null } | null = null;
+    if (merchant?.birthdayRewardId) {
+      birthdayReward = await prisma.reward.findUnique({
+        where: { id: merchant.birthdayRewardId },
+        select: { id: true, name: true, description: true },
+      });
+    }
 
     if (!merchant) {
       return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
@@ -172,6 +182,8 @@ export async function POST(req: NextRequest) {
           pointsAwarded: merchant.birthdayRewardPoints,
           year: currentYear,
           birthday: { month: member.birthMonth, day: member.birthDay },
+          rewardId: birthdayReward?.id || null,
+          rewardName: birthdayReward?.name || null,
         },
       },
     });
@@ -185,18 +197,49 @@ export async function POST(req: NextRequest) {
           memberId,
           type: 'EARN',
           amount: merchant.birthdayRewardPoints,
-          reason: `Birthday reward from ${merchant.name}`,
+          reason: birthdayReward
+            ? `Birthday reward from ${merchant.name}: ${merchant.birthdayRewardPoints} points + ${birthdayReward.name}`
+            : `Birthday reward from ${merchant.name}`,
           status: 'SUCCESS',
         },
       });
     }
 
+    // If a free reward is configured, create a redemption record (auto-approved)
+    let rewardGrant = null;
+    if (birthdayReward && merchant.businesses.length > 0) {
+      const redemption = await prisma.redemptionRequest.create({
+        data: {
+          merchantMemberId: merchantMember.id,
+          merchantId,
+          businessId: merchant.businesses[0].id,
+          rewardId: birthdayReward.id,
+          status: 'APPROVED', // Auto-approve birthday rewards
+          pointsRequired: 0, // Free reward
+          approvedAt: new Date(),
+          notes: 'Birthday reward - auto-approved',
+        },
+      });
+      rewardGrant = {
+        rewardId: birthdayReward.id,
+        rewardName: birthdayReward.name,
+        redemptionId: redemption.id,
+      };
+    }
+
+    // Build response message
+    let message = `Happy Birthday! You've earned ${merchant.birthdayRewardPoints} points from ${merchant.name}!`;
+    if (birthdayReward) {
+      message += ` Plus a free ${birthdayReward.name}!`;
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Happy Birthday! You've earned ${merchant.birthdayRewardPoints} points from ${merchant.name}!`,
+      message,
       pointsAwarded: merchant.birthdayRewardPoints,
       totalPoints: newPoints,
       merchantName: merchant.name,
+      rewardGrant, // Info about free reward if one was granted
     });
   } catch (error: any) {
     console.error('[Claim Birthday] Error:', error);

@@ -83,12 +83,22 @@ export async function POST(req: NextRequest) {
         memberAnniversaryRewardEnabled: true,
         memberAnniversaryRewardPoints: true,
         memberAnniversaryRewardWindowDays: true,
+        memberAnniversaryRewardId: true, // Optional reward from catalog
         businesses: {
           select: { id: true },
           take: 1,
         },
       },
     });
+
+    // Fetch optional reward details if configured
+    let anniversaryReward: { id: string; name: string; description: string | null } | null = null;
+    if (merchant?.memberAnniversaryRewardId) {
+      anniversaryReward = await prisma.reward.findUnique({
+        where: { id: merchant.memberAnniversaryRewardId },
+        select: { id: true, name: true, description: true },
+      });
+    }
 
     if (!merchant) {
       return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
@@ -164,6 +174,8 @@ export async function POST(req: NextRequest) {
           pointsAwarded: merchant.memberAnniversaryRewardPoints,
           year: currentYear,
           joinDate: member.createdAt.toISOString(),
+          rewardId: anniversaryReward?.id || null,
+          rewardName: anniversaryReward?.name || null,
         },
       },
     });
@@ -177,18 +189,49 @@ export async function POST(req: NextRequest) {
           memberId,
           type: 'EARN',
           amount: merchant.memberAnniversaryRewardPoints,
-          reason: `Member anniversary reward from ${merchant.name}`,
+          reason: anniversaryReward
+            ? `Member anniversary reward from ${merchant.name}: ${merchant.memberAnniversaryRewardPoints} points + ${anniversaryReward.name}`
+            : `Member anniversary reward from ${merchant.name}`,
           status: 'SUCCESS',
         },
       });
     }
 
+    // If a free reward is configured, create a redemption record (auto-approved)
+    let rewardGrant = null;
+    if (anniversaryReward && merchant.businesses.length > 0) {
+      const redemption = await prisma.redemptionRequest.create({
+        data: {
+          merchantMemberId: merchantMember.id,
+          merchantId,
+          businessId: merchant.businesses[0].id,
+          rewardId: anniversaryReward.id,
+          status: 'APPROVED',
+          pointsRequired: 0,
+          approvedAt: new Date(),
+          notes: 'Member anniversary reward - auto-approved',
+        },
+      });
+      rewardGrant = {
+        rewardId: anniversaryReward.id,
+        rewardName: anniversaryReward.name,
+        redemptionId: redemption.id,
+      };
+    }
+
+    // Build response message
+    let message = `Happy Member Anniversary! You've earned ${merchant.memberAnniversaryRewardPoints} points from ${merchant.name}!`;
+    if (anniversaryReward) {
+      message += ` Plus a free ${anniversaryReward.name}!`;
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Happy Member Anniversary! You've earned ${merchant.memberAnniversaryRewardPoints} points from ${merchant.name}!`,
+      message,
       pointsAwarded: merchant.memberAnniversaryRewardPoints,
       totalPoints: newPoints,
       merchantName: merchant.name,
+      rewardGrant,
     });
   } catch (error: any) {
     console.error('[Claim Member Anniversary] Error:', error);

@@ -6,6 +6,7 @@ import { generateWallet } from "@/app/lib/blockchain/wallet";
 import { canAddNewMember } from "@/app/lib/plan-limits";
 import { mintTokensOnCheckIn } from "@/app/lib/token/token-minting-service";
 import { isHappyHourActive, calculateMultipliedPoints } from "@/app/lib/happy-hour";
+import { getBusinessDate, getNextBusinessDayStart } from "@/app/lib/business-hours";
 
 const QR_SECRET = process.env.QR_SECRET || "default-secret-change-in-production";
 
@@ -154,28 +155,34 @@ export async function POST(req: NextRequest) {
     }
 
     // CRITICAL: Check same-day scan restriction
-    // Get start of today (calendar day)
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    // Use business timezone for date calculation so visits on different calendar days
+    // at the business location don't get incorrectly flagged as same-day
+    const businessTimezone = qrCodeRecord.business.businessTimezone || 'America/Los_Angeles';
+    const currentBusinessDate = getBusinessDate(businessTimezone);
 
-    const existingScanToday = await prisma.scan.findFirst({
+    // Get all scans for this member at this business today (in business timezone)
+    const todaysScans = await prisma.scan.findMany({
       where: {
         memberId,
         businessId: codeData.businessId,
-        scannedAt: {
-          gte: startOfToday,
-        },
       },
+      orderBy: { scannedAt: 'desc' },
+      take: 5, // Only need to check recent scans
+    });
+
+    // Check if any scan is from today (in business timezone)
+    const existingScanToday = todaysScans.find(scan => {
+      const scanDate = scan.scannedAt.toLocaleDateString('en-CA', { timeZone: businessTimezone });
+      return scanDate === currentBusinessDate;
     });
 
     if (existingScanToday) {
+      const nextScanTime = getNextBusinessDayStart(businessTimezone);
       return NextResponse.json(
         {
           error: "You've already earned points today! Come back tomorrow.",
           alreadyScanned: true,
-          nextScanAvailable: new Date(
-            startOfToday.getTime() + 24 * 60 * 60 * 1000
-          ).toISOString(),
+          nextScanAvailable: nextScanTime.toISOString(),
         },
         { status: 400 }
       );
