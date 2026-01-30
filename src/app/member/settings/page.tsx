@@ -56,6 +56,7 @@ export default function MemberSettingsPage() {
   // Special days (birthday/anniversary) state
   const [birthdayMonth, setBirthdayMonth] = useState<number | null>(null);
   const [birthdayDay, setBirthdayDay] = useState<number | null>(null);
+  const [birthdayYear, setBirthdayYear] = useState<number | null>(null);
   const [birthdayLocked, setBirthdayLocked] = useState(false);
   const [anniversaryDate, setAnniversaryDate] = useState<string>("");
   const [savingBirthday, setSavingBirthday] = useState(false);
@@ -187,6 +188,7 @@ export default function MemberSettingsPage() {
         if (birthdayData.birthday) {
           setBirthdayMonth(birthdayData.birthday.month);
           setBirthdayDay(birthdayData.birthday.day);
+          setBirthdayYear(birthdayData.birthday.year || null);
         }
         setBirthdayLocked(birthdayData.isLocked);
       }
@@ -204,8 +206,8 @@ export default function MemberSettingsPage() {
   }
 
   async function handleSaveBirthday() {
-    if (!birthdayMonth || !birthdayDay) {
-      setSpecialDaysError("Please select both month and day");
+    if (!birthdayMonth || !birthdayDay || !birthdayYear) {
+      setSpecialDaysError("Please select month, day, and year");
       return;
     }
 
@@ -217,7 +219,7 @@ export default function MemberSettingsPage() {
       const res = await fetch("/api/member/profile/birthday", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ month: birthdayMonth, day: birthdayDay }),
+        body: JSON.stringify({ month: birthdayMonth, day: birthdayDay, year: birthdayYear }),
       });
 
       const data = await res.json();
@@ -878,7 +880,7 @@ export default function MemberSettingsPage() {
                 </div>
               ) : (
                 <div className="special-days-form">
-                  <div className="form-row">
+                  <div className="form-row" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
                     <div className="form-field">
                       <label>Month</label>
                       <select
@@ -908,7 +910,26 @@ export default function MemberSettingsPage() {
                         ))}
                       </select>
                     </div>
+                    <div className="form-field">
+                      <label>Year</label>
+                      <select
+                        value={birthdayYear || ""}
+                        onChange={(e) => setBirthdayYear(parseInt(e.target.value) || null)}
+                        className="form-select"
+                      >
+                        <option value="">Select year</option>
+                        {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+                  <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: "0.5rem 0 0.75rem" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: "inline", verticalAlign: "middle", marginRight: "0.25rem" }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Your birth year is private and never shared with merchants
+                  </p>
                   <div className="special-days-warning">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -919,7 +940,7 @@ export default function MemberSettingsPage() {
                     <button
                       className="primary-button"
                       onClick={handleSaveBirthday}
-                      disabled={savingBirthday || !birthdayMonth || !birthdayDay}
+                      disabled={savingBirthday || !birthdayMonth || !birthdayDay || !birthdayYear}
                     >
                       {savingBirthday ? "Saving..." : "Save Birthday"}
                     </button>

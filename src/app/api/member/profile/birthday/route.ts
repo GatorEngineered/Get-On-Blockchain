@@ -32,6 +32,7 @@ export async function GET() {
       select: {
         birthMonth: true,
         birthDay: true,
+        birthYear: true,
         birthdayLocked: true,
       },
     });
@@ -42,7 +43,7 @@ export async function GET() {
 
     return NextResponse.json({
       birthday: member.birthMonth && member.birthDay
-        ? { month: member.birthMonth, day: member.birthDay }
+        ? { month: member.birthMonth, day: member.birthDay, year: member.birthYear }
         : null,
       isLocked: member.birthdayLocked,
     });
@@ -64,18 +65,19 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { month, day } = body;
+    const { month, day, year } = body;
 
     // Validate input
-    if (!month || !day) {
+    if (!month || !day || !year) {
       return NextResponse.json(
-        { error: 'Month and day are required' },
+        { error: 'Month, day, and year are required' },
         { status: 400 }
       );
     }
 
     const monthNum = parseInt(month, 10);
     const dayNum = parseInt(day, 10);
+    const yearNum = parseInt(year, 10);
 
     if (monthNum < 1 || monthNum > 12) {
       return NextResponse.json(
@@ -87,6 +89,14 @@ export async function PUT(req: NextRequest) {
     if (dayNum < 1 || dayNum > 31) {
       return NextResponse.json(
         { error: 'Day must be between 1 and 31' },
+        { status: 400 }
+      );
+    }
+
+    const currentYear = new Date().getFullYear();
+    if (yearNum < currentYear - 120 || yearNum > currentYear) {
+      return NextResponse.json(
+        { error: 'Please enter a valid birth year' },
         { status: 400 }
       );
     }
@@ -119,11 +129,13 @@ export async function PUT(req: NextRequest) {
       data: {
         birthMonth: monthNum,
         birthDay: dayNum,
+        birthYear: yearNum,
         birthdayLocked: true,
       },
       select: {
         birthMonth: true,
         birthDay: true,
+        birthYear: true,
         birthdayLocked: true,
       },
     });
@@ -133,6 +145,7 @@ export async function PUT(req: NextRequest) {
       birthday: {
         month: updatedMember.birthMonth,
         day: updatedMember.birthDay,
+        year: updatedMember.birthYear,
       },
       isLocked: updatedMember.birthdayLocked,
     });

@@ -167,8 +167,9 @@ model Member {
   passwordHash String?
 
   // Birthday & Anniversary (Special Rewards)
-  birthMonth      Int?              // 1-12 (month only, no year for privacy)
+  birthMonth      Int?              // 1-12
   birthDay        Int?              // 1-31
+  birthYear       Int?              // Full year (private - merchants only see month/day for rewards)
   birthdayLocked  Boolean @default(false) // Once set, cannot be changed
   anniversaryDate DateTime?         // Relationship/Wedding anniversary date (month, day, year)
 
