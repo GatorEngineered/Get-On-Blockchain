@@ -253,24 +253,22 @@ export async function POST(req: NextRequest) {
               }),
             ];
 
-            // Create RewardTransaction for transaction history if business exists
-            if (referrerMerchantMember.merchant.businesses.length > 0) {
-              transactionOps.push(
-                prisma.rewardTransaction.create({
-                  data: {
-                    merchantMemberId: referrerMerchantMember.id,
-                    businessId: referrerMerchantMember.merchant.businesses[0].id,
-                    memberId: referrerMerchantMember.memberId,
-                    type: 'EARN',
-                    amount: pointsToAward,
-                    reason: `Referral bonus - ${normalizedEmail} joined ${referrerMerchantMember.merchant.name}`,
-                    status: 'SUCCESS',
-                  },
-                })
-              );
-            }
-
             await prisma.$transaction(transactionOps);
+
+            // Create RewardTransaction for transaction history (separate from main transaction)
+            if (referrerMerchantMember.merchant.businesses.length > 0) {
+              await prisma.rewardTransaction.create({
+                data: {
+                  merchantMemberId: referrerMerchantMember.id,
+                  businessId: referrerMerchantMember.merchant.businesses[0].id,
+                  memberId: referrerMerchantMember.memberId,
+                  type: 'EARN',
+                  amount: pointsToAward,
+                  reason: `Referral bonus - ${normalizedEmail} joined ${referrerMerchantMember.merchant.name}`,
+                  status: 'SUCCESS',
+                },
+              });
+            }
 
             console.log(
               `[Link Referral] Member ${referrerMerchantMember.memberId} earned ${pointsToAward} points for referring ${member.email} (source: ${referralSource || 'link'})`
@@ -402,24 +400,22 @@ export async function POST(req: NextRequest) {
           }),
         ];
 
-        // Create RewardTransaction for transaction history if business exists
-        if (referral.merchant.businesses.length > 0) {
-          emailReferralOps.push(
-            prisma.rewardTransaction.create({
-              data: {
-                merchantMemberId: merchantMember.id,
-                businessId: referral.merchant.businesses[0].id,
-                memberId: referral.referrerId,
-                type: 'EARN',
-                amount: pointsToAward,
-                reason: `Referral bonus - ${normalizedEmail} joined ${referral.merchant.name}`,
-                status: 'SUCCESS',
-              },
-            })
-          );
-        }
-
         await prisma.$transaction(emailReferralOps);
+
+        // Create RewardTransaction for transaction history (separate from main transaction)
+        if (referral.merchant.businesses.length > 0) {
+          await prisma.rewardTransaction.create({
+            data: {
+              merchantMemberId: merchantMember.id,
+              businessId: referral.merchant.businesses[0].id,
+              memberId: referral.referrerId,
+              type: 'EARN',
+              amount: pointsToAward,
+              reason: `Referral bonus - ${normalizedEmail} joined ${referral.merchant.name}`,
+              status: 'SUCCESS',
+            },
+          });
+        }
 
         const referrerName = referral.referrer.firstName && referral.referrer.lastName
           ? `${referral.referrer.firstName} ${referral.referrer.lastName}`
