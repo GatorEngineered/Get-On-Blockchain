@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/app/lib/prisma';
+import crypto from 'crypto';
 
 async function getMemberIdFromSession(): Promise<string | null> {
   const cookieStore = await cookies();
@@ -205,19 +206,20 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // If a free reward is configured, create a redemption record (auto-approved)
+    // If a free reward is configured, create a redemption record (auto-confirmed)
     let rewardGrant = null;
     if (anniversaryReward && merchant.businesses.length > 0) {
       const redemption = await prisma.redemptionRequest.create({
         data: {
-          merchantMemberId: merchantMember.id,
           merchantId,
+          memberId,
           businessId: merchant.businesses[0].id,
           rewardId: anniversaryReward.id,
-          status: 'APPROVED',
-          pointsRequired: 0,
-          approvedAt: new Date(),
-          notes: 'Relationship anniversary reward - auto-approved',
+          pointsCost: 0,
+          qrCodeHash: crypto.randomUUID(),
+          expiresAt: new Date(),
+          status: 'CONFIRMED',
+          confirmedAt: new Date(),
         },
       });
       rewardGrant = {
