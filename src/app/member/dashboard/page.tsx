@@ -1319,7 +1319,7 @@ export default function MemberDashboardPage() {
 
       {/* Available Rewards - Per Merchant */}
       {merchantRewards.length > 0 && (
-        <div className={styles.section}>
+        <div className={styles.section} style={{ marginTop: '1.5rem' }}>
           <h3 className={styles.sectionTitle}>Available Rewards</h3>
           {merchantRewards.map((mr) => (
             <div key={mr.merchantId} style={{ marginBottom: "1.5rem" }}>
@@ -1451,7 +1451,7 @@ export default function MemberDashboardPage() {
 
       {/* No merchants connected */}
       {merchantRewards.length === 0 && (
-        <div className={styles.section}>
+        <div className={styles.section} style={{ marginTop: '1.5rem' }}>
           <h3 className={styles.sectionTitle}>Available Rewards</h3>
           <p style={{ textAlign: "center", color: "#6b7280", padding: "2rem" }}>
             Visit a participating business to start earning rewards!
