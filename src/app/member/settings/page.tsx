@@ -1599,11 +1599,18 @@ const pageStyles = `
 
   .form-input {
     width: 100%;
+    max-width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.2s;
+    box-sizing: border-box;
+  }
+
+  /* Fix date input picker icon overflow */
+  .form-input[type="date"] {
+    max-width: 250px;
   }
 
   .form-input:focus {
