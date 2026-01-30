@@ -15,21 +15,18 @@ interface AvailableReward {
   pointsCost: number;
 }
 
+interface SpecialRewardConfig {
+  enabled: boolean;
+  points: number;
+  windowDays: number;
+  rewardId: string | null;
+  claimsThisYear: number;
+}
+
 interface SpecialRewardsData {
-  birthday: {
-    enabled: boolean;
-    points: number;
-    windowDays: number;
-    rewardId: string | null;
-    claimsThisYear: number;
-  };
-  anniversary: {
-    enabled: boolean;
-    points: number;
-    windowDays: number;
-    rewardId: string | null;
-    claimsThisYear: number;
-  };
+  birthday: SpecialRewardConfig;
+  memberAnniversary: SpecialRewardConfig;
+  relationshipAnniversary: SpecialRewardConfig;
   availableRewards: AvailableReward[];
 }
 
