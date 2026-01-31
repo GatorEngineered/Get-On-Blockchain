@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import SendAnnouncementModal from '../SendAnnouncementModal';
+import styles from './memberProfile.module.css';
 
 type MemberProfile = {
   member: {
@@ -180,58 +181,33 @@ export default function MemberProfilePage() {
     profile.emailPreferences?.canReceivePointsUpdates;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', background: '#f9fafb', minHeight: '100vh' }}>
+    <div className={styles.container}>
       {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
+      <div className={styles.header}>
         <button
           onClick={() => router.push('/dashboard/members')}
-          style={{
-            padding: '0.5rem 1rem',
-            background: 'transparent',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            color: '#6b7280',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
+          className={styles.backButton}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back to Members
         </button>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className={styles.headerContent}>
           <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.5rem' }}>
+            <h1 className={styles.memberName}>
               {profile.member.fullName}
             </h1>
-            <p style={{ color: '#6b7280', fontSize: '1rem' }}>
+            <p className={styles.memberSince}>
               Member since {new Date(profile.member.joinedBusiness).toLocaleDateString()}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className={styles.actionButtons}>
             <button
               onClick={() => setShowMessageModal(true)}
               disabled={!canReceiveMessages}
               title={!canReceiveMessages ? 'Member has opted out of all email communications' : 'Send a message to this member'}
-              style={{
-                padding: '0.75rem 1.25rem',
-                background: canReceiveMessages ? 'linear-gradient(135deg, #244b7a 0%, #3b6ea5 100%)' : '#d1d5db',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '0.95rem',
-                fontWeight: '600',
-                cursor: canReceiveMessages ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: canReceiveMessages ? '0 2px 8px rgba(36, 75, 122, 0.25)' : 'none',
-              }}
+              className={styles.sendMessageBtn}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -240,19 +216,7 @@ export default function MemberProfilePage() {
             </button>
             <button
               onClick={() => setShowAdjustModal(true)}
-              style={{
-                padding: '0.75rem 1.25rem',
-                background: 'white',
-                color: '#244b7a',
-                border: '2px solid #244b7a',
-                borderRadius: '8px',
-                fontSize: '0.95rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
+              className={styles.adjustPointsBtn}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -264,16 +228,10 @@ export default function MemberProfilePage() {
       </div>
 
       {/* Top Row - Info Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
+      <div className={styles.infoCardsGrid}>
         {/* Member Info Card */}
-        <div style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#6b7280', marginBottom: '1rem' }}>
+        <div className={styles.infoCard}>
+          <h3 className={styles.cardTitle}>
             Member Information
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -316,14 +274,8 @@ export default function MemberProfilePage() {
         </div>
 
         {/* Points & Tier Card */}
-        <div style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#6b7280', marginBottom: '1rem' }}>
+        <div className={styles.infoCard}>
+          <h3 className={styles.cardTitle}>
             Points & Tier
           </h3>
           <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
@@ -361,14 +313,8 @@ export default function MemberProfilePage() {
         </div>
 
         {/* Visit Stats Card */}
-        <div style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#6b7280', marginBottom: '1rem' }}>
+        <div className={styles.infoCard}>
+          <h3 className={styles.cardTitle}>
             Visit Statistics
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -389,17 +335,11 @@ export default function MemberProfilePage() {
       </div>
 
       {/* Bottom Row - Tables */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <div className={styles.tablesGrid}>
         {/* Recent Scans */}
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          overflow: 'hidden'
-        }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
+        <div className={styles.tableCard}>
+          <div className={styles.tableHeader}>
+            <h3 className={styles.tableTitle}>
               Recent Visits
             </h3>
           </div>
@@ -434,15 +374,9 @@ export default function MemberProfilePage() {
         </div>
 
         {/* Transaction History */}
-        <div style={{
-          background: 'white',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          overflow: 'hidden'
-        }}>
-          <div style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
+        <div className={styles.tableCard}>
+          <div className={styles.tableHeader}>
+            <h3 className={styles.tableTitle}>
               Transaction History
             </h3>
           </div>

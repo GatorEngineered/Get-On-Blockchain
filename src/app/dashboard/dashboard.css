@@ -1131,6 +1131,18 @@
     padding: 0.6rem 0.25rem;
   }
 
+  /* Hide columns on mobile - show only Member (1) and Points (3) */
+  .members-table th:nth-child(2),
+  .members-table td:nth-child(2),
+  .members-table th:nth-child(4),
+  .members-table td:nth-child(4),
+  .members-table th:nth-child(5),
+  .members-table td:nth-child(5),
+  .members-table th:nth-child(6),
+  .members-table td:nth-child(6) {
+    display: none;
+  }
+
   /* Simplify brand on mobile */
   .dashboard-brand-subtitle {
     display: none;
