@@ -20,12 +20,30 @@ import SocialLinksSettings from './components/SocialLinksSettings';
 
 type SettingsTab = 'account' | 'billing' | 'payout-wallet' | 'plans' | 'reward-tiers' | 'rewards' | 'qr-codes' | 'events' | 'happy-hour' | 'pos-integrations' | 'email-marketing' | 'social-links' | 'branded-token' | 'support';
 
+const TAB_LABELS: Record<SettingsTab, string> = {
+  'account': 'Account',
+  'billing': 'Billing',
+  'payout-wallet': 'Payout Wallet',
+  'plans': 'Plans',
+  'reward-tiers': 'Reward Tiers',
+  'rewards': 'Rewards Catalog',
+  'qr-codes': 'QR Codes',
+  'events': 'Event QR Codes',
+  'happy-hour': 'Happy Hour',
+  'pos-integrations': 'POS Integrations',
+  'email-marketing': 'Email Marketing',
+  'social-links': 'Social Links',
+  'branded-token': 'Branded Token',
+  'support': 'Support',
+};
+
 export default function MerchantSettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
   const [merchantData, setMerchantData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const tab = searchParams.get('tab') as SettingsTab;
@@ -59,6 +77,7 @@ export default function MerchantSettingsPage() {
 
   function handleTabChange(tab: SettingsTab) {
     setActiveTab(tab);
+    setMobileMenuOpen(false);
     router.push(`/dashboard/settings?tab=${tab}`, { scroll: false });
   }
 
@@ -98,7 +117,49 @@ export default function MerchantSettingsPage() {
 
       {/* Main Content */}
       <div className={styles.mainContent}>
-        {/* Sidebar Navigation */}
+        {/* Mobile Menu */}
+        <div className={styles.mobileMenuWrapper}>
+          <button
+            className={styles.mobileMenuButton}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            <span className={styles.mobileMenuLabel}>{TAB_LABELS[activeTab]}</span>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className={`${styles.mobileMenuIcon} ${mobileMenuOpen ? styles.mobileMenuIconOpen : ''}`}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {mobileMenuOpen && (
+            <>
+              <div className={styles.mobileMenuOverlay} onClick={() => setMobileMenuOpen(false)} />
+              <div className={styles.mobileMenuDropdown}>
+                {(Object.keys(TAB_LABELS) as SettingsTab[]).map((tab) => (
+                  <button
+                    key={tab}
+                    className={`${styles.mobileMenuItem} ${activeTab === tab ? styles.mobileMenuItemActive : ''}`}
+                    onClick={() => handleTabChange(tab)}
+                  >
+                    {TAB_LABELS[tab]}
+                    {activeTab === tab && (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Sidebar Navigation (Desktop) */}
         <aside className={styles.sidebar}>
           <nav className={styles.nav}>
             <button
