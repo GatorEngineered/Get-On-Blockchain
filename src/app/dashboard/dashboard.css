@@ -240,8 +240,8 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
   flex-wrap: wrap;
 }
 
@@ -254,7 +254,7 @@
 .members-filter-label {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.4rem;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -263,7 +263,7 @@
 
 .members-select {
   min-width: 130px;
-  padding: 0.45rem 0.6rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 8px;
   border: 1px solid #d1d5db;
   background: #f9fafb;
@@ -275,12 +275,13 @@
   flex: 1;
   display: flex;
   justify-content: flex-end;
+  max-width: 320px;
 }
 
 .members-search {
   width: 100%;
-  max-width: 260px;
-  padding: 0.5rem 0.8rem;
+  max-width: 280px;
+  padding: 0.5rem 0.9rem;
   border-radius: 999px;
   border: 1px solid #d1d5db;
   background: #f9fafb;
@@ -1021,15 +1022,24 @@
   .members-controls {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
 
-   .members-controls-left,
-  .members-controls-right {
+  .members-controls-left {
     width: 100%;
   }
 
+  .members-controls-right {
+    width: 100%;
+    max-width: 100%;
+  }
+
   .members-search {
-    max-width: none;
+    max-width: 320px;
+  }
+
+  .members-filter-label {
+    gap: 0.5rem;
   }
 
   /* Make summary cards stack */
@@ -1071,6 +1081,30 @@
   .members-table-card,
   .settings-card {
     padding: 1.25rem 1rem;
+  }
+
+  /* Members controls spacing */
+  .members-controls {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    gap: 0.875rem;
+  }
+
+  .members-filter-label {
+    gap: 0.4rem;
+    font-size: 0.7rem;
+  }
+
+  .members-select {
+    min-width: 120px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .members-search {
+    max-width: 100%;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.8rem;
   }
 
   /* Smaller table text */
