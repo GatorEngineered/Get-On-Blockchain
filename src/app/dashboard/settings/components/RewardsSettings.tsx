@@ -61,6 +61,10 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
   const [relationshipAnniversaryClaimsThisYear, setRelationshipAnniversaryClaimsThisYear] = useState(0);
   const [savingSpecialRewards, setSavingSpecialRewards] = useState(false);
   const [specialRewardsSuccess, setSpecialRewardsSuccess] = useState('');
+  // Optional free reward selections
+  const [birthdayRewardId, setBirthdayRewardId] = useState<string | null>(null);
+  const [memberAnniversaryRewardId, setMemberAnniversaryRewardId] = useState<string | null>(null);
+  const [relationshipAnniversaryRewardId, setRelationshipAnniversaryRewardId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRewards();
@@ -91,16 +95,19 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
         setBirthdayPoints(data.birthday.points);
         setBirthdayWindowDays(data.birthday.windowDays);
         setBirthdayClaimsThisYear(data.birthday.claimsThisYear || 0);
+        setBirthdayRewardId(data.birthday.rewardId || null);
         // Member Anniversary
         setMemberAnniversaryEnabled(data.memberAnniversary.enabled);
         setMemberAnniversaryPoints(data.memberAnniversary.points);
         setMemberAnniversaryWindowDays(data.memberAnniversary.windowDays);
         setMemberAnniversaryClaimsThisYear(data.memberAnniversary.claimsThisYear || 0);
+        setMemberAnniversaryRewardId(data.memberAnniversary.rewardId || null);
         // Relationship Anniversary
         setRelationshipAnniversaryEnabled(data.relationshipAnniversary.enabled);
         setRelationshipAnniversaryPoints(data.relationshipAnniversary.points);
         setRelationshipAnniversaryWindowDays(data.relationshipAnniversary.windowDays);
         setRelationshipAnniversaryClaimsThisYear(data.relationshipAnniversary.claimsThisYear || 0);
+        setRelationshipAnniversaryRewardId(data.relationshipAnniversary.rewardId || null);
       }
     } catch (err) {
       console.error('Failed to fetch special rewards settings:', err);
@@ -121,14 +128,17 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
           birthdayRewardEnabled: birthdayEnabled,
           birthdayRewardPoints: birthdayPoints,
           birthdayRewardWindowDays: birthdayWindowDays,
+          birthdayRewardId: birthdayRewardId,
           // Member Anniversary
           memberAnniversaryRewardEnabled: memberAnniversaryEnabled,
           memberAnniversaryRewardPoints: memberAnniversaryPoints,
           memberAnniversaryRewardWindowDays: memberAnniversaryWindowDays,
+          memberAnniversaryRewardId: memberAnniversaryRewardId,
           // Relationship Anniversary
           relationshipAnniversaryRewardEnabled: relationshipAnniversaryEnabled,
           relationshipAnniversaryRewardPoints: relationshipAnniversaryPoints,
           relationshipAnniversaryRewardWindowDays: relationshipAnniversaryWindowDays,
+          relationshipAnniversaryRewardId: relationshipAnniversaryRewardId,
         }),
       });
 
@@ -605,49 +615,79 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             </div>
 
             {birthdayEnabled && (
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', marginTop: '0.75rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Points</label>
-                  <input
-                    type="number"
-                    value={birthdayPoints}
-                    onChange={(e) => setBirthdayPoints(parseInt(e.target.value) || 0)}
-                    min="1"
-                    max="10000"
-                    style={{
-                      width: '80px',
-                      padding: '0.5rem',
-                      border: '1px solid #fcd34d',
-                      borderRadius: '6px',
-                      background: 'white',
-                      textAlign: 'center',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Window (days)</label>
-                  <input
-                    type="number"
-                    value={birthdayWindowDays}
-                    onChange={(e) => setBirthdayWindowDays(parseInt(e.target.value) || 1)}
-                    min="1"
-                    max="30"
-                    style={{
-                      width: '80px',
-                      padding: '0.5rem',
-                      border: '1px solid #fcd34d',
-                      borderRadius: '6px',
-                      background: 'white',
-                      textAlign: 'center',
-                    }}
-                  />
-                </div>
-                {birthdayClaimsThisYear > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', color: '#78350f' }}>Claims this year</span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e' }}>{birthdayClaimsThisYear}</span>
+              <div style={{ marginTop: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Points</label>
+                    <input
+                      type="number"
+                      value={birthdayPoints}
+                      onChange={(e) => setBirthdayPoints(parseInt(e.target.value) || 0)}
+                      min="1"
+                      max="10000"
+                      style={{
+                        width: '80px',
+                        padding: '0.5rem',
+                        border: '1px solid #fcd34d',
+                        borderRadius: '6px',
+                        background: 'white',
+                        textAlign: 'center',
+                      }}
+                    />
                   </div>
-                )}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>Window (days)</label>
+                    <input
+                      type="number"
+                      value={birthdayWindowDays}
+                      onChange={(e) => setBirthdayWindowDays(parseInt(e.target.value) || 1)}
+                      min="1"
+                      max="30"
+                      style={{
+                        width: '80px',
+                        padding: '0.5rem',
+                        border: '1px solid #fcd34d',
+                        borderRadius: '6px',
+                        background: 'white',
+                        textAlign: 'center',
+                      }}
+                    />
+                  </div>
+                  {birthdayClaimsThisYear > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: '#78350f' }}>Claims this year</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#92400e' }}>{birthdayClaimsThisYear}</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#78350f', marginBottom: '0.25rem' }}>
+                    Bonus Free Reward (Optional)
+                  </label>
+                  <select
+                    value={birthdayRewardId || ''}
+                    onChange={(e) => setBirthdayRewardId(e.target.value || null)}
+                    style={{
+                      width: '100%',
+                      maxWidth: '300px',
+                      padding: '0.5rem',
+                      border: '1px solid #fcd34d',
+                      borderRadius: '6px',
+                      background: 'white',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <option value="">Points only (no free reward)</option>
+                    {rewards.filter(r => r.isActive).map((reward) => (
+                      <option key={reward.id} value={reward.id}>
+                        {reward.name} (normally {reward.pointsCost} pts)
+                      </option>
+                    ))}
+                  </select>
+                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: '#78350f' }}>
+                    Member also receives this reward for free on their birthday
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -698,49 +738,79 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             </div>
 
             {memberAnniversaryEnabled && (
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', marginTop: '0.75rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Points</label>
-                  <input
-                    type="number"
-                    value={memberAnniversaryPoints}
-                    onChange={(e) => setMemberAnniversaryPoints(parseInt(e.target.value) || 0)}
-                    min="1"
-                    max="10000"
-                    style={{
-                      width: '80px',
-                      padding: '0.5rem',
-                      border: '1px solid #93c5fd',
-                      borderRadius: '6px',
-                      background: 'white',
-                      textAlign: 'center',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Window (days)</label>
-                  <input
-                    type="number"
-                    value={memberAnniversaryWindowDays}
-                    onChange={(e) => setMemberAnniversaryWindowDays(parseInt(e.target.value) || 1)}
-                    min="1"
-                    max="30"
-                    style={{
-                      width: '80px',
-                      padding: '0.5rem',
-                      border: '1px solid #93c5fd',
-                      borderRadius: '6px',
-                      background: 'white',
-                      textAlign: 'center',
-                    }}
-                  />
-                </div>
-                {memberAnniversaryClaimsThisYear > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', color: '#1e3a8a' }}>Claims this year</span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e40af' }}>{memberAnniversaryClaimsThisYear}</span>
+              <div style={{ marginTop: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Points</label>
+                    <input
+                      type="number"
+                      value={memberAnniversaryPoints}
+                      onChange={(e) => setMemberAnniversaryPoints(parseInt(e.target.value) || 0)}
+                      min="1"
+                      max="10000"
+                      style={{
+                        width: '80px',
+                        padding: '0.5rem',
+                        border: '1px solid #93c5fd',
+                        borderRadius: '6px',
+                        background: 'white',
+                        textAlign: 'center',
+                      }}
+                    />
                   </div>
-                )}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>Window (days)</label>
+                    <input
+                      type="number"
+                      value={memberAnniversaryWindowDays}
+                      onChange={(e) => setMemberAnniversaryWindowDays(parseInt(e.target.value) || 1)}
+                      min="1"
+                      max="30"
+                      style={{
+                        width: '80px',
+                        padding: '0.5rem',
+                        border: '1px solid #93c5fd',
+                        borderRadius: '6px',
+                        background: 'white',
+                        textAlign: 'center',
+                      }}
+                    />
+                  </div>
+                  {memberAnniversaryClaimsThisYear > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: '#1e3a8a' }}>Claims this year</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e40af' }}>{memberAnniversaryClaimsThisYear}</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#1e3a8a', marginBottom: '0.25rem' }}>
+                    Bonus Free Reward (Optional)
+                  </label>
+                  <select
+                    value={memberAnniversaryRewardId || ''}
+                    onChange={(e) => setMemberAnniversaryRewardId(e.target.value || null)}
+                    style={{
+                      width: '100%',
+                      maxWidth: '300px',
+                      padding: '0.5rem',
+                      border: '1px solid #93c5fd',
+                      borderRadius: '6px',
+                      background: 'white',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <option value="">Points only (no free reward)</option>
+                    {rewards.filter(r => r.isActive).map((reward) => (
+                      <option key={reward.id} value={reward.id}>
+                        {reward.name} (normally {reward.pointsCost} pts)
+                      </option>
+                    ))}
+                  </select>
+                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: '#1e3a8a' }}>
+                    Member also receives this reward for free on their membership anniversary
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -791,49 +861,79 @@ export default function RewardsSettings({ merchantData, onUpdate }: RewardsSetti
             </div>
 
             {relationshipAnniversaryEnabled && (
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', marginTop: '0.75rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Points</label>
-                  <input
-                    type="number"
-                    value={relationshipAnniversaryPoints}
-                    onChange={(e) => setRelationshipAnniversaryPoints(parseInt(e.target.value) || 0)}
-                    min="1"
-                    max="10000"
-                    style={{
-                      width: '80px',
-                      padding: '0.5rem',
-                      border: '1px solid #f9a8d4',
-                      borderRadius: '6px',
-                      background: 'white',
-                      textAlign: 'center',
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Window (days)</label>
-                  <input
-                    type="number"
-                    value={relationshipAnniversaryWindowDays}
-                    onChange={(e) => setRelationshipAnniversaryWindowDays(parseInt(e.target.value) || 1)}
-                    min="1"
-                    max="30"
-                    style={{
-                      width: '80px',
-                      padding: '0.5rem',
-                      border: '1px solid #f9a8d4',
-                      borderRadius: '6px',
-                      background: 'white',
-                      textAlign: 'center',
-                    }}
-                  />
-                </div>
-                {relationshipAnniversaryClaimsThisYear > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', color: '#9d174d' }}>Claims this year</span>
-                    <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#be185d' }}>{relationshipAnniversaryClaimsThisYear}</span>
+              <div style={{ marginTop: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Points</label>
+                    <input
+                      type="number"
+                      value={relationshipAnniversaryPoints}
+                      onChange={(e) => setRelationshipAnniversaryPoints(parseInt(e.target.value) || 0)}
+                      min="1"
+                      max="10000"
+                      style={{
+                        width: '80px',
+                        padding: '0.5rem',
+                        border: '1px solid #f9a8d4',
+                        borderRadius: '6px',
+                        background: 'white',
+                        textAlign: 'center',
+                      }}
+                    />
                   </div>
-                )}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>Window (days)</label>
+                    <input
+                      type="number"
+                      value={relationshipAnniversaryWindowDays}
+                      onChange={(e) => setRelationshipAnniversaryWindowDays(parseInt(e.target.value) || 1)}
+                      min="1"
+                      max="30"
+                      style={{
+                        width: '80px',
+                        padding: '0.5rem',
+                        border: '1px solid #f9a8d4',
+                        borderRadius: '6px',
+                        background: 'white',
+                        textAlign: 'center',
+                      }}
+                    />
+                  </div>
+                  {relationshipAnniversaryClaimsThisYear > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: '#9d174d' }}>Claims this year</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: '700', color: '#be185d' }}>{relationshipAnniversaryClaimsThisYear}</span>
+                    </div>
+                  )}
+                </div>
+                <div style={{ marginTop: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#9d174d', marginBottom: '0.25rem' }}>
+                    Bonus Free Reward (Optional)
+                  </label>
+                  <select
+                    value={relationshipAnniversaryRewardId || ''}
+                    onChange={(e) => setRelationshipAnniversaryRewardId(e.target.value || null)}
+                    style={{
+                      width: '100%',
+                      maxWidth: '300px',
+                      padding: '0.5rem',
+                      border: '1px solid #f9a8d4',
+                      borderRadius: '6px',
+                      background: 'white',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <option value="">Points only (no free reward)</option>
+                    {rewards.filter(r => r.isActive).map((reward) => (
+                      <option key={reward.id} value={reward.id}>
+                        {reward.name} (normally {reward.pointsCost} pts)
+                      </option>
+                    ))}
+                  </select>
+                  <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: '#9d174d' }}>
+                    Member also receives this reward for free on their relationship anniversary
+                  </p>
+                </div>
               </div>
             )}
           </div>
