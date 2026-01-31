@@ -1590,56 +1590,66 @@
 
 }
 
- 
-
-@media (max-width: 600px) {
-
-  .pointsNumber {
-
-    font-size: 3.5rem;
-
+/* Tablet styles for metric cards - centered layout */
+@media (max-width: 900px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
-
-
 
   .metricCard {
-
     flex-direction: column;
-
     text-align: center;
-
     align-items: center;
-
+    padding: 1.25rem;
   }
-
-
 
   .metricIcon {
-
-    margin: 0 auto;
-
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 0.5rem;
   }
-
-
 
   .metricContent {
-
     text-align: center;
-
     width: 100%;
-
   }
 
+  .metricLabel {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+  }
 
-
-  .metricLabel,
-
-  .metricValue,
+  .metricValue {
+    font-size: 1.5rem;
+  }
 
   .metricChange {
+    font-size: 0.75rem;
+  }
+}
 
+@media (max-width: 600px) {
+  .pointsNumber {
+    font-size: 3.5rem;
+  }
+
+  .metricCard {
+    padding: 1rem;
+  }
+
+  .metricIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .metricValue {
+    font-size: 1.35rem;
+  }
+
+  .metricLabel,
+  .metricChange {
     text-align: center;
-
   }
 
 
