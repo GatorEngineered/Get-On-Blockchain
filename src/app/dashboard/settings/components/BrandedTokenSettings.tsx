@@ -29,10 +29,11 @@ export default function BrandedTokenSettings({ merchantData, onUpdate }: Branded
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deploying, setDeploying] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Form state for creating token
+  // Form state for creating/editing token
   const [formData, setFormData] = useState({
     tokenName: '',
     tokenSymbol: '',
@@ -130,6 +131,63 @@ export default function BrandedTokenSettings({ merchantData, onUpdate }: Branded
       // Re-fetch to get the full token data
       await fetchToken();
       setSuccess('Token configuration saved! You can now deploy it to the blockchain.');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function startEditing() {
+    if (token) {
+      setFormData({
+        tokenName: `${merchantData?.name || 'My'} Token`,
+        tokenSymbol: generateSymbol(merchantData?.name || 'TOKEN'),
+      });
+      setEditing(true);
+      setError('');
+      setSuccess('');
+    }
+  }
+
+  async function handleUpdateToken(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!formData.tokenName.trim()) {
+      setError('Token name is required');
+      return;
+    }
+    if (!formData.tokenSymbol.trim()) {
+      setError('Token symbol is required');
+      return;
+    }
+    if (formData.tokenSymbol.length < 2 || formData.tokenSymbol.length > 6) {
+      setError('Token symbol must be 2-6 characters');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError('');
+
+      const res = await fetch('/api/merchant/token', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tokenName: formData.tokenName.trim(),
+          tokenSymbol: formData.tokenSymbol.trim().toUpperCase(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update token');
+      }
+
+      setEditing(false);
+      await fetchToken();
+      setSuccess('Token updated successfully!');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -303,13 +361,71 @@ export default function BrandedTokenSettings({ merchantData, onUpdate }: Branded
                 {token.contractAddress ? (
                   <span className={styles.deployedBadge}>Deployed</span>
                 ) : (
-                  <span className={styles.pendingBadge}>Not Deployed</span>
+                  <>
+                    <span className={styles.pendingBadge}>Not Deployed</span>
+                    <button
+                      className={styles.editButton}
+                      onClick={startEditing}
+                      title="Edit token name and symbol"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
+                    </button>
+                  </>
                 )}
                 {token.isPaused && (
                   <span className={styles.pausedBadge}>Paused</span>
                 )}
               </div>
             </div>
+
+            {/* Edit form for undeployed tokens */}
+            {editing && !token.contractAddress && (
+              <form onSubmit={handleUpdateToken} className={styles.editForm}>
+                <div className={styles.editFormRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Token Name</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      value={formData.tokenName}
+                      onChange={(e) => setFormData({ ...formData, tokenName: e.target.value })}
+                      placeholder="e.g., My Business Token"
+                      maxLength={50}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Symbol</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      value={formData.tokenSymbol}
+                      onChange={(e) => setFormData({ ...formData, tokenSymbol: e.target.value.toUpperCase() })}
+                      placeholder="e.g., MBT"
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
+                <div className={styles.editFormActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={() => setEditing(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles.saveButton}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            )}
 
             {token.contractAddress ? (
               <>
