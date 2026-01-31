@@ -344,19 +344,7 @@ export default function DashboardPage() {
         <div className={styles.headerActions}>
           <button
             onClick={() => router.push('/dashboard/settings')}
-            style={{
-              padding: "0.5rem 1rem",
-              background: "#244b7a",
-              border: "none",
-              borderRadius: "6px",
-              color: "white",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-            }}
+            className={styles.headerButtonPrimary}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -364,25 +352,15 @@ export default function DashboardPage() {
             </svg>
             Settings
           </button>
-          <button className={styles.exportButton}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <button className={styles.headerButtonSecondary}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Export Report
           </button>
           <button
             onClick={handleLogout}
-            style={{
-              padding: "0.5rem 1rem",
-              background: "transparent",
-              border: "1px solid #d1d5db",
-              borderRadius: "6px",
-              color: "#6b7280",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-              fontWeight: "500",
-              marginLeft: "0.5rem",
-            }}
+            className={styles.headerButtonSecondary}
           >
             Logout
           </button>
@@ -677,32 +655,21 @@ export default function DashboardPage() {
           border: '1px solid #e5e7eb',
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>
+          <div className={styles.qrCodeHeader}>
+            <div className={styles.qrCodeHeaderText}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem', margin: 0 }}>
                 Your QR Code
               </h3>
-              <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+              <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0.25rem 0 0 0' }}>
                 Display this code at your point of sale for customers to scan and earn points
               </p>
             </div>
             <button
               onClick={() => router.push('/dashboard/settings?tab=qr-codes')}
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: '#244b7a',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '0.95rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
+              className={styles.headerButtonPrimary}
+              style={{ flexShrink: 0 }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Download QR Code
