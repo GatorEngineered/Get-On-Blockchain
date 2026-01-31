@@ -193,7 +193,7 @@ export default function PayoutHistory() {
         </div>
 
         {/* Summary Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        <div className="payout-summary-grid">
           <div style={{
             padding: '0.875rem',
             background: '#f0fdf4',

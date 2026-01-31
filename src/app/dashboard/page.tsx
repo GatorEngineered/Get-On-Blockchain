@@ -815,7 +815,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
+          <div className="wallet-balance-grid">
             <div style={{
               padding: '1.25rem',
               background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',

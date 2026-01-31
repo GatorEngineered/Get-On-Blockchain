@@ -1532,6 +1532,66 @@
 }
 
 /* =======================
+   WALLET BALANCE CARDS GRID
+   ======================= */
+
+.wallet-balance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .wallet-balance-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .wallet-balance-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+/* =======================
+   PAYOUT SUMMARY CARDS GRID
+   ======================= */
+
+.payout-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .payout-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .payout-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .payout-summary-grid > div {
+    padding: 0.75rem !important;
+  }
+
+  .payout-summary-grid p:first-child {
+    font-size: 0.65rem !important;
+  }
+
+  .payout-summary-grid p:last-child {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* =======================
    MOBILE HAMBURGER MENU
    ======================= */
 
