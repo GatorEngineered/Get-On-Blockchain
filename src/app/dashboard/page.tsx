@@ -580,10 +580,10 @@ export default function DashboardPage() {
                           Reward
                         </button>
 
-                        {/* Confiscate Button */}
+                        {/* Deduct Button */}
                         <button
                           onClick={() => openPointsModal({id: customer.id, name: customer.name, points: customer.points}, 'confiscate')}
-                          title="Confiscate points"
+                          title="Deduct points"
                           style={{
                             padding: '0.4rem 0.6rem',
                             background: '#ef4444',
@@ -601,7 +601,7 @@ export default function DashboardPage() {
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
                           </svg>
-                          Confiscate
+                          Deduct
                         </button>
 
                         {/* Email Button */}
@@ -1016,7 +1016,7 @@ export default function DashboardPage() {
                   fontWeight: '700',
                   color: adjustmentType === 'reward' ? '#059669' : '#dc2626',
                 }}>
-                  {adjustmentType === 'reward' ? 'Reward Points' : 'Confiscate Points'}
+                  {adjustmentType === 'reward' ? 'Reward Points' : 'Deduct Points'}
                 </h2>
                 <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
                   {selectedCustomer.name} • Current: {selectedCustomer.points.toLocaleString()} pts
