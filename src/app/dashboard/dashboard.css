@@ -1546,12 +1546,36 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
+
+  /* Smaller Manage Wallet button on mobile */
+  .manage-wallet-btn {
+    padding: 0.5rem 0.875rem !important;
+    font-size: 0.8rem !important;
+    gap: 0.375rem !important;
+  }
+
+  .manage-wallet-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
 }
 
 @media (max-width: 480px) {
   .wallet-balance-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+
+  /* Even smaller Manage Wallet button on small mobile */
+  .manage-wallet-btn {
+    padding: 0.375rem 0.625rem !important;
+    font-size: 0.7rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .manage-wallet-btn svg {
+    width: 12px !important;
+    height: 12px !important;
   }
 }
 

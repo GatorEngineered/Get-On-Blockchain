@@ -761,6 +761,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => router.push('/dashboard/settings?tab=payout-wallet')}
+              className="manage-wallet-btn"
               style={{
                 padding: '0.75rem 1.5rem',
                 background: 'transparent',
