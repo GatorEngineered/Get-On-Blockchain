@@ -82,45 +82,46 @@
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 0.75rem;
   margin-bottom: 2rem;
+  max-width: 420px;
 }
 
 .statCard {
   background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
+  padding: 0.875rem 0.5rem;
+  border-radius: 10px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  text-align: center;
 }
 
 .statLabel {
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   color: #6b7280;
-  margin: 0 0 0.5rem 0;
+  margin: 0;
+  line-height: 1.3;
 }
 
 .statValue {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1f2937;
-  margin: 0;
+  margin: 0 0 0.125rem 0;
 }
 
 .statValueGreen {
-  composes: statValue;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #059669;
+  margin: 0 0 0.125rem 0;
 }
 
 .statValueOrange {
-  composes: statValue;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #f59e0b;
-}
-
-.statDescription {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0.5rem 0 0 0;
+  margin: 0 0 0.125rem 0;
 }
 
 /* Member List Card */
@@ -198,15 +199,22 @@
 
   .statsGrid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    gap: 0.5rem;
+    max-width: 400px;
   }
 
   .statCard {
-    padding: 1rem;
+    padding: 0.875rem 0.5rem;
   }
 
-  .statValue {
-    font-size: 1.75rem;
+  .statValue,
+  .statValueGreen,
+  .statValueOrange {
+    font-size: 1.375rem;
+  }
+
+  .statLabel {
+    font-size: 0.65rem;
   }
 
   .tableHeader {
@@ -241,40 +249,26 @@
     border-radius: 6px;
   }
 
-  /* Keep 3 columns but make cards compact and centered */
+  /* Keep 3 columns but make cards compact */
   .statsGrid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
+    gap: 0.375rem;
+    max-width: 320px;
   }
 
   .statCard {
-    padding: 0.75rem 0.5rem;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    padding: 0.625rem 0.375rem;
   }
 
-  .statInfo {
-    order: 2;
-    width: 100%;
-  }
-
-  .statValue {
-    order: 1;
-    font-size: 1.5rem;
-    text-align: center;
-    margin-bottom: 0.25rem;
+  .statValue,
+  .statValueGreen,
+  .statValueOrange {
+    font-size: 1.25rem;
   }
 
   .statLabel {
-    font-size: 0.7rem;
-    margin: 0;
+    font-size: 0.6rem;
     line-height: 1.2;
-  }
-
-  .statDescription {
-    display: none;
   }
 
   .tableHeader {
@@ -312,18 +306,21 @@
   }
 
   .statsGrid {
-    gap: 0.375rem;
+    gap: 0.25rem;
+    max-width: 260px;
   }
 
   .statCard {
-    padding: 0.625rem 0.375rem;
+    padding: 0.5rem 0.25rem;
   }
 
-  .statValue {
-    font-size: 1.25rem;
+  .statValue,
+  .statValueGreen,
+  .statValueOrange {
+    font-size: 1rem;
   }
 
   .statLabel {
-    font-size: 0.65rem;
+    font-size: 0.55rem;
   }
 }

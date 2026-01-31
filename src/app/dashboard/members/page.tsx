@@ -162,27 +162,18 @@ export default function MembersPage() {
       {/* Summary Cards */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Total Members</p>
-            <p className={styles.statDescription}>Connected to {businessName}</p>
-          </div>
           <p className={styles.statValue}>{members.length}</p>
+          <p className={styles.statLabel}>Total Members</p>
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Active Members</p>
-            <p className={styles.statDescription}>Have visited at least once</p>
-          </div>
           <p className={styles.statValueGreen}>{activeMembers}</p>
+          <p className={styles.statLabel}>Active Members</p>
         </div>
 
         <div className={styles.statCard}>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Total Points Issued</p>
-            <p className={styles.statDescription}>Sum of all member balances</p>
-          </div>
           <p className={styles.statValueOrange}>{totalPoints.toLocaleString()}</p>
+          <p className={styles.statLabel}>Total Points Issued</p>
         </div>
       </div>
 
