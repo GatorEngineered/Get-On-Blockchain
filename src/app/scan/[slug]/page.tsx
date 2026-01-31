@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import styles from './scan.module.css';
+import { getTierName } from '@/app/lib/tier-display';
 
 export default function ScanPage() {
   const router = useRouter();
@@ -106,9 +107,9 @@ export default function ScanPage() {
               <span className={styles.statValue}>{scanData.totalPoints}</span>
             </div>
             <div className={styles.statCard}>
-              <span className={styles.statLabel}>Current Tier</span>
+              <span className={styles.statLabel}>Current Rank</span>
               <span className={`${styles.statValue} ${styles[scanData.tier.toLowerCase()]}`}>
-                {scanData.tier}
+                {getTierName(scanData.tier)}
               </span>
             </div>
             <div className={styles.statCard}>
@@ -119,9 +120,9 @@ export default function ScanPage() {
 
           {scanData.nextTier && (
             <div className={styles.progressCard}>
-              <h3>Next Tier: {scanData.nextTier.name}</h3>
+              <h3>Next Rank: {getTierName(scanData.nextTier.name)}</h3>
               <p>
-                {scanData.nextTier.pointsNeeded} more points to reach {scanData.nextTier.name} tier
+                {scanData.nextTier.pointsNeeded} more points to reach {getTierName(scanData.nextTier.name)} rank
               </p>
               <div className={styles.progressBar}>
                 <div

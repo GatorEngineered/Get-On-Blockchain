@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './RewardTiersSettings.module.css';
+import { getTierDisplay, getTierBadgeText, getTierFullName } from '@/app/lib/tier-display';
 
 interface RewardTiersSettingsProps {
   merchantData: any;
@@ -44,7 +45,7 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
 
       // Validate
       if (tiers.vipThreshold >= tiers.superThreshold) {
-        setError('VIP threshold must be less than Super threshold');
+        setError('Soldier threshold must be less than General threshold');
         setLoading(false);
         return;
       }
@@ -170,27 +171,27 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
         </p>
 
         <div className={styles.tiersList}>
-          {/* Base Tier */}
+          {/* Rookie Tier (BASE) */}
           <div className={styles.tierItem}>
             <div className={styles.tierHeader}>
               <div className={styles.tierBadge} style={{ background: '#e5e7eb', color: '#374151' }}>
-                BASE
+                {getTierBadgeText('BASE')}
               </div>
-              <div className={styles.tierName}>Base Member</div>
+              <div className={styles.tierName}>{getTierFullName('BASE')}</div>
             </div>
             <div className={styles.tierDetails}>
               <div className={styles.tierRange}>0 - {tiers.vipThreshold - 1} points</div>
-              <div className={styles.tierVisits}>Starter level</div>
+              <div className={styles.tierVisits}>{getTierDisplay('BASE').subtitle}</div>
             </div>
           </div>
 
-          {/* VIP Tier */}
+          {/* Soldier Tier (VIP) */}
           <div className={styles.tierItem}>
             <div className={styles.tierHeader}>
               <div className={styles.tierBadge} style={{ background: '#dbeafe', color: '#1e40af' }}>
-                VIP
+                {getTierBadgeText('VIP')}
               </div>
-              <div className={styles.tierName}>VIP Member</div>
+              <div className={styles.tierName}>{getTierFullName('VIP')}</div>
             </div>
             <div className={styles.tierDetails}>
               {editing ? (
@@ -213,20 +214,20 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
                     {tiers.vipThreshold} - {tiers.superThreshold - 1} points
                   </div>
                   <div className={styles.tierVisits}>
-                    Unlocked after {calculateVisitsToTier(tiers.vipThreshold)} visits
+                    {getTierDisplay('VIP').subtitle} • Unlocked after {calculateVisitsToTier(tiers.vipThreshold)} visits
                   </div>
                 </>
               )}
             </div>
           </div>
 
-          {/* Super Tier */}
+          {/* General Tier (SUPER) */}
           <div className={styles.tierItem}>
             <div className={styles.tierHeader}>
               <div className={styles.tierBadge} style={{ background: '#fef3c7', color: '#92400e' }}>
-                SUPER
+                {getTierBadgeText('SUPER')}
               </div>
-              <div className={styles.tierName}>Super Member</div>
+              <div className={styles.tierName}>{getTierFullName('SUPER')}</div>
             </div>
             <div className={styles.tierDetails}>
               {editing ? (
@@ -247,7 +248,7 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
                 <>
                   <div className={styles.tierRange}>{tiers.superThreshold}+ points</div>
                   <div className={styles.tierVisits}>
-                    Unlocked after {calculateVisitsToTier(tiers.superThreshold)} visits
+                    {getTierDisplay('SUPER').subtitle} • Unlocked after {calculateVisitsToTier(tiers.superThreshold)} visits
                   </div>
                 </>
               )}
@@ -326,9 +327,9 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
       <div className={styles.infoCard}>
         <h4 className={styles.infoTitle}>How Reward Tiers Work</h4>
         <ul className={styles.infoList}>
-          <li>Members start in the BASE tier and earn points with each visit</li>
-          <li>As members accumulate points, they automatically advance to higher tiers</li>
-          <li>Higher tiers can unlock special perks and recognition in your business</li>
+          <li>Members start as a {getTierDisplay('BASE').name} and earn points with each visit</li>
+          <li>As members accumulate points, they automatically advance to higher ranks</li>
+          <li>Higher ranks can unlock special perks and recognition in your business</li>
           <li>
             Members on Premium plan can redeem {tiers.payoutMilestonePoints} points for $
             {tiers.payoutAmountUSD.toFixed(2)} USDC

@@ -49,7 +49,7 @@ const plans: Plan[] = [
       'Unlimited locations',
       'Unlimited rewards catalog',
       'Points never expire',
-      'Member tiers (Base, VIP, Super)',
+      'Member ranks (Rookie, Soldier, General)',
       'Referral program with notifications',
       'Email announcements to members',
       'Points reminder emails',

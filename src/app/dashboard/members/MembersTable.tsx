@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getTierName } from "@/app/lib/tier-display";
 
 type MemberRow = {
   id: string;
@@ -171,7 +172,7 @@ export default function MembersTable({ initialMembers, onRefresh }: MembersTable
                     </td>
 
                     <td className="members-tier-cell">
-                      {m.tier || "BASE"}
+                      {getTierName(m.tier || "BASE")}
                     </td>
 
                     <td className="members-wallet-cell">

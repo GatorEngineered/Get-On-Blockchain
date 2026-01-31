@@ -6,6 +6,7 @@ import styles from '../styles/dashboard-mockups.module.css';
 import PayoutHistory from './components/PayoutHistory';
 import LocationSelector from './components/LocationSelector';
 import SendAnnouncementModal from './members/SendAnnouncementModal';
+import { getTierName } from '@/app/lib/tier-display';
 
 type Business = {
   id: string;
@@ -551,7 +552,7 @@ export default function DashboardPage() {
                     <td className={styles.pointsCell}>{customer.points.toLocaleString()}</td>
                     <td>
                       <span className={`${styles.tierBadgeTable} ${styles[`tier${customer.tier}`]}`}>
-                        {customer.tier}
+                        {getTierName(customer.tier)}
                       </span>
                     </td>
                     <td>

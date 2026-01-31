@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 // Plan limits for custom tiers (beyond the default 3)
 const tierLimits: Record<string, number> = {
-  STARTER: 3, // BASE, VIP, SUPER only
+  STARTER: 3, // Rookie, Soldier, General only
   BASIC: 3,
   PREMIUM: 3,
   GROWTH: 6, // Can add 3 more custom tiers
@@ -50,12 +50,13 @@ export async function GET() {
     });
 
     // If no custom tiers exist, return the default ones from merchant settings
+    // Using military-themed tier names: Rookie → Soldier → General
     const defaultTiers = [
       {
         id: 'default-base',
         name: 'BASE',
-        displayName: 'Base Member',
-        description: 'Starter level',
+        displayName: 'Rookie Member',
+        description: 'Joined',
         threshold: 0,
         sortOrder: 0,
         isDefault: true,
@@ -63,8 +64,8 @@ export async function GET() {
       {
         id: 'default-vip',
         name: 'VIP',
-        displayName: 'VIP Member',
-        description: `Unlocked at ${merchant?.vipThreshold || 100} points`,
+        displayName: 'Soldier Member',
+        description: `Trusted • Unlocked at ${merchant?.vipThreshold || 100} points`,
         threshold: merchant?.vipThreshold || 100,
         sortOrder: 1,
         isDefault: true,
@@ -72,8 +73,8 @@ export async function GET() {
       {
         id: 'default-super',
         name: 'SUPER',
-        displayName: 'Super Member',
-        description: `Unlocked at ${merchant?.superThreshold || 200} points`,
+        displayName: 'General Member',
+        description: `Honor • Unlocked at ${merchant?.superThreshold || 200} points`,
         threshold: merchant?.superThreshold || 200,
         sortOrder: 2,
         isDefault: true,

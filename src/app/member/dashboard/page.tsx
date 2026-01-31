@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../styles/dashboard-mockups.module.css";
 import RedemptionQRModal from "../components/RedemptionQRModal";
+import { getTierName } from "@/app/lib/tier-display";
 
 type MerchantMember = {
   id: string;
@@ -629,7 +630,7 @@ export default function MemberDashboardPage() {
         <div className={styles.customerWelcome}>
           <h1>Welcome back, {member.firstName}!</h1>
           <p className={styles.tierBadge}>
-            <span className={styles.tierIcon}>★</span> {tierLevel} Member
+            <span className={styles.tierIcon}>★</span> {getTierName(tierLevel)} Member
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -1540,7 +1541,7 @@ export default function MemberDashboardPage() {
                       {mm.merchant.name}
                     </h4>
                     <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
-                      Tier: {mm.tier} • {mm.merchant.businesses.length} location{mm.merchant.businesses.length > 1 ? 's' : ''}
+                      Rank: {getTierName(mm.tier)} • {mm.merchant.businesses.length} location{mm.merchant.businesses.length > 1 ? 's' : ''}
                     </p>
                   </div>
                   <div style={{ textAlign: "right" }}>

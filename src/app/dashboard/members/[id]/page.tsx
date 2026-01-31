@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import SendAnnouncementModal from '../SendAnnouncementModal';
 import styles from './memberProfile.module.css';
+import { getTierName } from '@/app/lib/tier-display';
 
 type MemberProfile = {
   member: {
@@ -291,13 +292,13 @@ export default function MemberProfilePage() {
             textAlign: 'center'
           }}>
             <p style={{ fontSize: '1.25rem', fontWeight: '700', color: getTierColor(profile.loyalty.tier) }}>
-              {profile.loyalty.tier} TIER
+              {getTierName(profile.loyalty.tier).toUpperCase()} RANK
             </p>
           </div>
           {profile.loyalty.nextTier && (
             <div style={{ marginTop: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
-                <span>Progress to {profile.loyalty.nextTier}</span>
+                <span>Progress to {getTierName(profile.loyalty.nextTier)}</span>
                 <span>{Math.round(profile.loyalty.tierProgress)}%</span>
               </div>
               <div style={{ background: '#e5e7eb', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
