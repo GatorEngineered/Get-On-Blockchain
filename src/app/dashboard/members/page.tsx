@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MembersTable from './MembersTable';
 import SendAnnouncementModal from './SendAnnouncementModal';
+import styles from './members.module.css';
 
 type Member = {
   id: string;
@@ -128,56 +129,27 @@ export default function MembersPage() {
   const activeMembers = members.filter(m => m.lastVisit).length;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', background: '#f9fafb', minHeight: '100vh' }}>
+    <div className={styles.container}>
       {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
+      <div className={styles.header}>
         <button
           onClick={() => router.push('/dashboard')}
-          style={{
-            padding: '0.5rem 1rem',
-            background: 'transparent',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            color: '#6b7280',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}
+          className={styles.backButton}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back to Dashboard
         </button>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', marginBottom: '0.5rem' }}>
-              Members
-            </h1>
-            <p style={{ color: '#6b7280', fontSize: '1rem' }}>
-              Manage your loyalty program members
-            </p>
+        <div className={styles.headerRow}>
+          <div className={styles.headerText}>
+            <h1>Members</h1>
+            <p>Manage your loyalty program members</p>
           </div>
           <button
             onClick={() => setShowAnnouncementModal(true)}
             disabled={members.length === 0}
-            style={{
-              padding: '0.75rem 1.25rem',
-              background: members.length === 0 ? '#d1d5db' : 'linear-gradient(135deg, #244b7a 0%, #3b6ea5 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '0.95rem',
-              fontWeight: '600',
-              cursor: members.length === 0 ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              boxShadow: members.length === 0 ? 'none' : '0 2px 8px rgba(36, 75, 122, 0.25)',
-            }}
+            className={styles.announcementButton}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -188,88 +160,42 @@ export default function MembersPage() {
       </div>
 
       {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Total Members</p>
-          <p style={{ fontSize: '2.5rem', fontWeight: '700', color: '#1f2937' }}>{members.length}</p>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            Connected to {businessName}
-          </p>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Total Members</p>
+            <p className={styles.statDescription}>Connected to {businessName}</p>
+          </div>
+          <p className={styles.statValue}>{members.length}</p>
         </div>
 
-        <div style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Active Members</p>
-          <p style={{ fontSize: '2.5rem', fontWeight: '700', color: '#059669' }}>{activeMembers}</p>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            Have visited at least once
-          </p>
+        <div className={styles.statCard}>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Active Members</p>
+            <p className={styles.statDescription}>Have visited at least once</p>
+          </div>
+          <p className={styles.statValueGreen}>{activeMembers}</p>
         </div>
 
-        <div style={{
-          background: 'white',
-          padding: '1.5rem',
-          borderRadius: '12px',
-          border: '1px solid #e5e7eb',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Total Points Issued</p>
-          <p style={{ fontSize: '2.5rem', fontWeight: '700', color: '#f59e0b' }}>{totalPoints.toLocaleString()}</p>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem' }}>
-            Sum of all member balances
-          </p>
+        <div className={styles.statCard}>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Total Points Issued</p>
+            <p className={styles.statDescription}>Sum of all member balances</p>
+          </div>
+          <p className={styles.statValueOrange}>{totalPoints.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Members Table Card */}
-      <div style={{
-        background: 'white',
-        borderRadius: '12px',
-        border: '1px solid #e5e7eb',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          padding: '1.5rem',
-          borderBottom: '1px solid #e5e7eb',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
+      <div className={styles.tableCard}>
+        <div className={styles.tableHeader}>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>
-              Member List
-            </h2>
-            <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-              View and manage all {members.length} members
-            </p>
+            <h2>Member List</h2>
+            <p>View and manage all {members.length} members</p>
           </div>
           <button
             onClick={handleExportCSV}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: 'white',
-              color: '#244b7a',
-              border: '1px solid #244b7a',
-              borderRadius: '6px',
-              fontSize: '0.95rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
+            className={styles.exportButton}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
