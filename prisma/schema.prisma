@@ -257,6 +257,10 @@ model MerchantMember {
   // Referral Code (unique shareable link)
   referralCode String? @unique // 8-char alphanumeric code e.g., "ABC12345"
 
+  // Member & Merchant Notes
+  memberNote   String? // Member's note about themselves (300 char max, visible to merchant)
+  merchantNote String? // Merchant's private note about the member (not visible to member)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

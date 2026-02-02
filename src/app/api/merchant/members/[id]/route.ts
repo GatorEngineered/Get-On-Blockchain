@@ -73,6 +73,9 @@ export async function GET(
             lastName: true,
             phone: true,
             createdAt: true,
+            birthMonth: true,
+            birthDay: true,
+            anniversaryDate: true,
           },
         },
         rewardTransactions: {
@@ -156,6 +159,14 @@ export async function GET(
       tierProgress = 100; // SUPER tier is max
     }
 
+    // Helper to convert month number to name
+    const getMonthName = (month: number | null): string | null => {
+      if (!month) return null;
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      return monthNames[month - 1] || null;
+    };
+
     return NextResponse.json({
       member: {
         id: merchantMember.member.id,
@@ -167,6 +178,10 @@ export async function GET(
         phone: merchantMember.member.phone,
         memberSince: merchantMember.member.createdAt,
         joinedBusiness: merchantMember.createdAt,
+        // Special dates for merchant view
+        birthdayMonth: getMonthName(merchantMember.member.birthMonth),
+        relationshipAnniversary: merchantMember.member.anniversaryDate,
+        memberAnniversary: merchantMember.createdAt, // When they joined this merchant
       },
       loyalty: {
         points: currentPoints,
@@ -177,6 +192,11 @@ export async function GET(
         totalVisits,
         lastVisit,
         referralCount, // Number of successful referrals made by this member
+      },
+      // Notes
+      notes: {
+        memberNote: merchantMember.memberNote, // What member wrote about themselves
+        merchantNote: merchantMember.merchantNote, // Merchant's private note
       },
       emailPreferences: {
         // Used to show if member is reachable via platform communications
@@ -208,6 +228,84 @@ export async function GET(
     console.error("Get member profile error:", error);
     return NextResponse.json(
       { error: "Something went wrong. Please try again or contact support." },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/merchant/members/[id]
+ * Update merchant's private note about a member
+ */
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("gob_merchant_session");
+
+    if (!session?.value) {
+      return NextResponse.json(
+        { error: "Please log in to continue." },
+        { status: 401 }
+      );
+    }
+
+    let sessionData;
+    try {
+      sessionData = JSON.parse(session.value);
+    } catch (e) {
+      return NextResponse.json(
+        { error: "Session expired. Please log in again." },
+        { status: 401 }
+      );
+    }
+
+    const merchantId = sessionData.merchantId;
+    if (!merchantId) {
+      return NextResponse.json(
+        { error: "Session expired. Please log in again." },
+        { status: 401 }
+      );
+    }
+
+    const { id: memberId } = await params;
+    const body = await req.json();
+    const { merchantNote } = body;
+
+    // Validate note length (max 500 characters for merchant notes)
+    if (merchantNote && merchantNote.length > 500) {
+      return NextResponse.json(
+        { error: "Note cannot exceed 500 characters." },
+        { status: 400 }
+      );
+    }
+
+    // Update the merchant's note about this member
+    const updated = await prisma.merchantMember.update({
+      where: {
+        merchantId_memberId: {
+          merchantId,
+          memberId,
+        },
+      },
+      data: {
+        merchantNote: merchantNote || null,
+      },
+      select: {
+        merchantNote: true,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      merchantNote: updated.merchantNote,
+    });
+  } catch (error: any) {
+    console.error("Update merchant note error:", error);
+    return NextResponse.json(
+      { error: "Failed to update note. Please try again." },
       { status: 500 }
     );
   }

@@ -15,8 +15,15 @@ type MemberRow = {
   tier: string;
   visits?: number;
   totalVisits?: number;
+  visitCount?: number;
   createdAt?: string | Date;
   joinedAt?: string;
+  // Special date fields for sorting
+  birthMonth?: number | null; // 1-12 or null
+  relationshipAnniversaryMonth?: number | null; // 1-12 or null
+  memberAnniversaryMonth?: number; // 1-12
+  // Member's note for tooltip preview
+  memberNote?: string | null;
 };
 
 type MembersTableProps = {
@@ -24,7 +31,7 @@ type MembersTableProps = {
   onRefresh?: () => void;
 };
 
-type SortKey = "recent" | "points-high" | "points-low" | "visits-high";
+type SortKey = "recent" | "points-high" | "points-low" | "visits-high" | "birthday-month" | "relationship-anniversary" | "member-anniversary";
 
 export default function MembersTable({ initialMembers, onRefresh }: MembersTableProps) {
   const router = useRouter();
@@ -56,6 +63,14 @@ export default function MembersTable({ initialMembers, onRefresh }: MembersTable
       });
     }
 
+    // Filter out members without relevant date when sorting by special dates
+    if (sortBy === "birthday-month") {
+      rows = rows.filter((m) => m.birthMonth != null);
+    } else if (sortBy === "relationship-anniversary") {
+      rows = rows.filter((m) => m.relationshipAnniversaryMonth != null);
+    }
+    // member-anniversary always exists (it's their join date)
+
     // Sort
     rows.sort((a, b) => {
       if (sortBy === "recent") {
@@ -74,9 +89,21 @@ export default function MembersTable({ initialMembers, onRefresh }: MembersTable
         return (a.points ?? 0) - (b.points ?? 0);
       }
       if (sortBy === "visits-high") {
-        const aVisits = a.visits ?? a.totalVisits ?? 0;
-        const bVisits = b.visits ?? b.totalVisits ?? 0;
+        const aVisits = a.visits ?? a.totalVisits ?? a.visitCount ?? 0;
+        const bVisits = b.visits ?? b.totalVisits ?? b.visitCount ?? 0;
         return bVisits - aVisits;
+      }
+      if (sortBy === "birthday-month") {
+        // Sort by month (January first)
+        return (a.birthMonth ?? 0) - (b.birthMonth ?? 0);
+      }
+      if (sortBy === "relationship-anniversary") {
+        // Sort by month (January first)
+        return (a.relationshipAnniversaryMonth ?? 0) - (b.relationshipAnniversaryMonth ?? 0);
+      }
+      if (sortBy === "member-anniversary") {
+        // Sort by month (January first)
+        return (a.memberAnniversaryMonth ?? 0) - (b.memberAnniversaryMonth ?? 0);
       }
       return 0;
     });
@@ -100,6 +127,9 @@ export default function MembersTable({ initialMembers, onRefresh }: MembersTable
               <option value="visits-high">Most visits</option>
               <option value="points-high">Points: high → low</option>
               <option value="points-low">Points: low → high</option>
+              <option value="birthday-month">Birthday month</option>
+              <option value="relationship-anniversary">Relationship anniversary</option>
+              <option value="member-anniversary">Member anniversary</option>
             </select>
           </label>
         </div>
@@ -139,7 +169,7 @@ export default function MembersTable({ initialMembers, onRefresh }: MembersTable
               {visibleMembers.map((m) => {
                 const displayName = m.fullName || (m.firstName || "Anonymous") + (m.lastName ? " " + m.lastName.charAt(0) + "." : "");
                 const dateValue = m.createdAt || m.joinedAt;
-                const visitsCount = m.visits ?? m.totalVisits ?? 0;
+                const visitsCount = m.visits ?? m.totalVisits ?? m.visitCount ?? 0;
 
                 return (
                   <tr
@@ -157,8 +187,36 @@ export default function MembersTable({ initialMembers, onRefresh }: MembersTable
                     }}
                   >
                     <td>
-                      <div className="members-email">
+                      <div className="members-email" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         {displayName}
+                        {m.memberNote && (
+                          <span
+                            title={m.memberNote}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '18px',
+                              height: '18px',
+                              backgroundColor: '#e0f2fe',
+                              borderRadius: '4px',
+                              cursor: 'help',
+                            }}
+                          >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#0284c7"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                          </span>
+                        )}
                       </div>
                       <div className="members-id">ID: {m.id.slice(0, 8)}...</div>
                     </td>

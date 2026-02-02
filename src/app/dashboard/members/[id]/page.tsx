@@ -15,6 +15,10 @@ type MemberProfile = {
     phone: string | null;
     memberSince: string;
     joinedBusiness: string;
+    // Special dates
+    birthdayMonth: string | null; // "January", "February", etc.
+    relationshipAnniversary: string | null; // ISO date
+    memberAnniversary: string; // ISO date (same as joinedBusiness)
   };
   loyalty: {
     points: number;
@@ -25,6 +29,10 @@ type MemberProfile = {
     totalVisits: number;
     lastVisit: string | null;
     referralCount: number;
+  };
+  notes: {
+    memberNote: string | null; // Member's note about themselves
+    merchantNote: string | null; // Merchant's private note
   };
   emailPreferences: {
     canReceivePromotional: boolean;
@@ -69,6 +77,11 @@ export default function MemberProfilePage() {
 
   // Send message modal
   const [showMessageModal, setShowMessageModal] = useState(false);
+
+  // Merchant note editing
+  const [editingNote, setEditingNote] = useState(false);
+  const [merchantNote, setMerchantNote] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -137,6 +150,38 @@ export default function MemberProfilePage() {
       setAdjusting(false);
     }
   }
+
+  async function handleSaveMerchantNote() {
+    try {
+      setSavingNote(true);
+
+      const res = await fetch(`/api/merchant/members/${memberId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ merchantNote }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save note');
+      }
+
+      setEditingNote(false);
+      await loadProfile();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSavingNote(false);
+    }
+  }
+
+  // Initialize merchant note when profile loads
+  useEffect(() => {
+    if (profile?.notes?.merchantNote !== undefined) {
+      setMerchantNote(profile.notes.merchantNote || '');
+    }
+  }, [profile?.notes?.merchantNote]);
 
   if (loading) {
     return (
@@ -332,6 +377,174 @@ export default function MemberProfilePage() {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Special Dates & Notes Row */}
+      <div className={styles.infoCardsGrid} style={{ marginTop: '1.5rem' }}>
+        {/* Special Dates Card */}
+        <div className={styles.infoCard}>
+          <h3 className={styles.cardTitle}>
+            Special Dates
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div>
+              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Birthday Month</p>
+              <p style={{ fontSize: '0.95rem', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {profile.member.birthdayMonth ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2h12z" />
+                    </svg>
+                    {profile.member.birthdayMonth}
+                  </>
+                ) : (
+                  <span style={{ color: '#9ca3af' }}>Not provided</span>
+                )}
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Relationship Anniversary</p>
+              <p style={{ fontSize: '0.95rem', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {profile.member.relationshipAnniversary ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ec4899" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    {new Date(profile.member.relationshipAnniversary).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
+                  </>
+                ) : (
+                  <span style={{ color: '#9ca3af' }}>Not provided</span>
+                )}
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '0.25rem' }}>Member Anniversary</p>
+              <p style={{ fontSize: '0.95rem', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {new Date(profile.member.memberAnniversary || profile.member.joinedBusiness).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Member's Note Card */}
+        <div className={styles.infoCard}>
+          <h3 className={styles.cardTitle}>
+            Member's Note
+          </h3>
+          {profile.notes?.memberNote ? (
+            <div style={{
+              padding: '0.75rem',
+              background: '#f0fdf4',
+              borderRadius: '8px',
+              borderLeft: '3px solid #22c55e',
+            }}>
+              <p style={{ fontSize: '0.9rem', color: '#1f2937', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                {profile.notes.memberNote}
+              </p>
+            </div>
+          ) : (
+            <p style={{ fontSize: '0.9rem', color: '#9ca3af', fontStyle: 'italic' }}>
+              This member hasn't written a note yet
+            </p>
+          )}
+        </div>
+
+        {/* Merchant's Private Note Card */}
+        <div className={styles.infoCard}>
+          <h3 className={styles.cardTitle} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>Your Private Note</span>
+            {!editingNote && (
+              <button
+                onClick={() => {
+                  setMerchantNote(profile.notes?.merchantNote || '');
+                  setEditingNote(true);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#244b7a',
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                }}
+              >
+                {profile.notes?.merchantNote ? 'Edit' : 'Add Note'}
+              </button>
+            )}
+          </h3>
+          {editingNote ? (
+            <div>
+              <textarea
+                value={merchantNote}
+                onChange={(e) => setMerchantNote(e.target.value)}
+                maxLength={500}
+                placeholder="Add your private notes about this member..."
+                style={{
+                  width: '100%',
+                  minHeight: '80px',
+                  padding: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '0.9rem',
+                  resize: 'vertical',
+                }}
+              />
+              <p style={{ fontSize: '0.7rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+                {merchantNote.length}/500 characters
+              </p>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
+                <button
+                  onClick={() => setEditingNote(false)}
+                  disabled={savingNote}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: 'white',
+                    color: '#6b7280',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    cursor: savingNote ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveMerchantNote}
+                  disabled={savingNote}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: '#244b7a',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.85rem',
+                    cursor: savingNote ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {savingNote ? 'Saving...' : 'Save Note'}
+                </button>
+              </div>
+            </div>
+          ) : profile.notes?.merchantNote ? (
+            <div style={{
+              padding: '0.75rem',
+              background: '#fef3c7',
+              borderRadius: '8px',
+              borderLeft: '3px solid #f59e0b',
+            }}>
+              <p style={{ fontSize: '0.9rem', color: '#1f2937', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                {profile.notes.merchantNote}
+              </p>
+            </div>
+          ) : (
+            <p style={{ fontSize: '0.9rem', color: '#9ca3af', fontStyle: 'italic' }}>
+              No notes added yet
+            </p>
+          )}
         </div>
       </div>
 

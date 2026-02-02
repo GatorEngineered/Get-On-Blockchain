@@ -63,6 +63,8 @@ export async function GET(req: NextRequest) {
             lastName: true,
             phone: true,
             createdAt: true,
+            birthMonth: true,
+            anniversaryDate: true,
           },
         },
       },
@@ -114,6 +116,14 @@ export async function GET(req: NextRequest) {
           memberSince: mm.member.createdAt,
           lastVisit: lastScan?.scannedAt || null,
           visitCount: businessMember?.visitCount || 0,
+          // For sorting by special dates
+          birthMonth: mm.member.birthMonth, // 1-12 or null
+          relationshipAnniversaryMonth: mm.member.anniversaryDate
+            ? new Date(mm.member.anniversaryDate).getMonth() + 1
+            : null, // 1-12 or null
+          memberAnniversaryMonth: new Date(mm.createdAt).getMonth() + 1, // 1-12
+          // Member's note about themselves (for tooltip preview)
+          memberNote: mm.memberNote,
         };
       })
     );

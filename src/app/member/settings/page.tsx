@@ -51,7 +51,16 @@ export default function MemberSettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
 
   // Active tab
-  const [activeTab, setActiveTab] = useState<"profile" | "password" | "wallet" | "notifications" | "special-days">("profile");
+  const [activeTab, setActiveTab] = useState<"profile" | "password" | "wallet" | "notifications" | "special-days" | "notes">("profile");
+
+  // Member notes state
+  const [merchantsList, setMerchantsList] = useState<Array<{ merchantId: string; businessName: string; note: string | null }>>([]);
+  const [selectedMerchantId, setSelectedMerchantId] = useState<string | null>(null);
+  const [memberNote, setMemberNote] = useState("");
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [savingNote, setSavingNote] = useState(false);
+  const [noteError, setNoteError] = useState<string | null>(null);
+  const [noteSuccess, setNoteSuccess] = useState<string | null>(null);
 
   // Special days (birthday/anniversary) state
   const [birthdayMonth, setBirthdayMonth] = useState<number | null>(null);
@@ -265,6 +274,88 @@ export default function MemberSettingsPage() {
     }
   }
 
+  // Load member notes when switching to notes tab
+  useEffect(() => {
+    if (activeTab === "notes" && merchantsList.length === 0) {
+      loadMemberNotes();
+    }
+  }, [activeTab]);
+
+  async function loadMemberNotes() {
+    try {
+      setLoadingNotes(true);
+      setNoteError(null);
+
+      const res = await fetch("/api/member/note");
+
+      if (!res.ok) {
+        throw new Error("Failed to load notes");
+      }
+
+      const data = await res.json();
+      setMerchantsList(data.merchants || []);
+
+      // Select first merchant by default if any exist
+      if (data.merchants && data.merchants.length > 0) {
+        setSelectedMerchantId(data.merchants[0].merchantId);
+        setMemberNote(data.merchants[0].note || "");
+      }
+    } catch (err: any) {
+      console.error("Failed to load member notes:", err);
+      setNoteError(err.message);
+    } finally {
+      setLoadingNotes(false);
+    }
+  }
+
+  async function handleSaveMemberNote() {
+    if (!selectedMerchantId) return;
+
+    setSavingNote(true);
+    setNoteError(null);
+    setNoteSuccess(null);
+
+    try {
+      const res = await fetch("/api/member/note", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          merchantId: selectedMerchantId,
+          note: memberNote,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save note");
+      }
+
+      // Update local state
+      setMerchantsList((prev) =>
+        prev.map((m) =>
+          m.merchantId === selectedMerchantId ? { ...m, note: memberNote } : m
+        )
+      );
+
+      setNoteSuccess("Note saved!");
+      setTimeout(() => setNoteSuccess(null), 3000);
+    } catch (err: any) {
+      setNoteError(err.message);
+    } finally {
+      setSavingNote(false);
+    }
+  }
+
+  // Update note when merchant selection changes
+  function handleMerchantChange(merchantId: string) {
+    setSelectedMerchantId(merchantId);
+    const merchant = merchantsList.find((m) => m.merchantId === merchantId);
+    setMemberNote(merchant?.note || "");
+    setNoteSuccess(null);
+    setNoteError(null);
+  }
+
   async function handleUpdateProfile(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -448,6 +539,15 @@ export default function MemberSettingsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0A2.701 2.701 0 003 15.546M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18z" />
             </svg>
             Special Days
+          </button>
+          <button
+            className={`tab ${activeTab === "notes" ? "active" : ""}`}
+            onClick={() => setActiveTab("notes")}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Notes
           </button>
         </div>
 
@@ -1012,6 +1112,95 @@ export default function MemberSettingsPage() {
                 Participating merchants may offer bonus points on your birthday and relationship anniversary.
                 Check each merchant's page to see if they offer these special rewards.
                 Each reward can only be claimed once per year within the merchant's specified window.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Notes Tab */}
+        {activeTab === "notes" && (
+          <div className="tab-content">
+            <h2>My Notes</h2>
+            <p className="tab-description">
+              Write a personal note for each business you're a member of. This helps merchants get to know you better.
+            </p>
+
+            {noteError && <div className="message error">{noteError}</div>}
+            {noteSuccess && <div className="message success">{noteSuccess}</div>}
+
+            {loadingNotes ? (
+              <div style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
+                Loading your memberships...
+              </div>
+            ) : merchantsList.length === 0 ? (
+              <div className="no-wallet" style={{ marginTop: 0 }}>
+                <div className="no-wallet-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                </div>
+                <h3>No Memberships Yet</h3>
+                <p>
+                  You haven't joined any loyalty programs yet. Once you scan your QR code at a
+                  participating business, you'll be able to write notes for them here.
+                </p>
+              </div>
+            ) : (
+              <div className="notes-section">
+                <div className="form-field">
+                  <label>Select Business</label>
+                  <select
+                    className="form-select"
+                    value={selectedMerchantId || ""}
+                    onChange={(e) => handleMerchantChange(e.target.value)}
+                  >
+                    {merchantsList.map((m) => (
+                      <option key={m.merchantId} value={m.merchantId}>
+                        {m.businessName} {m.note ? "✓" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="field-hint">
+                    Choose a business to write or update your note
+                  </p>
+                </div>
+
+                <div className="form-field" style={{ marginTop: "1.5rem" }}>
+                  <label>Your Note</label>
+                  <textarea
+                    className="form-textarea"
+                    value={memberNote}
+                    onChange={(e) => setMemberNote(e.target.value)}
+                    maxLength={300}
+                    rows={4}
+                    placeholder="Tell the merchant a bit about yourself, your preferences, or what you like to order..."
+                  />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.25rem" }}>
+                    <p className="field-hint">
+                      This note is visible to the merchant
+                    </p>
+                    <span style={{ fontSize: "0.8rem", color: memberNote.length > 280 ? "#dc2626" : "#6b7280" }}>
+                      {memberNote.length}/300
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  className="primary-button"
+                  onClick={handleSaveMemberNote}
+                  disabled={savingNote || !selectedMerchantId}
+                >
+                  {savingNote ? "Saving..." : "Save Note"}
+                </button>
+              </div>
+            )}
+
+            <div className="info-box" style={{ marginTop: "2rem" }}>
+              <h4>About Notes</h4>
+              <p style={{ margin: 0, fontSize: "0.875rem", color: "#6b7280" }}>
+                Notes you write are specific to each business. For example, you might tell a coffee shop
+                your favorite drink, or let a gym know your workout preferences. Each note can be up to
+                300 characters and can be updated anytime.
               </p>
             </div>
           </div>
@@ -1638,6 +1827,35 @@ const pageStyles = `
     outline: none;
     border-color: #244b7a;
     box-shadow: 0 0 0 3px rgba(36, 75, 122, 0.1);
+  }
+
+  .form-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
+    transition: all 0.2s;
+  }
+
+  .form-textarea:focus {
+    outline: none;
+    border-color: #244b7a;
+    box-shadow: 0 0 0 3px rgba(36, 75, 122, 0.1);
+  }
+
+  .form-textarea::placeholder {
+    color: #9ca3af;
+  }
+
+  .notes-section {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
   }
 
   @media (max-width: 640px) {
