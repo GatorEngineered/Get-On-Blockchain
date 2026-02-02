@@ -1,13 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styles from './RewardTiersSettings.module.css';
-import { getTierDisplay, getTierBadgeText, getTierFullName } from '@/app/lib/tier-display';
+import { getTierDisplay, getTierBadgeText, getTierFullName, tiersByPlan, TierDisplayInfo } from '@/app/lib/tier-display';
 
 interface RewardTiersSettingsProps {
   merchantData: any;
   onUpdate: (data: any) => void;
 }
+
+// Tier badge colors
+const tierColors: Record<string, { bg: string; text: string }> = {
+  BASE: { bg: '#e5e7eb', text: '#374151' },
+  VIP: { bg: '#dbeafe', text: '#1e40af' },
+  SERGEANT: { bg: '#d1fae5', text: '#065f46' },
+  CAPTAIN: { bg: '#e0e7ff', text: '#3730a3' },
+  MAJOR: { bg: '#fce7f3', text: '#9d174d' },
+  SUPER: { bg: '#fef3c7', text: '#92400e' },
+};
 
 export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTiersSettingsProps) {
   const [editing, setEditing] = useState(false);
@@ -92,6 +102,57 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
     return Math.ceil(threshold / tiers.earnPerVisit);
   }
 
+  // Get tiers for the current plan with calculated thresholds
+  const planTiers = useMemo(() => {
+    const plan = merchantData?.plan || 'STARTER';
+    const tierKeys = tiersByPlan[plan] || tiersByPlan.STARTER;
+    const vip = tiers.vipThreshold;
+    const general = tiers.superThreshold;
+
+    // Calculate intermediate thresholds evenly distributed
+    const result: Array<{ key: string; threshold: number; nextThreshold: number | null }> = [];
+
+    tierKeys.forEach((key, index) => {
+      let threshold = 0;
+      let nextThreshold: number | null = null;
+
+      if (key === 'BASE') {
+        threshold = 0;
+        nextThreshold = vip;
+      } else if (key === 'VIP') {
+        threshold = vip;
+        // Calculate next threshold based on number of remaining tiers
+        const remainingTiers = tierKeys.slice(index + 1);
+        if (remainingTiers.length > 0) {
+          const step = (general - vip) / remainingTiers.length;
+          nextThreshold = Math.round(vip + step);
+        } else {
+          nextThreshold = general;
+        }
+      } else if (key === 'SUPER') {
+        threshold = general;
+        nextThreshold = null; // Highest tier
+      } else {
+        // Intermediate tiers - calculate based on position
+        const intermediates = tierKeys.filter(k => k !== 'BASE' && k !== 'VIP' && k !== 'SUPER');
+        const intermediateIndex = intermediates.indexOf(key);
+        const step = (general - vip) / (intermediates.length + 1);
+        threshold = Math.round(vip + step * (intermediateIndex + 1));
+
+        // Calculate next threshold
+        if (intermediateIndex < intermediates.length - 1) {
+          nextThreshold = Math.round(vip + step * (intermediateIndex + 2));
+        } else {
+          nextThreshold = general;
+        }
+      }
+
+      result.push({ key, threshold, nextThreshold });
+    });
+
+    return result;
+  }, [merchantData?.plan, tiers.vipThreshold, tiers.superThreshold]);
+
   return (
     <div>
       <h2 className={styles.title}>Reward Tiers</h2>
@@ -167,93 +228,65 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
       <div className={styles.card}>
         <h3 className={styles.cardTitle}>Tier Thresholds</h3>
         <p className={styles.cardDescription}>
-          Set point requirements for each membership tier level
+          Set point requirements for each membership tier level ({planTiers.length} tiers on {merchantData?.plan || 'STARTER'} plan)
         </p>
 
         <div className={styles.tiersList}>
-          {/* Rookie Tier (BASE) */}
-          <div className={styles.tierItem}>
-            <div className={styles.tierHeader}>
-              <div className={styles.tierBadge} style={{ background: '#e5e7eb', color: '#374151' }}>
-                {getTierBadgeText('BASE')}
-              </div>
-              <div className={styles.tierName}>{getTierFullName('BASE')}</div>
-            </div>
-            <div className={styles.tierDetails}>
-              <div className={styles.tierRange}>0 - {tiers.vipThreshold - 1} points</div>
-              <div className={styles.tierVisits}>{getTierDisplay('BASE').subtitle}</div>
-            </div>
-          </div>
+          {planTiers.map(({ key, threshold, nextThreshold }, index) => {
+            const colors = tierColors[key] || tierColors.BASE;
+            const tierInfo = getTierDisplay(key);
+            const isEditable = key === 'VIP' || key === 'SUPER';
+            const isLastTier = nextThreshold === null;
 
-          {/* Soldier Tier (VIP) */}
-          <div className={styles.tierItem}>
-            <div className={styles.tierHeader}>
-              <div className={styles.tierBadge} style={{ background: '#dbeafe', color: '#1e40af' }}>
-                {getTierBadgeText('VIP')}
-              </div>
-              <div className={styles.tierName}>{getTierFullName('VIP')}</div>
-            </div>
-            <div className={styles.tierDetails}>
-              {editing ? (
-                <div className={styles.thresholdEdit}>
-                  <label className={styles.smallLabel}>Threshold:</label>
-                  <input
-                    type="number"
-                    value={tiers.vipThreshold}
-                    onChange={(e) =>
-                      setTiers({ ...tiers, vipThreshold: parseInt(e.target.value) || 0 })
-                    }
-                    className={styles.smallInput}
-                    min="0"
-                  />
-                  <span>points</span>
+            return (
+              <div key={key} className={styles.tierItem}>
+                <div className={styles.tierHeader}>
+                  <div
+                    className={styles.tierBadge}
+                    style={{ background: colors.bg, color: colors.text }}
+                  >
+                    {getTierBadgeText(key)}
+                  </div>
+                  <div className={styles.tierName}>{getTierFullName(key)}</div>
                 </div>
-              ) : (
-                <>
-                  <div className={styles.tierRange}>
-                    {tiers.vipThreshold} - {tiers.superThreshold - 1} points
-                  </div>
-                  <div className={styles.tierVisits}>
-                    {getTierDisplay('VIP').subtitle} • Unlocked after {calculateVisitsToTier(tiers.vipThreshold)} visits
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* General Tier (SUPER) */}
-          <div className={styles.tierItem}>
-            <div className={styles.tierHeader}>
-              <div className={styles.tierBadge} style={{ background: '#fef3c7', color: '#92400e' }}>
-                {getTierBadgeText('SUPER')}
-              </div>
-              <div className={styles.tierName}>{getTierFullName('SUPER')}</div>
-            </div>
-            <div className={styles.tierDetails}>
-              {editing ? (
-                <div className={styles.thresholdEdit}>
-                  <label className={styles.smallLabel}>Threshold:</label>
-                  <input
-                    type="number"
-                    value={tiers.superThreshold}
-                    onChange={(e) =>
-                      setTiers({ ...tiers, superThreshold: parseInt(e.target.value) || 0 })
-                    }
-                    className={styles.smallInput}
-                    min="0"
-                  />
-                  <span>points</span>
+                <div className={styles.tierDetails}>
+                  {editing && isEditable ? (
+                    <div className={styles.thresholdEdit}>
+                      <label className={styles.smallLabel}>Threshold:</label>
+                      <input
+                        type="number"
+                        value={key === 'VIP' ? tiers.vipThreshold : tiers.superThreshold}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0;
+                          if (key === 'VIP') {
+                            setTiers({ ...tiers, vipThreshold: val });
+                          } else {
+                            setTiers({ ...tiers, superThreshold: val });
+                          }
+                        }}
+                        className={styles.smallInput}
+                        min="0"
+                      />
+                      <span>points</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className={styles.tierRange}>
+                        {isLastTier
+                          ? `${threshold}+ points`
+                          : `${threshold} - ${(nextThreshold || threshold + 1) - 1} points`
+                        }
+                      </div>
+                      <div className={styles.tierVisits}>
+                        {tierInfo.subtitle}
+                        {threshold > 0 && ` • Unlocked after ${calculateVisitsToTier(threshold)} visits`}
+                      </div>
+                    </>
+                  )}
                 </div>
-              ) : (
-                <>
-                  <div className={styles.tierRange}>{tiers.superThreshold}+ points</div>
-                  <div className={styles.tierVisits}>
-                    {getTierDisplay('SUPER').subtitle} • Unlocked after {calculateVisitsToTier(tiers.superThreshold)} visits
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

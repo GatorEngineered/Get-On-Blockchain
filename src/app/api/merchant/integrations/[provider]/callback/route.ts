@@ -4,6 +4,7 @@ import {
   savePOSTokens,
   POSProvider,
 } from "@/app/lib/pos";
+import { registerShopifyWebhooks } from "@/app/lib/pos/shopify";
 
 const VALID_PROVIDERS: POSProvider[] = ['square', 'toast', 'clover', 'shopify'];
 
@@ -127,6 +128,17 @@ export async function GET(
       return NextResponse.redirect(
         new URL(`/dashboard/settings?tab=pos-integrations&error=save_failed&provider=${provider}`, req.url)
       );
+    }
+
+    // Auto-register webhooks for Shopify
+    if (provider === 'shopify' && shopDomain) {
+      const webhookResult = await registerShopifyWebhooks(shopDomain, tokens.accessToken);
+      if (!webhookResult.success) {
+        console.warn(`[POS Callback] Some Shopify webhooks failed to register:`, webhookResult.errors);
+        // Don't fail the whole flow - tokens are saved, webhooks can be retried
+      } else {
+        console.log(`[POS Callback] Shopify webhooks registered:`, webhookResult.webhooks);
+      }
     }
 
     console.log(`[POS Callback] Successfully connected ${provider} for merchant ${stateData.merchantId}`);

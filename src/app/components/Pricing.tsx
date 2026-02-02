@@ -37,11 +37,11 @@ export default function Pricing() {
             <p className="pricing-footnote">Perfect for testing the waters before you commit.</p>
           </div>
 
-          {/* Basic Tier - $49/month */}
+          {/* Basic Tier - $55/month */}
           <div className="pricing-card">
             <p className="pricing-pill">Basic</p>
             <h3>For Growing Businesses</h3>
-            <p className="pricing-price">$49<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-price">$55<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
               <li>Up to 1,000 active members</li>
@@ -64,11 +64,11 @@ export default function Pricing() {
             <p className="pricing-footnote">Simple loyalty rewards for any size business.</p>
           </div>
 
-          {/* Premium Tier - $99/month */}
+          {/* Premium Tier - $149/month */}
           <div className="pricing-card highlight">
             <p className="pricing-pill">Premium · Most popular</p>
             <h3>Blockchain-Verified Rewards</h3>
-            <p className="pricing-price">$99<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-price">$149<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
               <li>Up to 25,000 active members</li>
@@ -91,11 +91,11 @@ export default function Pricing() {
             <p className="pricing-footnote">Real crypto rewards that customers can trust.</p>
           </div>
 
-          {/* Growth Tier - $199/month */}
+          {/* Growth Tier - $249/month */}
           <div className="pricing-card">
             <p className="pricing-pill">Growth</p>
             <h3>Your Own Branded Token</h3>
-            <p className="pricing-price">$199<span className="pricing-price-suffix">/mo</span></p>
+            <p className="pricing-price">$249<span className="pricing-price-suffix">/mo</span></p>
             <p className="pricing-setup"></p>
             <ul className="pricing-list">
               <li>Up to 100,000 active members</li>

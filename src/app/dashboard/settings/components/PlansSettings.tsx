@@ -50,7 +50,7 @@ const PLAN_DETAILS = {
   },
   BASIC: {
     name: 'Basic',
-    price: 49,
+    price: 55,
     interval: 'month',
     description: 'Points & rewards for growing businesses',
     features: [
@@ -65,7 +65,7 @@ const PLAN_DETAILS = {
   },
   PREMIUM: {
     name: 'Premium',
-    price: 99,
+    price: 149,
     interval: 'month',
     description: 'Blockchain-verified rewards with USDC payouts',
     features: [
@@ -83,7 +83,7 @@ const PLAN_DETAILS = {
   },
   GROWTH: {
     name: 'Growth',
-    price: 199,
+    price: 249,
     interval: 'month',
     description: 'Your own branded loyalty token on the blockchain',
     features: [
@@ -560,7 +560,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
               }}>
                 <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Basic</h4>
                 <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#244b7a', margin: '0 0 0.5rem' }}>
-                  ${billingCycle === 'annual' ? '490' : '49'}
+                  ${billingCycle === 'annual' ? '550' : '55'}
                   <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#6b7280' }}>
                     /{billingCycle === 'annual' ? 'year' : 'month'}
                   </span>
@@ -613,7 +613,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
                 </span>
                 <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Premium</h4>
                 <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#065f46', margin: '0 0 0.5rem' }}>
-                  ${billingCycle === 'annual' ? '990' : '99'}
+                  ${billingCycle === 'annual' ? '1,490' : '149'}
                   <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#047857' }}>
                     /{billingCycle === 'annual' ? 'year' : 'month'}
                   </span>
@@ -652,7 +652,7 @@ export default function PlansSettings({ merchantData, onUpdate }: PlansSettingsP
             }}>
               <h4 style={{ margin: '0 0 0.5rem', color: '#1f2937' }}>Growth</h4>
               <p style={{ fontSize: '1.5rem', fontWeight: '700', color: '#244b7a', margin: '0 0 0.5rem' }}>
-                ${billingCycle === 'annual' ? '1,990' : '199'}
+                ${billingCycle === 'annual' ? '2,490' : '249'}
                 <span style={{ fontSize: '0.875rem', fontWeight: '400', color: '#6b7280' }}>
                   /{billingCycle === 'annual' ? 'year' : 'month'}
                 </span>

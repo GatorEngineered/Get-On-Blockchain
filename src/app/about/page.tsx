@@ -137,7 +137,7 @@ export default function AboutPage() {
               </p>
               <p>
                 For many local businesses, just a handful of extra visits per
-                day can more than cover a $99/month plan – and everything
+                day can more than cover a $149/month plan – and everything
                 beyond that is upside.
               </p>
             </div>

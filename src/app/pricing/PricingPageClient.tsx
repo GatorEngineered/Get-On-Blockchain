@@ -25,7 +25,7 @@ const plans: Plan[] = [
   {
     id: "BASIC",
     name: "Basic",
-    priceMonthly: 49,
+    priceMonthly: 55,
     setupFee: 99,
     description:
       "Points & rewards only. Redeem for free products/discounts. Simple for businesses who don't want crypto complexity.",
@@ -44,7 +44,7 @@ const plans: Plan[] = [
     id: "PREMIUM",
     name: "Premium",
     badge: "Most Popular",
-    priceMonthly: 99,
+    priceMonthly: 149,
     setupFee: 149,
     description:
       "Everything in Basic + stablecoin rewards. Give your customers REAL money, not just points. Blockchain-verified rewards.",
@@ -65,7 +65,7 @@ const plans: Plan[] = [
     id: "GROWTH",
     name: "Growth",
     badge: "Most Popular",
-    priceMonthly: 149,
+    priceMonthly: 249,
     setupFee: 100,
     description:
       "For growing brands that want more automation, more insight, and multi-location support with branded tokens.",
@@ -89,8 +89,8 @@ const plans: Plan[] = [
     id: "PRO",
     name: "Enterprise",
     badge: "High Volume",
-    priceMonthly: 199,
-    priceLabelMonthly: "$199",
+    priceMonthly: 349,
+    priceLabelMonthly: "$349",
     setupFee: 100,
     description:
       "For high-volume or multi-location businesses that need custom workflows, NFT access, and hands-on rollout.",

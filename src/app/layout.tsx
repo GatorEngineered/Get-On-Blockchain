@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     template: "%s | Get On Blockchain",
   },
   description:
-    "The first blockchain-powered loyalty platform. QR-based rewards, USDC stablecoin payouts, branded loyalty tokens, and non-custodial wallets. Plans from $49-199/month.",
+    "The first blockchain-powered loyalty platform. QR-based rewards, USDC stablecoin payouts, branded loyalty tokens, and non-custodial wallets. Plans from $55-249/month.",
   keywords: [
     "blockchain loyalty program",
     "crypto rewards platform",
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The First Blockchain-Powered Loyalty Platform",
     description:
-      "Launch blockchain-verified rewards in minutes. USDC payouts, branded loyalty tokens, and non-custodial wallets. Plans from $49-199/month.",
+      "Launch blockchain-verified rewards in minutes. USDC payouts, branded loyalty tokens, and non-custodial wallets. Plans from $55-249/month.",
     url: "https://getonblockchain.com",
     siteName: "Get On Blockchain",
     images: [
@@ -168,7 +168,7 @@ const structuredData = {
         "@type": "AggregateOffer",
         priceCurrency: "USD",
         lowPrice: "0",
-        highPrice: "199",
+        highPrice: "249",
         priceSpecification: [
           {
             "@type": "UnitPriceSpecification",
@@ -179,21 +179,21 @@ const structuredData = {
           },
           {
             "@type": "UnitPriceSpecification",
-            price: "49.00",
+            price: "55.00",
             priceCurrency: "USD",
             name: "Basic Plan",
             billingDuration: "P1M",
           },
           {
             "@type": "UnitPriceSpecification",
-            price: "99.00",
+            price: "149.00",
             priceCurrency: "USD",
             name: "Premium Plan",
             billingDuration: "P1M",
           },
           {
             "@type": "UnitPriceSpecification",
-            price: "199.00",
+            price: "249.00",
             priceCurrency: "USD",
             name: "Growth Plan",
             billingDuration: "P1M",

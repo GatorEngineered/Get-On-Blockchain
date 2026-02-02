@@ -6,7 +6,7 @@ import styles from "../industry.module.css";
 export const metadata: Metadata = {
   title: "Salon & Spa Loyalty Program | Increase Client Retention",
   description:
-    "Boost rebooking rates by 40% with our QR-based loyalty program for salons and spas. Reward visits, increase retention, proven ROI. Starting at $49/month.",
+    "Boost rebooking rates by 40% with our QR-based loyalty program for salons and spas. Reward visits, increase retention, proven ROI. Starting at $55/month.",
   keywords: [
     "salon loyalty program",
     "spa rewards program",
@@ -88,7 +88,7 @@ export default function SalonsPage() {
             </Link>
           </div>
           <p className={styles.heroCaption}>
-            ✓ No punch cards ✓ Setup in 30 minutes ✓ Starting at $49/month
+            ✓ No punch cards ✓ Setup in 30 minutes ✓ Starting at $55/month
           </p>
         </div>
       </section>
@@ -167,7 +167,7 @@ export default function SalonsPage() {
               <p><strong>Your Math:</strong></p>
               <p>45 clients × 1 extra visit/month = 45 additional bookings</p>
               <p>45 bookings × $75 average = <strong>$3,375/month in extra revenue</strong></p>
-              <p className={styles.roiHighlight}>69x return on a $49/month Basic plan</p>
+              <p className={styles.roiHighlight}>69x return on a $55/month Basic plan</p>
             </div>
             <div className={styles.calculatorCta}>
               <Link href="/roi-calculator?industry=salons" className={styles.calculatorButton}>
@@ -186,7 +186,7 @@ export default function SalonsPage() {
           <h2>Ready to Fill Your Schedule with Regulars?</h2>
           <p>Join salons and spas using loyalty rewards to boost rebooking rates.</p>
           <Link href="/pricing" className={styles.ctaPrimary}>
-            Get Started - $49/month
+            Get Started - $55/month
           </Link>
           <p className={styles.ctaCaption}>
             Questions? <Link href="/faq">Read our FAQ</Link> or <Link href="/support">contact support</Link>

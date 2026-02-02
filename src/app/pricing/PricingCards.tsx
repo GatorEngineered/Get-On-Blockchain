@@ -40,8 +40,8 @@ const plans: Plan[] = [
   {
     id: 'BASIC',
     name: 'Basic',
-    priceMonthly: 49,
-    priceAnnual: 490,
+    priceMonthly: 55,
+    priceAnnual: 550,
     description:
       'Points & rewards for growing businesses. Simple loyalty without crypto complexity.',
     features: [
@@ -62,8 +62,8 @@ const plans: Plan[] = [
     id: 'PREMIUM',
     name: 'Premium',
     badge: 'Most Popular',
-    priceMonthly: 99,
-    priceAnnual: 990,
+    priceMonthly: 149,
+    priceAnnual: 1490,
     description:
       'Everything in Basic + stablecoin rewards. Give customers REAL money, not just points.',
     features: [
@@ -84,8 +84,8 @@ const plans: Plan[] = [
   {
     id: 'GROWTH',
     name: 'Growth',
-    priceMonthly: 199,
-    priceAnnual: 1990,
+    priceMonthly: 249,
+    priceAnnual: 2490,
     description:
       'Your own branded loyalty token on the blockchain. True ownership for your customers.',
     features: [

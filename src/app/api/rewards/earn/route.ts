@@ -1,7 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
+import { tiersByPlan } from "@/app/lib/tier-display";
 
 const DEFAULT_POINTS_PER_VISIT = 10;
+
+/**
+ * Calculate the appropriate tier for a member based on their points and merchant's plan
+ * Tier thresholds are calculated dynamically based on vipThreshold and superThreshold
+ */
+function calculateTier(
+  points: number,
+  vipThreshold: number,
+  superThreshold: number,
+  plan: string
+): string {
+  const tierKeys = tiersByPlan[plan] || tiersByPlan.STARTER;
+
+  // For 3-tier plans (STARTER): BASE < VIP < SUPER
+  if (tierKeys.length === 3) {
+    if (points >= superThreshold) return 'SUPER';
+    if (points >= vipThreshold) return 'VIP';
+    return 'BASE';
+  }
+
+  // For multi-tier plans, calculate intermediate thresholds
+  // Intermediate tiers are evenly distributed between VIP and SUPER thresholds
+  const intermediates = tierKeys.filter(k => k !== 'BASE' && k !== 'VIP' && k !== 'SUPER');
+  const step = (superThreshold - vipThreshold) / (intermediates.length + 1);
+
+  // Check from highest to lowest tier
+  if (points >= superThreshold) return 'SUPER';
+
+  // Check intermediate tiers (in reverse order - highest to lowest)
+  for (let i = intermediates.length - 1; i >= 0; i--) {
+    const threshold = Math.round(vipThreshold + step * (i + 1));
+    if (points >= threshold) return intermediates[i];
+  }
+
+  if (points >= vipThreshold) return 'VIP';
+  return 'BASE';
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,20 +101,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Check for tier upgrade
-    let newTier = updatedMerchantMember.tier;
-    if (
-      updatedMerchantMember.points >= merchantMember.merchant.superThreshold &&
-      newTier !== "SUPER"
-    ) {
-      newTier = "SUPER";
-    } else if (
-      updatedMerchantMember.points >= merchantMember.merchant.vipThreshold &&
-      updatedMerchantMember.points < merchantMember.merchant.superThreshold &&
-      newTier !== "VIP"
-    ) {
-      newTier = "VIP";
-    }
+    // Check for tier upgrade based on plan's tier system
+    const newTier = calculateTier(
+      updatedMerchantMember.points,
+      merchantMember.merchant.vipThreshold,
+      merchantMember.merchant.superThreshold,
+      merchantMember.merchant.plan
+    );
 
     // Update tier if changed
     if (newTier !== updatedMerchantMember.tier) {

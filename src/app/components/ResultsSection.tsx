@@ -19,7 +19,7 @@ export default function ResultsSection() {
       description: "QR-based loyalty programs have 2-3x higher participation than punch cards",
     },
     {
-      number: "$49",
+      number: "$55",
       label: "Starting Price Per Month",
       description: "No setup fees, no hardware costs, cancel anytime",
     },

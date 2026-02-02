@@ -13,9 +13,9 @@ import {
 
 // Plan prices for receipts
 const PLAN_PRICES: Record<string, { monthly: string; annual: string }> = {
-  BASIC: { monthly: '$49.00', annual: '$490.00' },
-  PREMIUM: { monthly: '$99.00', annual: '$990.00' },
-  GROWTH: { monthly: '$199.00', annual: '$1,990.00' },
+  BASIC: { monthly: '$55.00', annual: '$550.00' },
+  PREMIUM: { monthly: '$149.00', annual: '$1,490.00' },
+  GROWTH: { monthly: '$249.00', annual: '$2,490.00' },
   PRO: { monthly: 'Custom', annual: 'Custom' },
 };
 

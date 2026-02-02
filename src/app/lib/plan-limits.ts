@@ -12,6 +12,7 @@ export const PLAN_LIMITS = {
     members: 5,
     locations: 1, // Only Starter has location limit
     rewards: -1, // Unlimited rewards catalog
+    maxTiers: 3, // Rookie, Soldier, General
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
@@ -27,6 +28,7 @@ export const PLAN_LIMITS = {
     members: 1000, // Increased from 150
     locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
+    maxTiers: 4, // Rookie, Soldier, Captain, General
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
@@ -42,6 +44,7 @@ export const PLAN_LIMITS = {
     members: 25000, // Increased from 500
     locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
+    maxTiers: 6, // Rookie, Soldier, Sergeant, Captain, Major, General
     customTiers: false,
     multipleMilestones: false,
     customPointsRules: false,
@@ -57,6 +60,7 @@ export const PLAN_LIMITS = {
     members: 100000, // Increased from 2,000
     locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
+    maxTiers: 10, // Custom tiers allowed
     customTiers: true,
     multipleMilestones: true,
     customPointsRules: true,
@@ -73,6 +77,7 @@ export const PLAN_LIMITS = {
     members: -1, // Unlimited members
     locations: -1, // Unlimited locations
     rewards: -1, // Unlimited rewards catalog
+    maxTiers: 15, // Extended custom tiers
     customTiers: true,
     multipleMilestones: true,
     customPointsRules: true,
@@ -389,6 +394,25 @@ export function hasSocialEngagement(plan: string): boolean {
  */
 export function hasProductPointsRules(plan: string): boolean {
   return ['PREMIUM', 'GROWTH', 'PRO'].includes(plan);
+}
+
+/**
+ * Get maximum number of tiers allowed for a plan
+ * - STARTER: 3 tiers (Rookie, Soldier, General)
+ * - BASIC: 4 tiers (Rookie, Soldier, Captain, General)
+ * - PREMIUM: 6 tiers (Rookie, Soldier, Sergeant, Captain, Major, General)
+ * - GROWTH: 10 tiers (custom)
+ * - PRO: 15 tiers (custom)
+ */
+export function getMaxTiers(plan: string): number {
+  return PLAN_LIMITS[plan as PlanType]?.maxTiers ?? 3;
+}
+
+/**
+ * Check if plan allows custom tier names (GROWTH+ only)
+ */
+export function hasCustomTiers(plan: string): boolean {
+  return PLAN_LIMITS[plan as PlanType]?.customTiers ?? false;
 }
 
 /**

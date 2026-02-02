@@ -29,7 +29,7 @@ export default function Hero() {
           </div>
 
           <p className="hero-meta">
-            QR-based setup • USDC crypto payouts • No new hardware • Starting at $49/month
+            QR-based setup • USDC crypto payouts • No new hardware • Starting at $55/month
           </p>
         </div>
 

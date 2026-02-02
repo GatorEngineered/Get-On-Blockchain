@@ -99,9 +99,9 @@ export default function GettingStartedPage() {
       </p>
       <ul>
         <li><strong>Starter (Free):</strong> Up to 5 members, 1 location, basic QR-based loyalty</li>
-        <li><strong>Basic ($49/mo):</strong> Up to 1,000 members, unlimited locations, member tiers & referrals</li>
-        <li><strong>Premium ($99/mo):</strong> Up to 25,000 members, USDC payouts on Polygon, POS integration</li>
-        <li><strong>Growth ($199/mo):</strong> Up to 100,000 members, your own branded loyalty token, non-custodial wallets</li>
+        <li><strong>Basic ($55/mo):</strong> Up to 1,000 members, unlimited locations, member tiers & referrals</li>
+        <li><strong>Premium ($149/mo):</strong> Up to 25,000 members, USDC payouts on Polygon, POS integration</li>
+        <li><strong>Growth ($249/mo):</strong> Up to 100,000 members, your own branded loyalty token, non-custodial wallets</li>
         <li><strong>Enterprise:</strong> Unlimited members, custom token design, dedicated support - <Link href="mailto:support@getonblockchain.com">contact us</Link></li>
       </ul>
 

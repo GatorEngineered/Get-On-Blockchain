@@ -6,8 +6,8 @@
  *
  * This creates:
  * - 1 Product: "GetOnBlockchain Loyalty Platform"
- * - 6 Plans: Basic Monthly ($49), Premium Monthly ($99), Growth Monthly ($199),
- *            Basic Annual ($490), Premium Annual ($990), Growth Annual ($1990)
+ * - 6 Plans: Basic Monthly ($55), Premium Monthly ($149), Growth Monthly ($249),
+ *            Basic Annual ($550), Premium Annual ($1490), Growth Annual ($2490)
  */
 
 // IMPORTANT: Load environment variables FIRST before any other imports
@@ -59,68 +59,68 @@ async function setupPayPalPlans() {
 
     const plans = [];
 
-    // Plan 1: Basic Monthly ($49/mo with 7-day trial)
+    // Plan 1: Basic Monthly ($55/mo with 7-day trial)
     console.log('Creating Basic Monthly plan...');
     const basicMonthly = await createPlan({
       product_id: product.id,
       name: 'Basic Monthly',
-      description: 'Basic plan - $49/month with 7-day free trial',
-      billing_cycles: createTrialBillingCycles('49.00'),
+      description: 'Basic plan - $55/month with 7-day free trial',
+      billing_cycles: createTrialBillingCycles('55.00'),
     });
     plans.push(basicMonthly);
     console.log(`✅ Basic Monthly: ${basicMonthly.id}`);
 
-    // Plan 2: Premium Monthly ($99/mo with 7-day trial)
+    // Plan 2: Premium Monthly ($149/mo with 7-day trial)
     console.log('Creating Premium Monthly plan...');
     const premiumMonthly = await createPlan({
       product_id: product.id,
       name: 'Premium Monthly',
-      description: 'Premium plan - $99/month with 7-day free trial',
-      billing_cycles: createTrialBillingCycles('99.00'),
+      description: 'Premium plan - $149/month with 7-day free trial',
+      billing_cycles: createTrialBillingCycles('149.00'),
     });
     plans.push(premiumMonthly);
     console.log(`✅ Premium Monthly: ${premiumMonthly.id}`);
 
-    // Plan 3: Basic Annual ($490/year - save $98)
+    // Plan 3: Basic Annual ($550/year - save $110)
     console.log('Creating Basic Annual plan...');
     const basicAnnual = await createPlan({
       product_id: product.id,
       name: 'Basic Annual',
-      description: 'Basic plan - $490/year (save $98 vs monthly)',
-      billing_cycles: createAnnualBillingCycle('490.00'),
+      description: 'Basic plan - $550/year (save $110 vs monthly)',
+      billing_cycles: createAnnualBillingCycle('550.00'),
     });
     plans.push(basicAnnual);
     console.log(`✅ Basic Annual: ${basicAnnual.id}`);
 
-    // Plan 4: Premium Annual ($990/year - save $198)
+    // Plan 4: Premium Annual ($1490/year - save $298)
     console.log('Creating Premium Annual plan...');
     const premiumAnnual = await createPlan({
       product_id: product.id,
       name: 'Premium Annual',
-      description: 'Premium plan - $990/year (save $198 vs monthly)',
-      billing_cycles: createAnnualBillingCycle('990.00'),
+      description: 'Premium plan - $1490/year (save $298 vs monthly)',
+      billing_cycles: createAnnualBillingCycle('1490.00'),
     });
     plans.push(premiumAnnual);
     console.log(`✅ Premium Annual: ${premiumAnnual.id}`);
 
-    // Plan 5: Growth Monthly ($199/mo with 7-day trial)
+    // Plan 5: Growth Monthly ($249/mo with 7-day trial)
     console.log('Creating Growth Monthly plan...');
     const growthMonthly = await createPlan({
       product_id: product.id,
       name: 'Growth Monthly',
-      description: 'Growth plan - $199/month with 7-day free trial. Includes branded loyalty token.',
-      billing_cycles: createTrialBillingCycles('199.00'),
+      description: 'Growth plan - $249/month with 7-day free trial. Includes branded loyalty token.',
+      billing_cycles: createTrialBillingCycles('249.00'),
     });
     plans.push(growthMonthly);
     console.log(`✅ Growth Monthly: ${growthMonthly.id}`);
 
-    // Plan 6: Growth Annual ($1990/year - save $398)
+    // Plan 6: Growth Annual ($2490/year - save $498)
     console.log('Creating Growth Annual plan...');
     const growthAnnual = await createPlan({
       product_id: product.id,
       name: 'Growth Annual',
-      description: 'Growth plan - $1990/year (save $398 vs monthly). Includes branded loyalty token.',
-      billing_cycles: createAnnualBillingCycle('1990.00'),
+      description: 'Growth plan - $2490/year (save $498 vs monthly). Includes branded loyalty token.',
+      billing_cycles: createAnnualBillingCycle('2490.00'),
     });
     plans.push(growthAnnual);
     console.log(`✅ Growth Annual: ${growthAnnual.id}`);

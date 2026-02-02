@@ -7,13 +7,17 @@ import { prisma } from '@/app/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// Plan limits for custom tiers (beyond the default 3)
+// Plan limits for tiers
+// - STARTER: 3 tiers (Rookie, Soldier, General)
+// - BASIC: 4 tiers (Rookie, Soldier, Captain, General)
+// - PREMIUM: 6 tiers (Rookie, Soldier, Sergeant, Captain, Major, General)
+// - GROWTH/PRO: Custom tiers allowed
 const tierLimits: Record<string, number> = {
-  STARTER: 3, // Rookie, Soldier, General only
-  BASIC: 3,
-  PREMIUM: 3,
-  GROWTH: 6, // Can add 3 more custom tiers
-  PRO: 10,   // Can add up to 10 custom tiers
+  STARTER: 3,  // Rookie, Soldier, General only
+  BASIC: 4,    // Rookie, Soldier, Captain, General
+  PREMIUM: 6,  // Rookie, Soldier, Sergeant, Captain, Major, General
+  GROWTH: 10,  // Custom tiers allowed
+  PRO: 15,     // Extended custom tiers
 };
 
 // GET - Fetch all tier configs for merchant
@@ -49,37 +53,124 @@ export async function GET() {
       orderBy: [{ sortOrder: 'asc' }, { threshold: 'asc' }],
     });
 
-    // If no custom tiers exist, return the default ones from merchant settings
-    // Using military-themed tier names: Rookie → Soldier → General
-    const defaultTiers = [
-      {
-        id: 'default-base',
-        name: 'BASE',
-        displayName: 'Rookie Member',
-        description: 'Joined',
-        threshold: 0,
-        sortOrder: 0,
-        isDefault: true,
-      },
-      {
-        id: 'default-vip',
-        name: 'VIP',
-        displayName: 'Soldier Member',
-        description: `Trusted • Unlocked at ${merchant?.vipThreshold || 100} points`,
-        threshold: merchant?.vipThreshold || 100,
-        sortOrder: 1,
-        isDefault: true,
-      },
-      {
-        id: 'default-super',
-        name: 'SUPER',
-        displayName: 'General Member',
-        description: `Honor • Unlocked at ${merchant?.superThreshold || 200} points`,
-        threshold: merchant?.superThreshold || 200,
-        sortOrder: 2,
-        isDefault: true,
-      },
-    ];
+    // Get default tiers based on plan
+    // STARTER: 3 tiers, BASIC: 4 tiers, PREMIUM+: 6 tiers
+    const plan = merchant?.plan || 'STARTER';
+    const vipThreshold = merchant?.vipThreshold || 100;
+    const superThreshold = merchant?.superThreshold || 200;
+
+    // Calculate intermediate thresholds based on plan
+    const getDefaultTiersForPlan = () => {
+      const baseTiers = [
+        {
+          id: 'default-base',
+          name: 'BASE',
+          displayName: 'Rookie Member',
+          description: 'Joined',
+          threshold: 0,
+          sortOrder: 0,
+          isDefault: true,
+        },
+        {
+          id: 'default-vip',
+          name: 'VIP',
+          displayName: 'Soldier Member',
+          description: `Trusted • Unlocked at ${vipThreshold} points`,
+          threshold: vipThreshold,
+          sortOrder: 1,
+          isDefault: true,
+        },
+      ];
+
+      // For BASIC (4 tiers): add Captain between Soldier and General
+      if (plan === 'BASIC') {
+        const captainThreshold = Math.round(vipThreshold + (superThreshold - vipThreshold) * 0.5);
+        return [
+          ...baseTiers,
+          {
+            id: 'default-captain',
+            name: 'CAPTAIN',
+            displayName: 'Captain Member',
+            description: `Dedicated • Unlocked at ${captainThreshold} points`,
+            threshold: captainThreshold,
+            sortOrder: 2,
+            isDefault: true,
+          },
+          {
+            id: 'default-super',
+            name: 'SUPER',
+            displayName: 'General Member',
+            description: `Honor • Unlocked at ${superThreshold} points`,
+            threshold: superThreshold,
+            sortOrder: 3,
+            isDefault: true,
+          },
+        ];
+      }
+
+      // For PREMIUM+ (6 tiers): add Sergeant, Captain, Major between Soldier and General
+      if (['PREMIUM', 'GROWTH', 'PRO'].includes(plan)) {
+        const range = superThreshold - vipThreshold;
+        const sergeantThreshold = Math.round(vipThreshold + range * 0.25);
+        const captainThreshold = Math.round(vipThreshold + range * 0.5);
+        const majorThreshold = Math.round(vipThreshold + range * 0.75);
+        return [
+          ...baseTiers,
+          {
+            id: 'default-sergeant',
+            name: 'SERGEANT',
+            displayName: 'Sergeant Member',
+            description: `Proven • Unlocked at ${sergeantThreshold} points`,
+            threshold: sergeantThreshold,
+            sortOrder: 2,
+            isDefault: true,
+          },
+          {
+            id: 'default-captain',
+            name: 'CAPTAIN',
+            displayName: 'Captain Member',
+            description: `Dedicated • Unlocked at ${captainThreshold} points`,
+            threshold: captainThreshold,
+            sortOrder: 3,
+            isDefault: true,
+          },
+          {
+            id: 'default-major',
+            name: 'MAJOR',
+            displayName: 'Major Member',
+            description: `Leader • Unlocked at ${majorThreshold} points`,
+            threshold: majorThreshold,
+            sortOrder: 4,
+            isDefault: true,
+          },
+          {
+            id: 'default-super',
+            name: 'SUPER',
+            displayName: 'General Member',
+            description: `Honor • Unlocked at ${superThreshold} points`,
+            threshold: superThreshold,
+            sortOrder: 5,
+            isDefault: true,
+          },
+        ];
+      }
+
+      // Default: STARTER (3 tiers)
+      return [
+        ...baseTiers,
+        {
+          id: 'default-super',
+          name: 'SUPER',
+          displayName: 'General Member',
+          description: `Honor • Unlocked at ${superThreshold} points`,
+          threshold: superThreshold,
+          sortOrder: 2,
+          isDefault: true,
+        },
+      ];
+    };
+
+    const defaultTiers = getDefaultTiersForPlan();
 
     // Return custom tiers if they exist, otherwise default tiers
     const tiers = customTiers.length > 0 ? customTiers : defaultTiers;

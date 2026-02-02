@@ -4,9 +4,9 @@ import styles from "./pricing.module.css";
 import PricingCards from "./PricingCards";
 
 export const metadata: Metadata = {
-  title: "Pricing - Blockchain Loyalty Plans from $49-199/month | Get On Blockchain",
+  title: "Pricing - Blockchain Loyalty Plans from $55-249/month | Get On Blockchain",
   description:
-    "The first blockchain-powered loyalty platform. Branded loyalty tokens, USDC stablecoin payouts on Polygon, non-custodial wallets, POS integration. Plans from $49-199/month with 7-day free trial.",
+    "The first blockchain-powered loyalty platform. Branded loyalty tokens, USDC stablecoin payouts on Polygon, non-custodial wallets, POS integration. Plans from $55-249/month with 7-day free trial.",
   keywords: [
     "blockchain loyalty pricing",
     "crypto rewards platform cost",
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     "stablecoin payouts",
   ],
   openGraph: {
-    title: "Blockchain Loyalty Pricing - Plans from $49-199/month",
+    title: "Blockchain Loyalty Pricing - Plans from $55-249/month",
     description: "Branded loyalty tokens. USDC payouts on Polygon. Non-custodial wallets. POS integration. Blockchain-verified rewards. Start free, upgrade anytime.",
     url: "https://getonblockchain.com/pricing",
   },

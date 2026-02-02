@@ -32,7 +32,7 @@ const faqs: FAQItem[] = [
     category: "ROI & Results",
     question: "What kind of ROI can I expect from a loyalty program?",
     answer:
-      "Most businesses see a 15-25% increase in repeat visits within 3-6 months. If you have 50 daily customers and 20% become regulars visiting twice as often, that's 10+ extra visits per day. At a $15 average transaction, that's $4,500+ in additional monthly revenue - a 45x return on a $99/month plan.",
+      "Most businesses see a 15-25% increase in repeat visits within 3-6 months. If you have 50 daily customers and 20% become regulars visiting twice as often, that's 10+ extra visits per day. At a $15 average transaction, that's $4,500+ in additional monthly revenue - a 30x return on a $149/month plan.",
   },
   {
     category: "ROI & Results",
@@ -68,7 +68,7 @@ const faqs: FAQItem[] = [
     category: "Pricing & Plans",
     question: "What's the difference between Basic and Premium plans?",
     answer:
-      "Basic ($49/mo) offers points-based rewards where customers redeem for free products or discounts you define. Premium ($99/mo) adds stablecoin payouts - you fund a wallet and customers can claim $5 in USDC cryptocurrency when they hit 100 points. Premium creates more excitement because rewards feel like real money.",
+      "Basic ($55/mo) offers points-based rewards where customers redeem for free products or discounts you define. Premium ($149/mo) adds stablecoin payouts - you fund a wallet and customers can claim $5 in USDC cryptocurrency when they hit 100 points. Premium creates more excitement because rewards feel like real money.",
   },
   {
     category: "Pricing & Plans",
@@ -80,7 +80,7 @@ const faqs: FAQItem[] = [
     category: "Pricing & Plans",
     question: "Are there any setup fees or hidden costs?",
     answer:
-      "No setup fees, no hidden costs. You pay the monthly plan price ($49 for Basic, $99 for Premium). For Premium plan, you also fund your own payout wallet with USDC (like loading a gift card balance) - but that money goes directly to your customers as rewards, not to us.",
+      "No setup fees, no hidden costs. You pay the monthly plan price ($55 for Basic, $149 for Premium). For Premium plan, you also fund your own payout wallet with USDC (like loading a gift card balance) - but that money goes directly to your customers as rewards, not to us.",
   },
   {
     category: "Crypto & Payments",
