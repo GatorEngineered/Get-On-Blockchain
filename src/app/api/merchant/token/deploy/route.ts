@@ -13,7 +13,7 @@ import {
   deployMerchantToken,
   isTokenFactoryConfigured,
 } from '@/app/lib/token/token-factory-service';
-import { getRelayerBalance, POLYGON_AMOY } from '@/app/lib/blockchain/polygon-client';
+import { getRelayerBalance, POLYGON_MAINNET } from '@/app/lib/blockchain/polygon-client';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,7 +71,7 @@ export async function POST() {
 
     // Check relayer has gas
     try {
-      const balance = await getRelayerBalance(POLYGON_AMOY);
+      const balance = await getRelayerBalance(POLYGON_MAINNET);
       if (balance.isLow) {
         console.warn('[Token Deploy] Relayer balance is low:', balance.balanceMatic);
         // Don't block, but log for monitoring
@@ -81,7 +81,7 @@ export async function POST() {
     }
 
     // Deploy token
-    const result = await deployMerchantToken(token.id, POLYGON_AMOY);
+    const result = await deployMerchantToken(token.id, POLYGON_MAINNET);
 
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
