@@ -269,6 +269,21 @@ export async function deployMerchantToken(
         }
       }
 
+      // Fallback: Query factory directly if event parsing failed
+      if (!tokenAddress) {
+        console.log(`[TokenFactory] Event parsing failed, querying factory directly...`);
+        try {
+          tokenAddress = await factory.getTokenByMerchant(token.merchantId);
+          if (tokenAddress && tokenAddress !== ethers.ZeroAddress) {
+            console.log(`[TokenFactory] Got token from factory: ${tokenAddress}`);
+          } else {
+            tokenAddress = null;
+          }
+        } catch (queryError: any) {
+          console.log(`[TokenFactory] Factory query error: ${queryError.message}`);
+        }
+      }
+
       if (!tokenAddress) {
         // Include tx hash in error for debugging
         throw new Error(`Could not find token address in transaction ${tx.hash}. Check logs on block explorer.`);
