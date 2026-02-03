@@ -242,23 +242,36 @@ export async function deployMerchantToken(
       const factoryInterface = new ethers.Interface(TOKEN_FACTORY_ABI);
       let tokenAddress: string | null = null;
 
+      console.log(`[TokenFactory] Receipt has ${receipt.logs.length} logs`);
+      console.log(`[TokenFactory] Looking for events from factory: ${TOKEN_FACTORY_ADDRESS}`);
+
       for (const log of receipt.logs) {
+        console.log(`[TokenFactory] Log from ${log.address}, topic0: ${log.topics[0]}`);
+
+        // Only try to parse logs from the factory contract
+        if (log.address.toLowerCase() !== TOKEN_FACTORY_ADDRESS.toLowerCase()) {
+          continue;
+        }
+
         try {
           const parsed = factoryInterface.parseLog({
             topics: log.topics as string[],
             data: log.data,
           });
+          console.log(`[TokenFactory] Parsed event: ${parsed?.name}`);
           if (parsed?.name === 'TokenCreated') {
-            tokenAddress = parsed.args.tokenAddress;
+            tokenAddress = parsed.args[0]; // First arg is tokenAddress
+            console.log(`[TokenFactory] Found token address: ${tokenAddress}`);
             break;
           }
-        } catch {
-          // Not our event
+        } catch (parseError: any) {
+          console.log(`[TokenFactory] Parse error: ${parseError.message}`);
         }
       }
 
       if (!tokenAddress) {
-        throw new Error('Could not find token address in transaction');
+        // Include tx hash in error for debugging
+        throw new Error(`Could not find token address in transaction ${tx.hash}. Check logs on block explorer.`);
       }
 
       // Update token record
