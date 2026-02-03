@@ -274,8 +274,6 @@
   border-radius: 0.5rem;
   width: 100%;
   max-width: 420px;
-  max-height: 90vh;
-  overflow-y: auto;
 }
 
 .modalHeader {
