@@ -59,6 +59,7 @@ model Merchant {
   earnPerVisit   Int     @default(10)
   vipThreshold   Int     @default(100)
   superThreshold Int     @default(200)
+  customTierThresholds Json? // Custom thresholds for intermediate tiers (SERGEANT, CAPTAIN, MAJOR)
   primaryColor   String?
   accentColor    String?
 
@@ -82,6 +83,12 @@ model Merchant {
   lowBalanceAlertSent   Boolean   @default(false)
   lowBalanceThreshold   Float     @default(50.0)
   notificationEmail     String?
+
+  // Monthly USDC Budget Cap
+  monthlyPayoutBudget     Float?    // Max USDC to pay out per month (null = unlimited)
+  payoutBudgetResetDay    Int?      // Day of month to reset budget (1-28)
+  currentMonthPayouts     Float     @default(0) // Running total USDC paid this cycle
+  lastBudgetResetAt       DateTime? // When budget was last reset
 
   // Member Limit Addons & Grace Period
   additionalMemberSlots     Int       @default(0) // Each slot = 500 members ($10 per slot)
@@ -256,6 +263,9 @@ model MerchantMember {
 
   // Referral Code (unique shareable link)
   referralCode String? @unique // 8-char alphanumeric code e.g., "ABC12345"
+
+  // USDC Payout Tracking (one claim per budget cycle)
+  lastPayoutClaimCycleStart DateTime? // Start of budget cycle when member last claimed USDC
 
   // Member & Merchant Notes
   memberNote   String? // Member's note about themselves (300 char max, visible to merchant)
@@ -652,7 +662,7 @@ enum MerchantPlan {
   PRO
 }
 
-// Track members who want to be notified when merchant has funds for payout
+// Track members who want to be notified when merchant has funds/budget for payout
 model PayoutNotificationRequest {
   id              String   @id @default(cuid())
   merchantId      String
@@ -660,15 +670,19 @@ model PayoutNotificationRequest {
   memberEmail     String   // Store email for notification
   pointsEarned    Int      // Points they had when requesting
   payoutAmount    Float    // Amount they were trying to claim
+  notificationType String  @default("low_balance") // "low_balance" or "budget_exhausted"
+  budgetCycleStart DateTime? // For budget_exhausted: cycle they were blocked in
+  notifyAfter     DateTime? // For budget_exhausted: 3 days after reset date
   notified        Boolean  @default(false) // Has been notified
   notifiedAt      DateTime? // When notification was sent
   createdAt       DateTime @default(now())
   merchant        Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
   member          Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
-  @@unique([merchantId, memberId]) // One request per member per merchant
+  @@unique([merchantId, memberId, notificationType]) // One request per type per member per merchant
   @@index([merchantId])
   @@index([memberId])
+  @@index([notifyAfter])
 }
 
 enum MemberTier {
