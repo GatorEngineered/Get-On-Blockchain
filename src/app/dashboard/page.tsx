@@ -6,6 +6,7 @@ import styles from '../styles/dashboard-mockups.module.css';
 import PayoutHistory from './components/PayoutHistory';
 import LocationSelector from './components/LocationSelector';
 import SendAnnouncementModal from './members/SendAnnouncementModal';
+import MerchantOnboardingGuide from './components/MerchantOnboardingGuide';
 import { getTierName } from '@/app/lib/tier-display';
 
 type Business = {
@@ -1191,6 +1192,9 @@ export default function DashboardPage() {
           // Optionally show success feedback
         }}
       />
+
+      {/* Onboarding Guide for New Merchants */}
+      <MerchantOnboardingGuide />
     </div>
   );
 }

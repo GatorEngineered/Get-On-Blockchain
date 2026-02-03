@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "../../styles/dashboard-mockups.module.css";
 import RedemptionQRModal from "../components/RedemptionQRModal";
+import MemberOnboardingGuide from "../components/MemberOnboardingGuide";
 import { getTierName } from "@/app/lib/tier-display";
 
 type MerchantMember = {
@@ -1921,6 +1922,9 @@ export default function MemberDashboardPage() {
           }}
         />
       )}
+
+      {/* Onboarding Guide for New Members */}
+      <MemberOnboardingGuide />
     </div>
   );
 }
