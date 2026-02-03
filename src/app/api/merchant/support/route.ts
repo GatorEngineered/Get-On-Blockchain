@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { cookies } from 'next/headers';
+import { sendEmail } from '@/app/lib/email/resend';
 
 /**
  * POST /api/merchant/support
@@ -60,36 +61,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Merchant not found' }, { status: 404 });
     }
 
-    // TODO: Integrate with Resend email service
-    // For now, just log the support request
+    // Log support request
     console.log('[Support Request]', {
       merchantId: merchant.id,
       businessName: merchant.name,
       loginEmail: merchant.loginEmail,
       category: category || 'General',
       subject: subject.trim(),
-      message: message.trim(),
-      plan: merchant.plan,
-      subscriptionStatus: merchant.subscriptionStatus,
     });
 
-    // In production, send email using Resend:
-    /*
+    // Send email to support team
+    const supportEmail = process.env.SUPPORT_EMAIL || 'support@getonblockchain.com';
+
     await sendEmail({
-      to: 'support@getonblockchain.com',
-      subject: `[Support] ${category || 'General'}: ${subject}`,
-      html: generateSupportEmail({
-        businessName: merchant.name,
-        merchantEmail: merchant.loginEmail,
-        merchantId: merchant.id,
-        plan: merchant.plan,
-        category: category || 'General',
-        subject: subject.trim(),
-        message: message.trim(),
-      }),
-      replyTo: merchant.loginEmail,
+      to: supportEmail,
+      subject: `[Support] ${category || 'General'}: ${subject.trim()}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #244b7a;">New Support Request</h2>
+
+          <div style="background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <p style="margin: 4px 0;"><strong>Category:</strong> ${category || 'General'}</p>
+            <p style="margin: 4px 0;"><strong>Subject:</strong> ${subject.trim()}</p>
+          </div>
+
+          <h3 style="color: #333;">Message</h3>
+          <div style="background: #fff; border: 1px solid #ddd; padding: 16px; border-radius: 8px;">
+            <p style="white-space: pre-wrap;">${message.trim()}</p>
+          </div>
+
+          <h3 style="color: #333; margin-top: 24px;">Merchant Details</h3>
+          <div style="background: #f9f9f9; padding: 16px; border-radius: 8px;">
+            <p style="margin: 4px 0;"><strong>Business:</strong> ${merchant.name}</p>
+            <p style="margin: 4px 0;"><strong>Email:</strong> <a href="mailto:${merchant.loginEmail}">${merchant.loginEmail}</a></p>
+            <p style="margin: 4px 0;"><strong>Merchant ID:</strong> ${merchant.id}</p>
+            <p style="margin: 4px 0;"><strong>Plan:</strong> ${merchant.plan}</p>
+            <p style="margin: 4px 0;"><strong>Subscription:</strong> ${merchant.subscriptionStatus}</p>
+          </div>
+
+          <p style="color: #666; font-size: 12px; margin-top: 24px;">
+            Reply directly to this email to respond to ${merchant.loginEmail}
+          </p>
+        </div>
+      `,
     });
-    */
+
+    console.log(`[Support Request] Email sent to ${supportEmail}`);
 
     return NextResponse.json({
       success: true,
