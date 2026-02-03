@@ -96,6 +96,11 @@ export async function GET(req: NextRequest) {
       payoutMilestonePoints: merchant.payoutMilestonePoints,
       totalPaidOut: parseFloat(totalPaidOut.toFixed(2)),
       totalPayouts,
+      // Monthly Budget Cap
+      monthlyPayoutBudget: merchant.monthlyPayoutBudget,
+      payoutBudgetResetDay: merchant.payoutBudgetResetDay,
+      currentMonthPayouts: merchant.currentMonthPayouts,
+      lastBudgetResetAt: merchant.lastBudgetResetAt?.toISOString() || null,
       recentPayouts,
     });
   } catch (error: any) {

@@ -4,6 +4,36 @@ import { prisma } from "@/app/lib/prisma";
 import { transferUSDC, getUSDCBalance } from "@/app/lib/blockchain/usdc";
 import { sendEmail } from "@/app/lib/email/resend";
 
+/**
+ * Calculate the start of the current budget cycle based on reset day
+ * If today is before the reset day, cycle started last month
+ * If today is on/after the reset day, cycle started this month
+ */
+function getBudgetCycleStart(resetDay: number): Date {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDay = now.getDate();
+
+  // Clamp reset day to valid range (1-28)
+  const safeResetDay = Math.min(Math.max(resetDay, 1), 28);
+
+  if (currentDay >= safeResetDay) {
+    // Cycle started this month
+    return new Date(currentYear, currentMonth, safeResetDay, 0, 0, 0, 0);
+  } else {
+    // Cycle started last month
+    return new Date(currentYear, currentMonth - 1, safeResetDay, 0, 0, 0, 0);
+  }
+}
+
+/**
+ * Get the month name for the current budget cycle (for vague date display)
+ */
+function getBudgetCycleMonthName(cycleStart: Date): string {
+  return cycleStart.toLocaleDateString('en-US', { month: 'long' });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const cookieStore = await cookies();
@@ -118,6 +148,72 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const payoutAmount = merchant.payoutAmountUSD;
+
+    // === MONTHLY BUDGET CAP CHECKS ===
+    if (merchant.monthlyPayoutBudget !== null && merchant.payoutBudgetResetDay !== null) {
+      const cycleStart = getBudgetCycleStart(merchant.payoutBudgetResetDay);
+      const cycleMonthName = getBudgetCycleMonthName(cycleStart);
+
+      // Reset budget if we're in a new cycle
+      if (!merchant.lastBudgetResetAt || merchant.lastBudgetResetAt < cycleStart) {
+        await prisma.merchant.update({
+          where: { id: merchantId },
+          data: {
+            currentMonthPayouts: 0,
+            lastBudgetResetAt: cycleStart,
+          },
+        });
+        merchant.currentMonthPayouts = 0;
+      }
+
+      // Check if member already claimed this cycle
+      if (merchantMember.lastPayoutClaimCycleStart) {
+        const memberLastClaim = new Date(merchantMember.lastPayoutClaimCycleStart);
+        if (memberLastClaim >= cycleStart) {
+          return NextResponse.json(
+            {
+              error: "You've already claimed your USDC reward this month. Check back next month!",
+              alreadyClaimedThisCycle: true,
+              cycleMonth: cycleMonthName,
+            },
+            { status: 400 }
+          );
+        }
+      }
+
+      // Check if budget is exhausted
+      const remainingBudget = merchant.monthlyPayoutBudget - merchant.currentMonthPayouts;
+      if (remainingBudget < payoutAmount) {
+        // Check if notification already exists for this type
+        const existingNotification = await prisma.payoutNotificationRequest.findFirst({
+          where: {
+            merchantId,
+            memberId,
+            notificationType: "budget_exhausted",
+          },
+        });
+
+        // Calculate next cycle's notification date (3 days after reset)
+        const nextCycleStart = new Date(cycleStart);
+        nextCycleStart.setMonth(nextCycleStart.getMonth() + 1);
+        const notifyAfterDate = new Date(nextCycleStart);
+        notifyAfterDate.setDate(notifyAfterDate.getDate() + 3);
+
+        return NextResponse.json(
+          {
+            error: "This month's USDC rewards have all been claimed. You can sign up to be notified when more become available.",
+            budgetExhausted: true,
+            cycleMonth: cycleMonthName,
+            canRequestNotification: !existingNotification,
+            hasNotificationRequest: !!existingNotification,
+          },
+          { status: 400 }
+        );
+      }
+    }
+    // === END BUDGET CAP CHECKS ===
+
     // Get member wallet
     const memberWallet = await prisma.memberWallet.findUnique({
       where: { memberId },
@@ -140,9 +236,9 @@ export async function POST(req: NextRequest) {
 
     // Check merchant wallet USDC balance
     const merchantBalance = await getUSDCBalance(merchant.payoutWalletAddress!);
-    const payoutAmount = merchant.payoutAmountUSD.toString();
+    const payoutAmountStr = payoutAmount.toString();
 
-    if (parseFloat(merchantBalance) < parseFloat(payoutAmount)) {
+    if (parseFloat(merchantBalance) < payoutAmount) {
       // Get member info for email
       const member = await prisma.member.findUnique({
         where: { id: memberId },
@@ -182,9 +278,9 @@ export async function POST(req: NextRequest) {
       <div class="details">
         <h3>Failed Payout Details</h3>
         <p><strong>Member:</strong> ${member?.firstName || 'Customer'} ${member?.lastName || ''}</p>
-        <p><strong>Payout Amount:</strong> $${payoutAmount} USDC</p>
+        <p><strong>Payout Amount:</strong> $${payoutAmountStr} USDC</p>
         <p><strong>Current Wallet Balance:</strong> $${parseFloat(merchantBalance).toFixed(2)} USDC</p>
-        <p><strong>Shortfall:</strong> $${(parseFloat(payoutAmount) - parseFloat(merchantBalance)).toFixed(2)} USDC</p>
+        <p><strong>Shortfall:</strong> $${(payoutAmount - parseFloat(merchantBalance)).toFixed(2)} USDC</p>
       </div>
 
       <h3>What to do:</h3>
@@ -216,10 +312,12 @@ export async function POST(req: NextRequest) {
         console.error('[Payout] Failed to send merchant alert email:', emailError);
       }
 
-      // Check if member already has a notification request
-      const existingRequest = await prisma.payoutNotificationRequest.findUnique({
+      // Check if member already has a notification request for low balance
+      const existingRequest = await prisma.payoutNotificationRequest.findFirst({
         where: {
-          merchantId_memberId: { merchantId, memberId },
+          merchantId,
+          memberId,
+          notificationType: "low_balance",
         },
       });
 
@@ -229,7 +327,7 @@ export async function POST(req: NextRequest) {
           error: "Your payout is currently under additional verification. The business has been notified and you'll be able to claim soon.",
           pendingVerification: true,
           pointsEarned: currentPoints,
-          payoutAmount: parseFloat(payoutAmount),
+          payoutAmount: payoutAmount,
           merchantName: merchant.name,
           canRequestNotification: !existingRequest,
           hasNotificationRequest: !!existingRequest,
@@ -257,7 +355,7 @@ export async function POST(req: NextRequest) {
         type: "PAYOUT",
         amount: 0, // Points were already deducted
         pointsDeducted: pointsRequired,
-        usdcAmount: parseFloat(payoutAmount),
+        usdcAmount: payoutAmount,
         currency: "USDC",
         reason: `Payout for ${pointsRequired} points`,
         walletAddress: memberWallet.walletAddress,
@@ -271,7 +369,7 @@ export async function POST(req: NextRequest) {
       const { txHash, success } = await transferUSDC(
         merchant.payoutWalletEncrypted,
         memberWallet.walletAddress,
-        payoutAmount
+        payoutAmountStr
       );
 
       if (!success) {
@@ -292,16 +390,39 @@ export async function POST(req: NextRequest) {
         where: { id: memberWallet.id },
         data: {
           balance: {
-            increment: parseFloat(payoutAmount),
+            increment: payoutAmount,
           },
         },
       });
 
+      // Update budget tracking if budget cap is enabled
+      if (merchant.monthlyPayoutBudget !== null && merchant.payoutBudgetResetDay !== null) {
+        const cycleStart = getBudgetCycleStart(merchant.payoutBudgetResetDay);
+
+        // Update merchant's current month payouts
+        await prisma.merchant.update({
+          where: { id: merchantId },
+          data: {
+            currentMonthPayouts: {
+              increment: payoutAmount,
+            },
+          },
+        });
+
+        // Mark member as having claimed this cycle
+        await prisma.merchantMember.update({
+          where: { id: merchantMember.id },
+          data: {
+            lastPayoutClaimCycleStart: cycleStart,
+          },
+        });
+      }
+
       return NextResponse.json({
         success: true,
-        message: `Successfully claimed $${payoutAmount} USDC!`,
+        message: `Successfully claimed $${payoutAmountStr} USDC!`,
         payout: {
-          amount: payoutAmount,
+          amount: payoutAmountStr,
           currency: "USDC",
           txHash,
           walletAddress: memberWallet.walletAddress,

@@ -59,6 +59,7 @@ export interface VerifyRedemptionResult {
     };
     memberBalance: number;
     memberTier: string;
+    memberNote: string | null;
     expiresAt: Date;
     createdAt: Date;
   };
@@ -311,6 +312,7 @@ export async function verifyRedemptionQR(
         },
         memberBalance: merchantMember.points,
         memberTier: merchantMember.tier,
+        memberNote: merchantMember.memberNote,
         expiresAt: redemption.expiresAt,
         createdAt: redemption.createdAt,
       },

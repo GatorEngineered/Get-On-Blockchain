@@ -138,6 +138,14 @@ export default function MemberDashboardPage() {
     canRequestNotification: boolean;
     hasNotificationRequest: boolean;
   } | null>(null);
+  const [budgetState, setBudgetState] = useState<{
+    merchantId: string;
+    merchantName: string;
+    type: 'exhausted' | 'already_claimed';
+    cycleMonth: string;
+    canRequestNotification: boolean;
+    hasNotificationRequest: boolean;
+  } | null>(null);
   const [requestingNotification, setRequestingNotification] = useState(false);
 
   // Referral state
@@ -400,12 +408,13 @@ export default function MemberDashboardPage() {
     router.push("/member/login");
   }
 
-  async function handleClaimPayout(merchantId: string) {
+  async function handleClaimPayout(merchantId: string, merchantName: string) {
     try {
       setClaimingPayout(true);
       setPayoutError(null);
       setPayoutSuccess(null);
       setPendingVerification(null);
+      setBudgetState(null);
 
       const res = await fetch("/api/member/claim-payout", {
         method: "POST",
@@ -430,6 +439,30 @@ export default function MemberDashboardPage() {
           });
           return; // Don't throw error, show verification UI instead
         }
+        // Check for budget exhausted
+        if (data.budgetExhausted) {
+          setBudgetState({
+            merchantId,
+            merchantName,
+            type: 'exhausted',
+            cycleMonth: data.cycleMonth,
+            canRequestNotification: data.canRequestNotification,
+            hasNotificationRequest: data.hasNotificationRequest,
+          });
+          return;
+        }
+        // Check if already claimed this cycle
+        if (data.alreadyClaimedThisCycle) {
+          setBudgetState({
+            merchantId,
+            merchantName,
+            type: 'already_claimed',
+            cycleMonth: data.cycleMonth,
+            canRequestNotification: false,
+            hasNotificationRequest: false,
+          });
+          return;
+        }
         throw new Error(data.error || "Failed to claim payout");
       }
 
@@ -445,7 +478,7 @@ export default function MemberDashboardPage() {
     }
   }
 
-  async function handleRequestNotification(merchantId: string) {
+  async function handleRequestNotification(merchantId: string, notificationType: 'low_balance' | 'budget_exhausted' = 'low_balance') {
     try {
       setRequestingNotification(true);
 
@@ -454,7 +487,7 @@ export default function MemberDashboardPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ merchantId }),
+        body: JSON.stringify({ merchantId, notificationType }),
       });
 
       const data = await res.json();
@@ -463,14 +496,22 @@ export default function MemberDashboardPage() {
         throw new Error(data.error || "Failed to request notification");
       }
 
-      // Update pending verification state
-      setPendingVerification(prev => prev ? {
-        ...prev,
-        canRequestNotification: false,
-        hasNotificationRequest: true,
-      } : null);
-
-      setPayoutSuccess("You'll be notified by email when your payout is ready!");
+      // Update appropriate state based on notification type
+      if (notificationType === 'budget_exhausted') {
+        setBudgetState(prev => prev ? {
+          ...prev,
+          canRequestNotification: false,
+          hasNotificationRequest: true,
+        } : null);
+        setPayoutSuccess("You'll be notified by email when more USDC rewards become available!");
+      } else {
+        setPendingVerification(prev => prev ? {
+          ...prev,
+          canRequestNotification: false,
+          hasNotificationRequest: true,
+        } : null);
+        setPayoutSuccess("You'll be notified by email when your payout is ready!");
+      }
     } catch (err: any) {
       console.error("Notification request error:", err);
       setPayoutError(err.message);
@@ -1167,155 +1208,119 @@ export default function MemberDashboardPage() {
         </div>
       )}
 
-      {/* USDC Payout Section */}
-      {member.merchants.some((mm) => mm.merchant.payoutEnabled) && (
+      {/* Budget State Message (budget exhausted or already claimed) */}
+      {budgetState && (
         <div style={{
           marginTop: '1.5rem',
-          background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
           padding: '1.5rem',
+          background: budgetState.type === 'already_claimed'
+            ? 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)'
+            : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+          border: `2px solid ${budgetState.type === 'already_claimed' ? '#3b82f6' : '#f59e0b'}`,
           borderRadius: '16px',
-          border: '2px solid #bfdbfe'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
             <div style={{
               width: '48px',
               height: '48px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              background: budgetState.type === 'already_claimed' ? '#3b82f6' : '#f59e0b',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              flexShrink: 0
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              {budgetState.type === 'already_claimed' ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
             </div>
-            <div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1e40af', margin: 0 }}>
-                Earn Real Money
+            <div style={{ flex: 1 }}>
+              <h3 style={{
+                fontSize: '1.1rem',
+                fontWeight: '700',
+                color: budgetState.type === 'already_claimed' ? '#1e40af' : '#92400e',
+                margin: '0 0 0.5rem 0'
+              }}>
+                {budgetState.type === 'already_claimed'
+                  ? 'Already Claimed This Month'
+                  : 'Monthly Rewards Claimed'}
               </h3>
-              <p style={{ fontSize: '0.875rem', color: '#3b82f6', margin: 0 }}>
-                Convert your points to USDC cryptocurrency
+              <p style={{
+                fontSize: '0.9rem',
+                color: budgetState.type === 'already_claimed' ? '#1e3a8a' : '#78350f',
+                margin: '0 0 1rem 0',
+                lineHeight: 1.5
+              }}>
+                {budgetState.type === 'already_claimed'
+                  ? `You've already claimed your USDC reward from ${budgetState.merchantName} for ${budgetState.cycleMonth}. Check back next month!`
+                  : `All of ${budgetState.merchantName}'s USDC rewards for ${budgetState.cycleMonth} have been claimed. More will be available next month.`}
               </p>
-            </div>
-          </div>
 
-          {member.walletAddress && (
-            <div style={{
-              padding: '0.875rem',
-              background: 'rgba(255,255,255,0.7)',
-              borderRadius: '8px',
-              marginBottom: '1.25rem'
-            }}>
-              <p style={{ fontSize: '0.75rem', color: '#1e40af', marginBottom: '0.25rem', fontWeight: '600', textTransform: 'uppercase' }}>
-                Your Wallet Address
-              </p>
-              <code style={{ fontSize: '0.85rem', color: '#1e3a8a', wordBreak: 'break-all' }}>
-                {member.walletAddress}
-              </code>
-            </div>
-          )}
-
-          <div style={{ display: 'grid', gap: '1rem' }}>
-            {member.merchants
-              .filter((mm) => mm.merchant.payoutEnabled)
-              .map((mm) => {
-                const canClaim = mm.points >= mm.merchant.payoutMilestonePoints;
-                const pointsNeeded = mm.merchant.payoutMilestonePoints - mm.points;
-                const locationCount = mm.merchant.businesses.length;
-
-                return (
-                  <div
-                    key={mm.id}
+              {budgetState.type === 'exhausted' && (
+                budgetState.hasNotificationRequest ? (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0.75rem 1rem',
+                    background: 'rgba(255,255,255,0.8)',
+                    borderRadius: '8px'
+                  }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span style={{ fontSize: '0.9rem', color: '#065f46', fontWeight: '600' }}>
+                      We'll email you when more USDC becomes available!
+                    </span>
+                  </div>
+                ) : budgetState.canRequestNotification ? (
+                  <button
+                    onClick={() => handleRequestNotification(budgetState.merchantId, 'budget_exhausted')}
+                    disabled={requestingNotification}
                     style={{
-                      background: 'white',
-                      padding: '1.25rem',
-                      borderRadius: '12px',
-                      border: canClaim ? '2px solid #10b981' : '1px solid #e5e7eb'
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      width: '100%',
+                      padding: '0.875rem',
+                      background: requestingNotification ? '#9ca3af' : '#f59e0b',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                      fontWeight: '600',
+                      cursor: requestingNotification ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                      <div>
-                        <h4 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1f2937', margin: '0 0 0.5rem 0' }}>
-                          {mm.merchant.name}
-                        </h4>
-                        <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
-                          {mm.points} / {mm.merchant.payoutMilestonePoints} points • {locationCount} location{locationCount > 1 ? 's' : ''}
-                        </p>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#3b82f6' }}>
-                          ${mm.merchant.payoutAmountUSD}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>USDC</div>
-                      </div>
-                    </div>
-
-                    {canClaim ? (
-                      <button
-                        onClick={() => handleClaimPayout(mm.merchantId)}
-                        disabled={claimingPayout}
-                        style={{
-                          width: '100%',
-                          padding: '0.875rem',
-                          background: claimingPayout
-                            ? '#9ca3af'
-                            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontSize: '1rem',
-                          fontWeight: '700',
-                          cursor: claimingPayout ? 'not-allowed' : 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.5rem'
-                        }}
-                      >
-                        {claimingPayout ? (
-                          <>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" style={{ animation: 'spin 1s linear infinite' }}>
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Claim ${mm.merchant.payoutAmountUSD} USDC Now
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <div style={{
-                        padding: '0.875rem',
-                        background: '#f3f4f6',
-                        borderRadius: '8px',
-                        textAlign: 'center'
-                      }}>
-                        <p style={{ fontSize: '0.95rem', color: '#6b7280', margin: 0 }}>
-                          <strong>{pointsNeeded}</strong> more points needed to claim
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    {requestingNotification ? 'Setting up...' : 'Notify Me When Available'}
+                  </button>
+                ) : null
+              )}
+            </div>
+            <button
+              onClick={() => setBudgetState(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: budgetState.type === 'already_claimed' ? '#1e40af' : '#92400e',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                alignSelf: 'flex-start'
+              }}
+            >
+              ✕
+            </button>
           </div>
-
-          <style jsx>{`
-            @keyframes spin {
-              from {
-                transform: rotate(0deg);
-              }
-              to {
-                transform: rotate(360deg);
-              }
-            }
-          `}</style>
         </div>
       )}
 
@@ -1458,6 +1463,78 @@ export default function MemberDashboardPage() {
           <p style={{ textAlign: "center", color: "#6b7280", padding: "2rem" }}>
             Visit a participating business to start earning rewards!
           </p>
+        </div>
+      )}
+
+      {/* USDC Payout Section - Compact & Centered */}
+      {member.merchants.some((mm) => mm.merchant.payoutEnabled) && (
+        <div style={{
+          marginTop: '1.5rem',
+          display: 'flex',
+          justifyContent: 'center',
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+            padding: '1.25rem 1.5rem',
+            borderRadius: '12px',
+            border: '1px solid #bfdbfe',
+            maxWidth: '400px',
+            width: '100%',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              marginBottom: '0.75rem',
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span style={{ fontSize: '0.95rem', fontWeight: '600', color: '#1e40af' }}>
+                Earn Real Money
+              </span>
+            </div>
+
+            {member.merchants
+              .filter((mm) => mm.merchant.payoutEnabled)
+              .map((mm) => {
+                const canClaim = mm.points >= mm.merchant.payoutMilestonePoints;
+
+                return (
+                  <div key={mm.id} style={{ marginBottom: '0.5rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 0.5rem 0' }}>
+                      {mm.merchant.name}
+                    </p>
+                    {canClaim ? (
+                      <button
+                        onClick={() => handleClaimPayout(mm.merchantId, mm.merchant.name)}
+                        disabled={claimingPayout}
+                        style={{
+                          padding: '0.625rem 1.25rem',
+                          background: claimingPayout
+                            ? '#9ca3af'
+                            : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          fontSize: '0.9rem',
+                          fontWeight: '600',
+                          cursor: claimingPayout ? 'not-allowed' : 'pointer',
+                        }}
+                      >
+                        {claimingPayout ? 'Processing...' : `Claim $${mm.merchant.payoutAmountUSD} USDC`}
+                      </button>
+                    ) : (
+                      <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>
+                        Keep earning to unlock ${mm.merchant.payoutAmountUSD} USDC!
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
         </div>
       )}
 

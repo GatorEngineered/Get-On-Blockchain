@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
         reward: redemption.reward,
         memberBalance: redemption.memberBalance,
         memberTier: redemption.memberTier,
+        memberNote: redemption.memberNote,
         expiresAt: redemption.expiresAt.toISOString(),
         expiresInMinutes: Math.max(
           0,

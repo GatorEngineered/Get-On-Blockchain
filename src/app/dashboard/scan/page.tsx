@@ -23,6 +23,7 @@ type VerifiedRedemption = {
   };
   memberBalance: number;
   memberTier: string;
+  memberNote: string | null;
   expiresAt: string;
   expiresInMinutes: number;
   createdAt: string;
@@ -565,6 +566,46 @@ export default function ScanPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Member Note */}
+              {verifiedRedemption.memberNote && (
+                <div
+                  style={{
+                    marginTop: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    background: '#e0f2fe',
+                    border: '1px solid #7dd3fc',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.5rem',
+                  }}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#0284c7"
+                    strokeWidth="2"
+                    style={{ flexShrink: 0, marginTop: '0.125rem' }}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                    />
+                  </svg>
+                  <div>
+                    <p style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: '600', margin: '0 0 0.25rem 0' }}>
+                      Note for Staff
+                    </p>
+                    <p style={{ fontSize: '0.875rem', color: '#0c4a6e', margin: 0, lineHeight: 1.4 }}>
+                      {verifiedRedemption.memberNote}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Reward Info */}
