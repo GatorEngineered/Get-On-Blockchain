@@ -27,7 +27,7 @@ const NETWORKS = {
   polygon: {
     name: 'Polygon Mainnet',
     chainId: 137,
-    rpcUrl: process.env.POLYGON_MAINNET_RPC_URL || 'https://polygon-rpc.com/',
+    rpcUrl: process.env.POLYGON_MAINNET_RPC_URL || process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com/',
     explorerUrl: 'https://polygonscan.com',
     nativeCurrency: 'MATIC',
   },

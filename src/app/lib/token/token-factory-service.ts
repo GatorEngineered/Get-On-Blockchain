@@ -214,14 +214,38 @@ export async function deployMerchantToken(
     });
 
     try {
-      // Deploy token via factory
+      // Deploy token via factory with retry for rate limits
       // Pass merchantId as the 4th parameter (contract uses it for tracking)
-      const tx = await factory.createToken(
-        token.tokenName,
-        token.tokenSymbol,
-        token.decimals,
-        token.merchantId // Pass merchant ID for on-chain tracking
-      );
+      let tx;
+      let retries = 3;
+      while (retries > 0) {
+        try {
+          tx = await factory.createToken(
+            token.tokenName,
+            token.tokenSymbol,
+            token.decimals,
+            token.merchantId // Pass merchant ID for on-chain tracking
+          );
+          break; // Success, exit retry loop
+        } catch (rpcError: any) {
+          const errorMsg = rpcError.message || '';
+          if (errorMsg.includes('rate limit') || errorMsg.includes('Too many requests')) {
+            retries--;
+            if (retries > 0) {
+              console.log(`[TokenFactory] Rate limited, waiting 15s before retry (${retries} retries left)...`);
+              await new Promise((resolve) => setTimeout(resolve, 15000));
+            } else {
+              throw new Error('RPC rate limit exceeded. Please try again in a few minutes.');
+            }
+          } else {
+            throw rpcError; // Not a rate limit error, rethrow
+          }
+        }
+      }
+
+      if (!tx) {
+        throw new Error('Failed to send transaction after retries');
+      }
 
       // Update with tx hash
       await prisma.tokenTransaction.update({
