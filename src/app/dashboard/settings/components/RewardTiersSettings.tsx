@@ -32,7 +32,11 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
     superThreshold: merchantData?.superThreshold || 200,
     payoutMilestonePoints: merchantData?.payoutMilestonePoints || 100,
     payoutAmountUSD: merchantData?.payoutAmountUSD || 5.0,
+    payoutEnabled: merchantData?.payoutEnabled ?? false,
   });
+
+  // Custom thresholds for intermediate tiers (stored in state when editing)
+  const [customTierThresholds, setCustomTierThresholds] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (merchantData) {
@@ -43,7 +47,12 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
         superThreshold: merchantData.superThreshold || 200,
         payoutMilestonePoints: merchantData.payoutMilestonePoints || 100,
         payoutAmountUSD: merchantData.payoutAmountUSD || 5.0,
+        payoutEnabled: merchantData.payoutEnabled ?? false,
       });
+      // Initialize custom tier thresholds from merchantData if available
+      if (merchantData.customTierThresholds) {
+        setCustomTierThresholds(merchantData.customTierThresholds);
+      }
     }
   }, [merchantData]);
 
@@ -60,10 +69,16 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
         return;
       }
 
+      // Build the request data including custom tier thresholds
+      const requestData = {
+        ...tiers,
+        customTierThresholds,
+      };
+
       const res = await fetch('/api/merchant/reward-tiers', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tiers),
+        body: JSON.stringify(requestData),
       });
 
       if (!res.ok) {
@@ -93,7 +108,9 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
       superThreshold: merchantData?.superThreshold || 200,
       payoutMilestonePoints: merchantData?.payoutMilestonePoints || 100,
       payoutAmountUSD: merchantData?.payoutAmountUSD || 5.0,
+      payoutEnabled: merchantData?.payoutEnabled ?? false,
     });
+    setCustomTierThresholds(merchantData?.customTierThresholds || {});
     setEditing(false);
     setError('');
   }
@@ -109,49 +126,47 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
     const vip = tiers.vipThreshold;
     const general = tiers.superThreshold;
 
-    // Calculate intermediate thresholds evenly distributed
-    const result: Array<{ key: string; threshold: number; nextThreshold: number | null }> = [];
+    // Calculate intermediate thresholds evenly distributed (as defaults)
+    const result: Array<{ key: string; threshold: number; nextThreshold: number | null; isIntermediate: boolean }> = [];
+
+    // Calculate default intermediate thresholds
+    const intermediates = tierKeys.filter(k => k !== 'BASE' && k !== 'VIP' && k !== 'SUPER');
+    const step = intermediates.length > 0 ? (general - vip) / (intermediates.length + 1) : 0;
 
     tierKeys.forEach((key, index) => {
       let threshold = 0;
-      let nextThreshold: number | null = null;
+      let isIntermediate = false;
 
       if (key === 'BASE') {
         threshold = 0;
-        nextThreshold = vip;
       } else if (key === 'VIP') {
         threshold = vip;
-        // Calculate next threshold based on number of remaining tiers
-        const remainingTiers = tierKeys.slice(index + 1);
-        if (remainingTiers.length > 0) {
-          const step = (general - vip) / remainingTiers.length;
-          nextThreshold = Math.round(vip + step);
-        } else {
-          nextThreshold = general;
-        }
       } else if (key === 'SUPER') {
         threshold = general;
-        nextThreshold = null; // Highest tier
       } else {
-        // Intermediate tiers - calculate based on position
-        const intermediates = tierKeys.filter(k => k !== 'BASE' && k !== 'VIP' && k !== 'SUPER');
+        // Intermediate tiers - use custom threshold if set, otherwise calculate
+        isIntermediate = true;
         const intermediateIndex = intermediates.indexOf(key);
-        const step = (general - vip) / (intermediates.length + 1);
-        threshold = Math.round(vip + step * (intermediateIndex + 1));
-
-        // Calculate next threshold
-        if (intermediateIndex < intermediates.length - 1) {
-          nextThreshold = Math.round(vip + step * (intermediateIndex + 2));
-        } else {
-          nextThreshold = general;
-        }
+        const defaultThreshold = Math.round(vip + step * (intermediateIndex + 1));
+        threshold = customTierThresholds[key] ?? defaultThreshold;
       }
 
-      result.push({ key, threshold, nextThreshold });
+      result.push({ key, threshold, nextThreshold: null, isIntermediate });
     });
 
-    return result;
-  }, [merchantData?.plan, tiers.vipThreshold, tiers.superThreshold]);
+    // Sort by threshold to calculate nextThreshold correctly
+    result.sort((a, b) => a.threshold - b.threshold);
+
+    // Calculate nextThreshold for each tier
+    result.forEach((tier, index) => {
+      if (index < result.length - 1) {
+        tier.nextThreshold = result[index + 1].threshold;
+      }
+    });
+
+    // Re-sort by original order
+    return tierKeys.map(key => result.find(r => r.key === key)!);
+  }, [merchantData?.plan, tiers.vipThreshold, tiers.superThreshold, customTierThresholds]);
 
   return (
     <div>
@@ -232,10 +247,10 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
         </p>
 
         <div className={styles.tiersList}>
-          {planTiers.map(({ key, threshold, nextThreshold }, index) => {
+          {planTiers.map(({ key, threshold, nextThreshold, isIntermediate }, index) => {
             const colors = tierColors[key] || tierColors.BASE;
             const tierInfo = getTierDisplay(key);
-            const isEditable = key === 'VIP' || key === 'SUPER';
+            const isEditable = key !== 'BASE'; // All tiers except BASE are editable
             const isLastTier = nextThreshold === null;
 
             return (
@@ -255,13 +270,22 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
                       <label className={styles.smallLabel}>Threshold:</label>
                       <input
                         type="number"
-                        value={key === 'VIP' ? tiers.vipThreshold : tiers.superThreshold}
+                        value={
+                          key === 'VIP'
+                            ? tiers.vipThreshold
+                            : key === 'SUPER'
+                            ? tiers.superThreshold
+                            : (customTierThresholds[key] ?? threshold)
+                        }
                         onChange={(e) => {
                           const val = parseInt(e.target.value) || 0;
                           if (key === 'VIP') {
                             setTiers({ ...tiers, vipThreshold: val });
-                          } else {
+                          } else if (key === 'SUPER') {
                             setTiers({ ...tiers, superThreshold: val });
+                          } else {
+                            // Intermediate tier - store in customTierThresholds
+                            setCustomTierThresholds({ ...customTierThresholds, [key]: val });
                           }
                         }}
                         className={styles.smallInput}
@@ -297,7 +321,50 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
           Configure milestone points and USDC payout amount for Premium plan members
         </p>
 
-        <div className={styles.payoutConfig}>
+        {/* Enable/Disable Toggle */}
+        <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+            <div
+              onClick={() => editing && setTiers({ ...tiers, payoutEnabled: !tiers.payoutEnabled })}
+              style={{
+                width: '48px',
+                height: '26px',
+                borderRadius: '13px',
+                background: tiers.payoutEnabled ? '#10b981' : '#d1d5db',
+                position: 'relative',
+                transition: 'background 0.2s',
+                cursor: editing ? 'pointer' : 'not-allowed',
+                opacity: editing ? 1 : 0.7,
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '3px',
+                  left: tiers.payoutEnabled ? '25px' : '3px',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  background: 'white',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  transition: 'left 0.2s',
+                }}
+              />
+            </div>
+            <div>
+              <span style={{ fontWeight: '600', color: '#374151' }}>
+                {tiers.payoutEnabled ? 'USDC Payouts Enabled' : 'USDC Payouts Disabled'}
+              </span>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.85rem', color: '#6b7280' }}>
+                {tiers.payoutEnabled
+                  ? 'Members can claim USDC rewards when they reach the milestone'
+                  : 'USDC payout option will not be shown to members'}
+              </p>
+            </div>
+          </label>
+        </div>
+
+        <div className={styles.payoutConfig} style={{ opacity: tiers.payoutEnabled ? 1 : 0.5, pointerEvents: tiers.payoutEnabled ? 'auto' : 'none' }}>
           <div className={styles.payoutItem}>
             <label className={styles.label}>Milestone Points</label>
             <p className={styles.description}>Points required to redeem USDC payout</p>
@@ -340,20 +407,22 @@ export default function RewardTiersSettings({ merchantData, onUpdate }: RewardTi
           </div>
         </div>
 
-        <div className={styles.payoutSummary}>
-          <div className={styles.summaryBox}>
-            <div className={styles.summaryLabel}>Payout Ratio:</div>
-            <div className={styles.summaryValue}>
-              {tiers.payoutMilestonePoints} points = ${tiers.payoutAmountUSD.toFixed(2)} USDC
+        {tiers.payoutEnabled && (
+          <div className={styles.payoutSummary}>
+            <div className={styles.summaryBox}>
+              <div className={styles.summaryLabel}>Payout Ratio:</div>
+              <div className={styles.summaryValue}>
+                {tiers.payoutMilestonePoints} points = ${tiers.payoutAmountUSD.toFixed(2)} USDC
+              </div>
+            </div>
+            <div className={styles.summaryBox}>
+              <div className={styles.summaryLabel}>Visits Required:</div>
+              <div className={styles.summaryValue}>
+                {calculateVisitsToTier(tiers.payoutMilestonePoints)} visits per payout
+              </div>
             </div>
           </div>
-          <div className={styles.summaryBox}>
-            <div className={styles.summaryLabel}>Visits Required:</div>
-            <div className={styles.summaryValue}>
-              {calculateVisitsToTier(tiers.payoutMilestonePoints)} visits per payout
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Info Note */}

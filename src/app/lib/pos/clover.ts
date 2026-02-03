@@ -266,9 +266,9 @@ export async function processCloverOrder(
     console.log('[Clover] Created merchant membership:', merchantMember.id);
   }
 
-  // 6. Calculate points (amount is in cents, convert to dollars)
+  // 6. Calculate points (amount is in cents, convert to dollars, round to nearest whole number)
   const orderTotal = data.totalAmount / 100;
-  const pointsToAward = Math.floor(orderTotal * merchant.posPointsPerDollar);
+  const pointsToAward = Math.round(orderTotal * merchant.posPointsPerDollar);
 
   // 7. Create external order record
   const externalOrder = await prisma.externalOrder.create({
@@ -359,9 +359,9 @@ export async function processCloverRefund(
     return { success: false, skipped: true, reason: 'no_member' };
   }
 
-  // Calculate points to deduct (convert cents to dollars)
+  // Calculate points to deduct (convert cents to dollars, round to nearest whole number)
   const refundDollars = refundAmount / 100;
-  const pointsToDeduct = Math.floor(refundDollars * originalOrder.merchant.posPointsPerDollar);
+  const pointsToDeduct = Math.round(refundDollars * originalOrder.merchant.posPointsPerDollar);
 
   // Find merchant membership
   const merchantMember = await prisma.merchantMember.findFirst({

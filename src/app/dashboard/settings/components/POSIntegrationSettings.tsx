@@ -222,7 +222,7 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
     setSavingPoints(true);
     try {
       const res = await fetch('/api/merchant/settings', {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ posPointsPerDollar: pointsPerDollar }),
       });
@@ -266,9 +266,9 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
               type="number"
               id="pointsPerDollar"
               value={pointsPerDollar}
-              onChange={(e) => setPointsPerDollar(Math.max(0.1, parseFloat(e.target.value) || 1))}
-              min="0.1"
-              step="0.1"
+              onChange={(e) => setPointsPerDollar(Math.max(0.01, parseFloat(e.target.value) || 1))}
+              min="0.01"
+              step="0.01"
               aria-describedby="pointsHelp"
             />
             <span className={styles.pointsLabel}>points</span>
@@ -281,7 +281,7 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
             </button>
           </div>
           <p id="pointsHelp" className={styles.helpText}>
-            Example: At {pointsPerDollar} point(s) per dollar, a $25 purchase earns {Math.round(25 * pointsPerDollar)} points
+            Example: At {pointsPerDollar} point(s) per dollar, a $100 purchase earns {Math.round(100 * pointsPerDollar)} points (rounded)
           </p>
         </div>
       </div>

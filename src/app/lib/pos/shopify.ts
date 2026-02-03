@@ -210,8 +210,8 @@ export async function processShopifyOrder(
     console.log('[Shopify] Created merchant membership:', merchantMember.id);
   }
 
-  // 6. Calculate points (total_price is already in dollars)
-  const pointsToAward = Math.floor(data.totalPrice * merchant.posPointsPerDollar);
+  // 6. Calculate points (total_price is already in dollars, round to nearest whole number)
+  const pointsToAward = Math.round(data.totalPrice * merchant.posPointsPerDollar);
 
   // 7. Create external order record
   const externalOrder = await prisma.externalOrder.create({
@@ -304,8 +304,8 @@ export async function processShopifyRefund(
     return { success: false, skipped: true, reason: 'no_member' };
   }
 
-  // Calculate points to deduct (proportional to refund amount)
-  const pointsToDeduct = Math.floor(refundAmount * originalOrder.merchant.posPointsPerDollar);
+  // Calculate points to deduct (proportional to refund amount, round to nearest whole number)
+  const pointsToDeduct = Math.round(refundAmount * originalOrder.merchant.posPointsPerDollar);
 
   // Find merchant membership
   const merchantMember = await prisma.merchantMember.findFirst({

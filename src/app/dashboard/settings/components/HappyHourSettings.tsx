@@ -103,6 +103,14 @@ export default function HappyHourSettings({ merchantData, onUpdate }: HappyHourS
     }
   }
 
+  // Format time to 12-hour format
+  const formatTime12Hour = (time24: string) => {
+    const [hours, minutes] = time24.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
+    return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
   // Format days for preview
   const formatDays = () => {
     if (daysOfWeek.length === 7) return 'every day';
@@ -244,7 +252,7 @@ export default function HappyHourSettings({ merchantData, onUpdate }: HappyHourS
             <div className={styles.previewText}>
               <strong>Preview:</strong> Members earn{' '}
               <strong className={styles.highlight}>{multiplier}x points</strong> from{' '}
-              <strong>{startTime}</strong> to <strong>{endTime}</strong> on{' '}
+              <strong>{formatTime12Hour(startTime)}</strong> to <strong>{formatTime12Hour(endTime)}</strong> on{' '}
               <strong>{formatDays()}</strong>
             </div>
           </div>

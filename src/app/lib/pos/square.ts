@@ -297,9 +297,9 @@ export async function processSquarePayment(
     console.log('[Square] Created merchant membership:', merchantMember.id);
   }
 
-  // 6. Calculate points (amount is in cents, convert to dollars)
+  // 6. Calculate points (amount is in cents, convert to dollars, round to nearest whole number)
   const orderTotal = data.totalMoney.amount / 100;
-  const pointsToAward = Math.floor(orderTotal * merchant.posPointsPerDollar);
+  const pointsToAward = Math.round(orderTotal * merchant.posPointsPerDollar);
 
   // 7. Create external order record
   const externalOrder = await prisma.externalOrder.create({
@@ -391,9 +391,9 @@ export async function processSquareRefund(
     return { success: false, skipped: true, reason: 'no_member' };
   }
 
-  // Calculate points to deduct (proportional to refund amount)
+  // Calculate points to deduct (proportional to refund amount, round to nearest whole number)
   const refundDollars = refundAmount / 100;
-  const pointsToDeduct = Math.floor(refundDollars * originalOrder.merchant.posPointsPerDollar);
+  const pointsToDeduct = Math.round(refundDollars * originalOrder.merchant.posPointsPerDollar);
 
   // Find merchant membership
   const merchantMember = await prisma.merchantMember.findFirst({

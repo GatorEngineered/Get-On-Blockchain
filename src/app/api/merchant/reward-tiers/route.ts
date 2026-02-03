@@ -28,6 +28,8 @@ export async function PUT(req: NextRequest) {
       superThreshold,
       payoutMilestonePoints,
       payoutAmountUSD,
+      payoutEnabled,
+      customTierThresholds,
     } = await req.json();
 
     // Validation
@@ -78,6 +80,8 @@ export async function PUT(req: NextRequest) {
         superThreshold,
         payoutMilestonePoints,
         payoutAmountUSD,
+        ...(payoutEnabled !== undefined && { payoutEnabled }),
+        ...(customTierThresholds !== undefined && { customTierThresholds }),
       },
     });
 
@@ -91,6 +95,8 @@ export async function PUT(req: NextRequest) {
         superThreshold: updatedMerchant.superThreshold,
         payoutMilestonePoints: updatedMerchant.payoutMilestonePoints,
         payoutAmountUSD: updatedMerchant.payoutAmountUSD,
+        payoutEnabled: updatedMerchant.payoutEnabled,
+        customTierThresholds: updatedMerchant.customTierThresholds,
       },
     });
   } catch (error: any) {

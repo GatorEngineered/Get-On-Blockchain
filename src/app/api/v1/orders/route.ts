@@ -207,8 +207,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Calculate base points
-    let pointsToAward = Math.floor(order_total * merchant.posPointsPerDollar);
+    // Calculate base points (round to nearest whole number)
+    let pointsToAward = Math.round(order_total * merchant.posPointsPerDollar);
 
     // TODO: Apply product-specific points rules here
     // For now, use base calculation

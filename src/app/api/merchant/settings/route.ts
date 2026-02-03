@@ -162,6 +162,7 @@ export async function GET(req: NextRequest) {
       earnPerVisit: merchant.earnPerVisit,
       vipThreshold: merchant.vipThreshold,
       superThreshold: merchant.superThreshold,
+      customTierThresholds: merchant.customTierThresholds,
       // Email settings
       notificationEmail: merchant.notificationEmail,
       // Referral settings
@@ -227,6 +228,8 @@ export async function PUT(req: NextRequest) {
       facebookUrl,
       twitterUrl,
       tiktokUrl,
+      // POS Settings
+      posPointsPerDollar,
     } = body;
 
     // Build update data (only include fields that are provided)
@@ -316,6 +319,17 @@ export async function PUT(req: NextRequest) {
       updateData.tiktokUrl = tiktokUrl || null;
     }
 
+    // POS Points per Dollar (allow decimals, e.g. 0.5 points per dollar)
+    if (typeof posPointsPerDollar === 'number') {
+      if (posPointsPerDollar < 0.01 || posPointsPerDollar > 100) {
+        return NextResponse.json(
+          { error: 'Points per dollar must be between 0.01 and 100' },
+          { status: 400 }
+        );
+      }
+      updateData.posPointsPerDollar = posPointsPerDollar;
+    }
+
     // Update merchant settings
     const merchant = await prisma.merchant.update({
       where: { id: merchantId },
@@ -334,6 +348,7 @@ export async function PUT(req: NextRequest) {
         facebookUrl: true,
         twitterUrl: true,
         tiktokUrl: true,
+        posPointsPerDollar: true,
       },
     });
 
@@ -353,6 +368,7 @@ export async function PUT(req: NextRequest) {
       facebookUrl: merchant.facebookUrl,
       twitterUrl: merchant.twitterUrl,
       tiktokUrl: merchant.tiktokUrl,
+      posPointsPerDollar: merchant.posPointsPerDollar,
     });
   } catch (error: any) {
     console.error('[Merchant Settings] Error updating settings:', error);

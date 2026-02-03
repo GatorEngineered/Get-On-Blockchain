@@ -248,8 +248,8 @@ export async function processToastOrder(
     console.log('[Toast] Created merchant membership:', merchantMember.id);
   }
 
-  // 6. Calculate points
-  const pointsToAward = Math.floor(data.totalAmount * merchant.posPointsPerDollar);
+  // 6. Calculate points (round to nearest whole number)
+  const pointsToAward = Math.round(data.totalAmount * merchant.posPointsPerDollar);
 
   // 7. Create external order record
   const externalOrder = await prisma.externalOrder.create({
@@ -341,8 +341,8 @@ export async function processToastRefund(
     return { success: false, skipped: true, reason: 'no_member' };
   }
 
-  // Calculate points to deduct
-  const pointsToDeduct = Math.floor(refundAmount * originalOrder.merchant.posPointsPerDollar);
+  // Calculate points to deduct (round to nearest whole number)
+  const pointsToDeduct = Math.round(refundAmount * originalOrder.merchant.posPointsPerDollar);
 
   // Find merchant membership
   const merchantMember = await prisma.merchantMember.findFirst({
