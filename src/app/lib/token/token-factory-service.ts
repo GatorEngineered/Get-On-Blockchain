@@ -29,12 +29,12 @@ import {
 // Will be set after initial deployment
 const TOKEN_FACTORY_ADDRESS = process.env.TOKEN_FACTORY_ADDRESS || '';
 
-// Token Factory ABI
+// Token Factory ABI - must match TokenFactory.sol
 const TOKEN_FACTORY_ABI = [
-  'function createToken(string name, string symbol, uint8 decimals, address initialOwner) returns (address)',
-  'function getTokensByOwner(address owner) view returns (address[])',
-  'function tokenCount() view returns (uint256)',
-  'event TokenCreated(address indexed tokenAddress, string name, string symbol, address indexed owner)',
+  'function createToken(string name, string symbol, uint8 decimals, string merchantId) returns (address)',
+  'function getTokenByMerchant(string merchantId) view returns (address)',
+  'function getTokenCount() view returns (uint256)',
+  'event TokenCreated(address indexed tokenAddress, string name, string symbol, uint8 decimals, address indexed owner, string merchantId)',
 ];
 
 export interface DeployTokenResult {
@@ -215,11 +215,12 @@ export async function deployMerchantToken(
 
     try {
       // Deploy token via factory
+      // Pass merchantId as the 4th parameter (contract uses it for tracking)
       const tx = await factory.createToken(
         token.tokenName,
         token.tokenSymbol,
         token.decimals,
-        relayerAddress // GOB controls minting
+        token.merchantId // Pass merchant ID for on-chain tracking
       );
 
       // Update with tx hash
