@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import MemberWalletConnect from "./MemberWalletConnect";
 
 type MemberProfile = {
   id: string;
@@ -734,44 +735,12 @@ export default function MemberSettingsPage() {
             <p className="tab-description">Manage your cryptocurrency wallet for USDC payouts</p>
 
             <div className="wallet-section">
-              {profile.walletAddress ? (
-                <>
-                  <div className="wallet-connected">
-                    <div className="wallet-icon">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="wallet-label">Connected Wallet</p>
-                      <code className="wallet-address">{profile.walletAddress}</code>
-                    </div>
-                  </div>
-                  <p className="wallet-hint">
-                    This wallet address is used for USDC payout claims. To change your wallet,
-                    you'll need to disconnect and reconnect with a new wallet.
-                  </p>
-                </>
-              ) : (
-                <div className="no-wallet">
-                  <div className="no-wallet-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                  </div>
-                  <h3>No Wallet Connected</h3>
-                  <p>
-                    Connect a cryptocurrency wallet to receive USDC payouts from merchants
-                    that offer real money rewards.
-                  </p>
-                  <button
-                    className="secondary-button"
-                    onClick={() => router.push("/member/login?method=wallet")}
-                  >
-                    Connect Wallet
-                  </button>
-                </div>
-              )}
+              <MemberWalletConnect
+                currentWallet={profile.walletAddress}
+                onWalletConnected={(address) => {
+                  setProfile((prev) => prev ? { ...prev, walletAddress: address } : null);
+                }}
+              />
             </div>
 
             <div className="info-box">
