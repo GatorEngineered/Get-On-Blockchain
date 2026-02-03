@@ -1270,6 +1270,7 @@ const pageStyles = `
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
   }
 
   .tab-content h2 {
@@ -1800,6 +1801,7 @@ const pageStyles = `
 
   .form-textarea {
     width: 100%;
+    max-width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid #d1d5db;
     border-radius: 8px;
@@ -1808,6 +1810,7 @@ const pageStyles = `
     resize: vertical;
     min-height: 100px;
     transition: all 0.2s;
+    box-sizing: border-box;
   }
 
   .form-textarea:focus {
@@ -1825,6 +1828,8 @@ const pageStyles = `
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 1.5rem;
+    overflow: hidden;
+    box-sizing: border-box;
   }
 
   @media (max-width: 640px) {

@@ -46,6 +46,12 @@ export default function PayoutWalletSettings({ merchantData, onUpdate }: PayoutW
   const [resetDay, setResetDay] = useState('1');
   const [savingBudget, setSavingBudget] = useState(false);
 
+  // Change wallet state
+  const [showChangeWallet, setShowChangeWallet] = useState(false);
+  const [walletOption, setWalletOption] = useState<'custom' | 'generate'>('custom');
+  const [customAddress, setCustomAddress] = useState('');
+  const [changingWallet, setChangingWallet] = useState(false);
+
   useEffect(() => {
     fetchPayoutStats();
   }, []);
@@ -135,6 +141,60 @@ export default function PayoutWalletSettings({ merchantData, onUpdate }: PayoutW
     }
   }
 
+  async function handleChangeWallet() {
+    try {
+      setChangingWallet(true);
+      setError('');
+      setSuccess('');
+
+      const body: { walletAddress?: string; generateNew?: boolean } = {};
+
+      if (walletOption === 'custom') {
+        if (!customAddress) {
+          setError('Please enter a wallet address');
+          setChangingWallet(false);
+          return;
+        }
+        body.walletAddress = customAddress;
+      } else {
+        body.generateNew = true;
+      }
+
+      const res = await fetch('/api/merchant/payout-wallet/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update wallet');
+      }
+
+      setSuccess(
+        walletOption === 'custom'
+          ? 'Wallet updated successfully! Fund this address with USDC to enable payouts.'
+          : 'New wallet generated successfully! Fund this address with USDC to enable payouts.'
+      );
+
+      // Reset form
+      setShowChangeWallet(false);
+      setCustomAddress('');
+      setWalletOption('custom');
+
+      // Refresh stats
+      await fetchPayoutStats();
+
+      // Update parent component
+      onUpdate({ payoutEnabled: true, payoutWalletAddress: data.walletAddress });
+    } catch (err: any) {
+      setError(err.message || 'Failed to update wallet');
+    } finally {
+      setChangingWallet(false);
+    }
+  }
+
   function truncateAddress(address: string): string {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   }
@@ -197,6 +257,12 @@ export default function PayoutWalletSettings({ merchantData, onUpdate }: PayoutW
                   >
                     Copy
                   </button>
+                  <button
+                    onClick={() => setShowChangeWallet(true)}
+                    className={styles.changeButton}
+                  >
+                    Change
+                  </button>
                 </div>
               </div>
               <div className={styles.fundingInstructions}>
@@ -209,6 +275,85 @@ export default function PayoutWalletSettings({ merchantData, onUpdate }: PayoutW
                 </p>
               </div>
             </div>
+
+            {/* Change Wallet Modal */}
+            {showChangeWallet && (
+              <div className={styles.modalOverlay}>
+                <div className={styles.modalContent}>
+                  <h3 className={styles.modalTitle}>Change Payout Wallet</h3>
+                  <p className={styles.modalDescription}>
+                    Update your wallet address for receiving USDC payouts. You can use your own wallet or generate a new one.
+                  </p>
+
+                  <div className={styles.walletOptions}>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="walletOption"
+                        checked={walletOption === 'custom'}
+                        onChange={() => setWalletOption('custom')}
+                      />
+                      <span>Use my own wallet address</span>
+                    </label>
+                    <label className={styles.radioOption}>
+                      <input
+                        type="radio"
+                        name="walletOption"
+                        checked={walletOption === 'generate'}
+                        onChange={() => setWalletOption('generate')}
+                      />
+                      <span>Generate new custodial wallet</span>
+                    </label>
+                  </div>
+
+                  {walletOption === 'custom' && (
+                    <div className={styles.inputGroup}>
+                      <label className={styles.inputLabel}>Wallet Address (Polygon)</label>
+                      <input
+                        type="text"
+                        value={customAddress}
+                        onChange={(e) => setCustomAddress(e.target.value)}
+                        placeholder="0x..."
+                        className={styles.addressInput}
+                      />
+                      <p className={styles.inputHint}>
+                        Enter an Ethereum-compatible address. USDC payouts will be sent on the Polygon network.
+                      </p>
+                    </div>
+                  )}
+
+                  {walletOption === 'generate' && (
+                    <div className={styles.generateWarning}>
+                      <p>
+                        <strong>Note:</strong> A new wallet will be generated. Your previous wallet will no longer be used.
+                        Make sure to withdraw any remaining USDC before changing.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className={styles.modalActions}>
+                    <button
+                      onClick={() => {
+                        setShowChangeWallet(false);
+                        setCustomAddress('');
+                        setWalletOption('custom');
+                      }}
+                      className={styles.cancelButton}
+                      disabled={changingWallet}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleChangeWallet}
+                      className={styles.confirmButton}
+                      disabled={changingWallet || (walletOption === 'custom' && !customAddress)}
+                    >
+                      {changingWallet ? 'Updating...' : 'Update Wallet'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className={styles.walletNotConnected}>
