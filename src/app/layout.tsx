@@ -8,6 +8,7 @@ import Footer from "@/app/components/Footer";
 import CookieBanner from "@/app/components/CookieBanner";
 import ErrorSuppressor from "@/app/components/ErrorSuppressor";
 import SkipLink from "@/app/components/SkipLink";
+import AccessibilityWidget from "@/app/components/AccessibilityWidget";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -254,6 +255,7 @@ export default function RootLayout({
         </ClientProviders>
         <CookieBanner />
         <Footer />
+        <AccessibilityWidget />
       </body>
     </html>
   );

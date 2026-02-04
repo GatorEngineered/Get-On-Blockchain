@@ -216,12 +216,14 @@ export default function MemberLoginPage() {
                     required
                     disabled={loading}
                   />
-                  <span
+                  <button
+                    type="button"
                     className="password-toggle"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? "Hide" : "Show"}
-                  </span>
+                  </button>
                 </div>
                 <p className="login-hint">
                   <a href="/member/forgot-password" className="forgot-link">

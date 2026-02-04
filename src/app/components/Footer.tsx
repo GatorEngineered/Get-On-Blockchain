@@ -60,6 +60,7 @@ export default function Footer() {
               <li><Link href="/support" className="site-footer-link">Support</Link></li>
               <li><Link href="/privacy-policy" className="site-footer-link">Privacy Policy</Link></li>
               <li><Link href="/terms-of-service" className="site-footer-link">Terms of Service</Link></li>
+              <li><Link href="/accessibility" className="site-footer-link">Accessibility</Link></li>
             </ul>
           </nav>
         </div>

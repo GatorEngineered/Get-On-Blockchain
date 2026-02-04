@@ -74,12 +74,14 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
 
-              <span
+              <button
+                type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? "Hide" : "Show"}
-              </span>
+              </button>
             </div>
           </label>
 

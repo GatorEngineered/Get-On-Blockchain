@@ -183,6 +183,7 @@ export default function SendAnnouncementModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close announcement dialog"
             style={{
               background: 'none',
               border: 'none',
@@ -191,7 +192,7 @@ export default function SendAnnouncementModal({
               color: '#9ca3af',
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
