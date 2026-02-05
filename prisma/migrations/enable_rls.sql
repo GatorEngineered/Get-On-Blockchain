@@ -40,5 +40,31 @@ ALTER TABLE "AdminAuditLog" ENABLE ROW LEVEL SECURITY;
 -- Content tables
 ALTER TABLE "BlogPost" ENABLE ROW LEVEL SECURITY;
 
+-- Token/Blockchain tables
+ALTER TABLE "MerchantToken" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TokenTransaction" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "TokenBalance" ENABLE ROW LEVEL SECURITY;
+
+-- Event tracking tables
+ALTER TABLE "EventScan" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "EventQRCode" ENABLE ROW LEVEL SECURITY;
+
+-- Redemption tables
+ALTER TABLE "RedemptionRequest" ENABLE ROW LEVEL SECURITY;
+
+-- API tables
+ALTER TABLE "ApiKey" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ApiUsageLog" ENABLE ROW LEVEL SECURITY;
+
+-- External integrations
+ALTER TABLE "ExternalOrder" ENABLE ROW LEVEL SECURITY;
+
+-- Points rules
+ALTER TABLE "PointsRule" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "PointsRuleUsage" ENABLE ROW LEVEL SECURITY;
+
+-- Social engagement
+ALTER TABLE "SocialEngagement" ENABLE ROW LEVEL SECURITY;
+
 -- Verify RLS is enabled (optional check)
 -- SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public';
