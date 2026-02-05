@@ -434,6 +434,16 @@
     padding: 2rem 1.5rem;
   }
 
+  /* Fix tooltip overlap on mobile */
+  .inputGroup label {
+    flex-wrap: wrap;
+  }
+
+  .tooltip {
+    flex-basis: 100%;
+    margin-top: 0.25rem;
+  }
+
   .breakdown {
     padding: 2rem 1.5rem;
   }
