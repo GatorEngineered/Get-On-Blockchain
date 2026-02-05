@@ -500,7 +500,16 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
         <div className={styles.modal} role="dialog" aria-labelledby="vagaro-modal-title" aria-modal="true">
           <div className={styles.modalContent}>
             <h3 id="vagaro-modal-title">Connect Vagaro</h3>
-            <p>Enter your Vagaro API credentials from Settings → Developers → APIs & Webhooks</p>
+
+            <div style={{ background: '#f0f9ff', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+              <strong>How to get your credentials:</strong>
+              <ol style={{ margin: '0.5rem 0 0 1.25rem', padding: 0 }}>
+                <li>Log into your <a href="https://www.vagaro.com/pro/login" target="_blank" rel="noopener noreferrer" style={{ color: '#0066cc' }}>Vagaro Pro account</a></li>
+                <li>Go to <strong>Settings → Developers → APIs & Webhooks</strong></li>
+                <li>Create a new API application or use an existing one</li>
+                <li>Copy the Client ID, Client Secret, and your Business ID</li>
+              </ol>
+            </div>
 
             <div className={styles.shopifyInput} style={{ marginBottom: '1rem' }}>
               <label htmlFor="vagaro-client-id" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 500 }}>
@@ -542,10 +551,15 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
             </div>
 
             <div style={{ background: '#fef3c7', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
-              <strong>Next Step:</strong> After connecting, set up a webhook in Vagaro pointing to:<br />
-              <code style={{ background: '#fde68a', padding: '2px 6px', borderRadius: '4px' }}>
-                {typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/vagaro
+              <strong>After connecting, set up a webhook in Vagaro:</strong>
+              <ol style={{ margin: '0.5rem 0 0 1.25rem', padding: 0 }}>
+                <li>In Vagaro, go to <strong>Settings → Developers → Webhooks</strong></li>
+                <li>Create a new webhook with this URL:</li>
+              </ol>
+              <code style={{ display: 'block', background: '#fde68a', padding: '6px 10px', borderRadius: '4px', marginTop: '0.5rem', wordBreak: 'break-all' }}>
+                {typeof window !== 'undefined' ? window.location.origin : 'https://getonblockchain.com'}/api/webhooks/vagaro
               </code>
+              <p style={{ margin: '0.5rem 0 0 0' }}>Select events: <strong>Transactions</strong> (required), Customers (optional)</p>
             </div>
 
             <div className={styles.modalActions}>
