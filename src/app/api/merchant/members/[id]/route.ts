@@ -101,24 +101,16 @@ export async function GET(
           memberId,
         },
       },
-      include: {
-        business: {
-          select: {
-            scans: {
-              where: { memberId },
-              orderBy: {
-                scannedAt: "desc",
-              },
-            },
-          },
-        },
+      select: {
+        visitCount: true,
+        lastVisitAt: true,
+        firstVisitAt: true,
       },
     });
 
-    // Calculate statistics
-    const scans = businessMember?.business.scans || [];
-    const totalVisits = scans.length;
-    const lastVisit = scans[0]?.scannedAt || null;
+    // Calculate statistics from BusinessMember visit tracking
+    const totalVisits = businessMember?.visitCount || 0;
+    const lastVisit = businessMember?.lastVisitAt || null;
 
     // Get referral count for this member (how many people they've referred to this merchant)
     const referralCount = await prisma.referral.count({
@@ -204,12 +196,15 @@ export async function GET(
         canReceiveAnnouncements: memberPreferences?.emailMerchantAnnouncements ?? false,
         canReceivePointsUpdates: memberPreferences?.emailMerchantPointsUpdates ?? false,
       },
-      scans: scans.map((scan) => ({
-        id: scan.id,
-        scannedAt: scan.scannedAt,
-        pointsAwarded: scan.pointsAwarded,
-        status: scan.status,
-      })),
+      // Scans are now tracked via RewardTransactions with reason "QR code scan"
+      scans: merchantMember.rewardTransactions
+        .filter((tx) => tx.reason === "QR code scan")
+        .map((tx) => ({
+          id: tx.id,
+          scannedAt: tx.createdAt,
+          pointsAwarded: tx.amount,
+          status: tx.status,
+        })),
       transactions: merchantMember.rewardTransactions.map((tx) => ({
         id: tx.id,
         type: tx.type,
