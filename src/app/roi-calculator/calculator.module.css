@@ -429,9 +429,13 @@
     gap: 2rem;
   }
 
+  .calculator {
+    padding: 2rem 1rem;
+  }
+
   .inputs,
   .results {
-    padding: 2rem 1.5rem;
+    padding: 1.5rem 1rem;
   }
 
   /* Fix tooltip overlap on mobile */
@@ -442,6 +446,15 @@
   .tooltip {
     flex-basis: 100%;
     margin-top: 0.25rem;
+  }
+
+  .inputGroup input {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .inputWrapper {
+    max-width: 100%;
   }
 
   .breakdown {
