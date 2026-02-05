@@ -97,10 +97,11 @@ model Merchant {
   lastTrialEmailSent        Int?      // Track last trial expiring email sent (days remaining)
 
   // POS Integration (Secure OAuth Storage)
-  squareAccessToken   String? // Encrypted Square OAuth token
-  squareRefreshToken  String? // Encrypted refresh token
-  squareLocationId    String?
-  toastAccessToken    String? // Encrypted Toast OAuth token
+  squareAccessToken         String? // Encrypted Square OAuth token
+  squareRefreshToken        String? // Encrypted refresh token
+  squareLocationId          String?
+  squareWebhookSignatureKey String? // Encrypted webhook signature key for verification
+  toastAccessToken          String? // Encrypted Toast OAuth token
   toastRefreshToken   String?
   toastRestaurantGuid String?
   cloverAccessToken   String? // Encrypted Clover OAuth token

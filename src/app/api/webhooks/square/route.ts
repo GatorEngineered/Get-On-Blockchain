@@ -7,6 +7,7 @@ import {
   extractPaymentData,
   processSquarePayment,
   processSquareRefund,
+  getMerchantSignatureKey,
 } from '@/app/lib/pos/square';
 
 // Webhook URL for signature verification
@@ -14,24 +15,26 @@ const WEBHOOK_URL =
   process.env.SQUARE_WEBHOOK_URL ||
   `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/square`;
 
+// Fallback global signature key (for backwards compatibility)
+const GLOBAL_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
+
 /**
  * POST /api/webhooks/square
  *
  * Handles Square webhook events for automatic points awarding
  *
  * Events handled:
- * - payment.completed - Award points based on transaction amount
- * - payment.updated - Check for status changes (refunds)
+ * - payment.created/updated - Award points based on transaction amount
  * - refund.created - Deduct points for refunded transactions
  *
  * Security:
- * - Verifies HMAC-SHA256 signature from Square
+ * - Verifies HMAC-SHA256 signature (per-merchant key or global fallback)
  * - Idempotent processing (duplicate payments are ignored)
  *
  * Setup:
- * 1. Merchant connects Square via OAuth (existing flow)
- * 2. Configure webhook URL in Square Developer Dashboard
- * 3. Set SQUARE_WEBHOOK_SIGNATURE_KEY in environment
+ * 1. Merchant connects Square via OAuth
+ * 2. Webhook is auto-registered during OAuth callback
+ * 3. Signature key is stored per-merchant for verification
  */
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -43,21 +46,41 @@ export async function POST(req: NextRequest) {
 
     console.log('[Square Webhook] Received request');
 
+    // Parse the webhook payload first to get location_id
+    let payload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid JSON payload' },
+        { status: 400 }
+      );
+    }
+
+    const eventType = payload.type;
+    const eventId = payload.event_id;
+    const locationId = payload.data?.object?.payment?.location_id ||
+                       payload.data?.object?.refund?.location_id;
+
+    console.log(`[Square Webhook] Event: ${eventType}, ID: ${eventId}, Location: ${locationId}`);
+
+    // Get merchant's signature key, fall back to global key
+    let signatureKey = GLOBAL_SIGNATURE_KEY || '';
+    if (locationId) {
+      const merchantKey = await getMerchantSignatureKey(locationId);
+      if (merchantKey) {
+        signatureKey = merchantKey;
+      }
+    }
+
     // Verify webhook signature
-    if (!verifySquareSignature(rawBody, signature, WEBHOOK_URL)) {
+    if (!verifySquareSignature(rawBody, signature, WEBHOOK_URL, signatureKey)) {
       console.error('[Square Webhook] Signature verification failed');
       return NextResponse.json(
         { error: 'Invalid webhook signature' },
         { status: 401 }
       );
     }
-
-    // Parse the webhook payload
-    const payload = JSON.parse(rawBody);
-    const eventType = payload.type;
-    const eventId = payload.event_id;
-
-    console.log(`[Square Webhook] Event: ${eventType}, ID: ${eventId}`);
 
     // Route based on event type
     // Note: Square uses payment.created and payment.updated (not payment.completed)

@@ -5,6 +5,7 @@ import {
   POSProvider,
 } from "@/app/lib/pos";
 import { registerShopifyWebhooks } from "@/app/lib/pos/shopify";
+import { registerSquareWebhooks } from "@/app/lib/pos/square";
 
 const VALID_PROVIDERS: POSProvider[] = ['square', 'toast', 'clover', 'shopify'];
 
@@ -138,6 +139,17 @@ export async function GET(
         // Don't fail the whole flow - tokens are saved, webhooks can be retried
       } else {
         console.log(`[POS Callback] Shopify webhooks registered:`, webhookResult.webhooks);
+      }
+    }
+
+    // Auto-register webhooks for Square
+    if (provider === 'square') {
+      const webhookResult = await registerSquareWebhooks(tokens.accessToken, stateData.merchantId);
+      if (!webhookResult.success) {
+        console.warn(`[POS Callback] Square webhook registration failed:`, webhookResult.errors);
+        // Don't fail the whole flow - tokens are saved, webhooks can be configured manually
+      } else {
+        console.log(`[POS Callback] Square webhook registered:`, webhookResult.subscriptionId);
       }
     }
 

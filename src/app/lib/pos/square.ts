@@ -8,9 +8,6 @@ import { decrypt, encrypt } from '@/app/lib/crypto/encryption';
 // Square API version
 const SQUARE_API_VERSION = '2024-01-18';
 
-// Webhook signature key from environment
-const SQUARE_WEBHOOK_SIGNATURE_KEY = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY;
-
 /**
  * Square payment data extracted from webhook
  */
@@ -49,15 +46,16 @@ export interface SquareProcessingResult {
 export function verifySquareSignature(
   rawBody: string,
   signature: string,
-  webhookUrl: string
+  webhookUrl: string,
+  signatureKey: string
 ): boolean {
-  if (!SQUARE_WEBHOOK_SIGNATURE_KEY) {
-    console.error('[Square] SQUARE_WEBHOOK_SIGNATURE_KEY not configured');
+  if (!signatureKey) {
+    console.error('[Square] No signature key provided for verification');
     return false;
   }
 
   try {
-    const hmac = crypto.createHmac('sha256', SQUARE_WEBHOOK_SIGNATURE_KEY);
+    const hmac = crypto.createHmac('sha256', signatureKey);
     hmac.update(webhookUrl + rawBody);
     const expectedSignature = hmac.digest('base64');
 
@@ -69,6 +67,27 @@ export function verifySquareSignature(
   } catch (error) {
     console.error('[Square] Signature verification error:', error);
     return false;
+  }
+}
+
+/**
+ * Get merchant's webhook signature key by location ID
+ */
+export async function getMerchantSignatureKey(locationId: string): Promise<string | null> {
+  try {
+    const merchant = await prisma.merchant.findFirst({
+      where: { squareLocationId: locationId },
+      select: { squareWebhookSignatureKey: true },
+    });
+
+    if (!merchant?.squareWebhookSignatureKey) {
+      return null;
+    }
+
+    return decrypt(merchant.squareWebhookSignatureKey);
+  } catch (error) {
+    console.error('[Square] Error getting merchant signature key:', error);
+    return null;
   }
 }
 
@@ -352,6 +371,106 @@ export async function processSquarePayment(
     memberId: member.id,
     pointsAwarded: pointsToAward,
   };
+}
+
+/**
+ * Register Square webhooks for a merchant
+ * Called after OAuth completion to enable automatic points awarding
+ */
+export async function registerSquareWebhooks(
+  accessToken: string,
+  merchantId: string
+): Promise<{ success: boolean; subscriptionId?: string; errors?: string[] }> {
+  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/square`;
+
+  // Events to subscribe to
+  const eventTypes = [
+    'payment.completed',
+    'payment.updated',
+    'refund.created',
+  ];
+
+  try {
+    console.log('[Square] Registering webhooks for merchant:', merchantId);
+
+    // First, check if webhook already exists to avoid duplicates
+    const listResponse = await fetch(
+      'https://connect.squareup.com/v2/webhooks/subscriptions',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Square-Version': SQUARE_API_VERSION,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (listResponse.ok) {
+      const listData = await listResponse.json();
+      const existingSubscription = listData.subscriptions?.find(
+        (sub: any) => sub.notification_url === webhookUrl && sub.enabled
+      );
+
+      if (existingSubscription) {
+        console.log('[Square] Webhook already exists:', existingSubscription.id);
+        return { success: true, subscriptionId: existingSubscription.id };
+      }
+    }
+
+    // Create new webhook subscription
+    const response = await fetch(
+      'https://connect.squareup.com/v2/webhooks/subscriptions',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Square-Version': SQUARE_API_VERSION,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idempotency_key: `webhook-${merchantId}-${Date.now()}`,
+          subscription: {
+            name: 'GetOnBlockchain Loyalty Points',
+            enabled: true,
+            event_types: eventTypes,
+            notification_url: webhookUrl,
+            api_version: SQUARE_API_VERSION,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('[Square] Webhook registration failed:', errorData);
+      return {
+        success: false,
+        errors: errorData.errors?.map((e: any) => e.detail || e.code) || ['Unknown error'],
+      };
+    }
+
+    const data = await response.json();
+    const subscriptionId = data.subscription?.id;
+
+    // Store the signature key from the response for future verification
+    // The signature key is in the subscription response
+    if (data.subscription?.signature_key) {
+      // Store this in the merchant record for webhook verification
+      await prisma.merchant.update({
+        where: { id: merchantId },
+        data: {
+          squareWebhookSignatureKey: encrypt(data.subscription.signature_key),
+        },
+      });
+      console.log('[Square] Webhook signature key stored for merchant:', merchantId);
+    }
+
+    console.log('[Square] Webhook registered successfully:', subscriptionId);
+    return { success: true, subscriptionId };
+  } catch (error: any) {
+    console.error('[Square] Webhook registration error:', error);
+    return { success: false, errors: [error.message] };
+  }
 }
 
 /**
