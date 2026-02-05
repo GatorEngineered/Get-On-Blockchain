@@ -225,7 +225,7 @@ export async function POST(req: NextRequest) {
       from: `"${process.env.MAIL_FROM_NAME ?? "Get On Blockchain"}" <${
         process.env.MS365_SMTP_USER
       }>`,
-      to: process.env.MAIL_TO_OWNER ?? "reva@gatorengineered.com",
+      to: process.env.MAIL_TO_OWNER ?? "sales@getonblockchain.com",
       subject: "New Get On Blockchain support request",
       html: ownerHtml,
     });
