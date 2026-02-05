@@ -1,7 +1,7 @@
 // src/app/lib/pos/types.ts
 // POS Integration Types
 
-export type POSProvider = 'square' | 'toast' | 'clover' | 'shopify';
+export type POSProvider = 'square' | 'toast' | 'clover' | 'shopify' | 'vagaro';
 
 export interface POSConfig {
   provider: POSProvider;
@@ -104,5 +104,18 @@ export const POS_PROVIDERS: Record<POSProvider, POSConfig> = {
       'Customer account linking',
     ],
     docsUrl: 'https://shopify.dev/docs',
+  },
+  vagaro: {
+    provider: 'vagaro',
+    name: 'Vagaro',
+    description: 'Connect Vagaro for salon & spa loyalty integration',
+    logo: '/pos/vagaro-logo.svg',
+    color: '#00b4d8',
+    features: [
+      'Salon & spa focused',
+      'Appointment & service tracking',
+      'Automatic points on transactions',
+    ],
+    docsUrl: 'https://docs.vagaro.com/',
   },
 };

@@ -91,6 +91,22 @@ const PROVIDERS: POSProvider[] = [
       'Customer account linking',
     ],
   },
+  {
+    id: 'vagaro',
+    name: 'Vagaro',
+    description: 'Connect Vagaro for salon & spa loyalty integration',
+    color: '#00b4d8',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+      </svg>
+    ),
+    features: [
+      'Salon & spa focused',
+      'Appointment & service tracking',
+      'Automatic points on transactions',
+    ],
+  },
 ];
 
 export default function POSIntegrationSettings({ merchantData, onUpdate }: Props) {
@@ -100,6 +116,10 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [shopifyDomain, setShopifyDomain] = useState('');
   const [showShopifyModal, setShowShopifyModal] = useState(false);
+  const [showVagaroModal, setShowVagaroModal] = useState(false);
+  const [vagaroClientId, setVagaroClientId] = useState('');
+  const [vagaroClientSecret, setVagaroClientSecret] = useState('');
+  const [vagaroBusinessId, setVagaroBusinessId] = useState('');
   const [pointsPerDollar, setPointsPerDollar] = useState(merchantData?.posPointsPerDollar || 1);
   const [savingPoints, setSavingPoints] = useState(false);
   const [availableProviders, setAvailableProviders] = useState<string[]>([]);
@@ -139,6 +159,11 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
   async function handleConnect(providerId: string) {
     if (providerId === 'shopify') {
       setShowShopifyModal(true);
+      return;
+    }
+
+    if (providerId === 'vagaro') {
+      setShowVagaroModal(true);
       return;
     }
 
@@ -190,6 +215,44 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
     } finally {
       setConnecting(null);
       setShopifyDomain('');
+    }
+  }
+
+  async function handleVagaroConnect() {
+    if (!vagaroClientId.trim() || !vagaroClientSecret.trim() || !vagaroBusinessId.trim()) {
+      alert('Please fill in all Vagaro credentials');
+      return;
+    }
+
+    setConnecting('vagaro');
+    setShowVagaroModal(false);
+
+    try {
+      const res = await fetch('/api/merchant/integrations/vagaro/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: vagaroClientId.trim(),
+          clientSecret: vagaroClientSecret.trim(),
+          businessId: vagaroBusinessId.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        fetchStatuses();
+        alert('Vagaro connected successfully! Configure your webhook in Vagaro to complete setup.');
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Failed to connect Vagaro');
+      }
+    } catch (error) {
+      console.error('Vagaro connection error:', error);
+      alert('Failed to connect to Vagaro. Please try again.');
+    } finally {
+      setConnecting(null);
+      setVagaroClientId('');
+      setVagaroClientSecret('');
+      setVagaroBusinessId('');
     }
   }
 
@@ -426,6 +489,83 @@ export default function POSIntegrationSettings({ merchantData, onUpdate }: Props
                 style={{ backgroundColor: '#96bf48' }}
               >
                 Connect Shopify
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vagaro credentials modal */}
+      {showVagaroModal && (
+        <div className={styles.modal} role="dialog" aria-labelledby="vagaro-modal-title" aria-modal="true">
+          <div className={styles.modalContent}>
+            <h3 id="vagaro-modal-title">Connect Vagaro</h3>
+            <p>Enter your Vagaro API credentials from Settings → Developers → APIs & Webhooks</p>
+
+            <div className={styles.shopifyInput} style={{ marginBottom: '1rem' }}>
+              <label htmlFor="vagaro-client-id" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 500 }}>
+                Client ID
+              </label>
+              <input
+                id="vagaro-client-id"
+                type="text"
+                value={vagaroClientId}
+                onChange={(e) => setVagaroClientId(e.target.value)}
+                placeholder="Your Vagaro Client ID"
+              />
+            </div>
+
+            <div className={styles.shopifyInput} style={{ marginBottom: '1rem' }}>
+              <label htmlFor="vagaro-client-secret" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 500 }}>
+                Client Secret
+              </label>
+              <input
+                id="vagaro-client-secret"
+                type="password"
+                value={vagaroClientSecret}
+                onChange={(e) => setVagaroClientSecret(e.target.value)}
+                placeholder="Your Vagaro Client Secret"
+              />
+            </div>
+
+            <div className={styles.shopifyInput} style={{ marginBottom: '1rem' }}>
+              <label htmlFor="vagaro-business-id" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 500 }}>
+                Business ID
+              </label>
+              <input
+                id="vagaro-business-id"
+                type="text"
+                value={vagaroBusinessId}
+                onChange={(e) => setVagaroBusinessId(e.target.value)}
+                placeholder="Your Vagaro Business ID"
+              />
+            </div>
+
+            <div style={{ background: '#fef3c7', padding: '0.75rem', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+              <strong>Next Step:</strong> After connecting, set up a webhook in Vagaro pointing to:<br />
+              <code style={{ background: '#fde68a', padding: '2px 6px', borderRadius: '4px' }}>
+                {typeof window !== 'undefined' ? window.location.origin : ''}/api/webhooks/vagaro
+              </code>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.cancelBtn}
+                onClick={() => {
+                  setShowVagaroModal(false);
+                  setVagaroClientId('');
+                  setVagaroClientSecret('');
+                  setVagaroBusinessId('');
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.connectBtn}
+                onClick={handleVagaroConnect}
+                style={{ backgroundColor: '#00b4d8' }}
+              >
+                Connect Vagaro
               </button>
             </div>
           </div>

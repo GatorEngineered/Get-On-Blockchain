@@ -16,16 +16,15 @@ export default function FinalCta() {
 
           <div className="final-cta-actions">
 
-            {/* FIXED — Add btn + btn-primary classes */}
-            <a 
-              href="https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/yPu7yBfQtE2IJIoMETcTxQ2?ismsaljsauthenabled"
+            <a
+              href="https://outlook.office.com/book/LoyaltyPlatformDemo@getonblockchain.com/?ismsaljsauthenabled"
               className="btn btn-primary"
             >
               Book a Demo
             </a>
 
-            <a 
-              href="mailto:reva@gatorengineered.com" 
+            <a
+              href="/support"
               className="btn btn-secondary"
             >
               Contact Us

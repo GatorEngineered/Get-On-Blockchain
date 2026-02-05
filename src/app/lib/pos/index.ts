@@ -103,10 +103,13 @@ export function isPOSConfigured(provider: POSProvider): boolean {
 
 /**
  * Get available (configured) POS providers
+ * Note: Vagaro is always available as it uses manual credential entry, not OAuth
  */
 export function getAvailablePOSProviders(): POSProvider[] {
-  const providers: POSProvider[] = ['square', 'toast', 'clover', 'shopify'];
-  return providers.filter(isPOSConfigured);
+  const oauthProviders: POSProvider[] = ['square', 'toast', 'clover', 'shopify'];
+  const configuredOAuth = oauthProviders.filter(isPOSConfigured);
+  // Vagaro is always available since it uses manual API key entry
+  return [...configuredOAuth, 'vagaro'];
 }
 
 /**
@@ -283,6 +286,8 @@ export async function getPOSConnectionStatus(
       cloverMerchantId: true,
       shopifyAccessToken: true,
       shopifyShopDomain: true,
+      vagaroClientId: true,
+      vagaroBusinessId: true,
     },
   });
 
@@ -315,6 +320,12 @@ export async function getPOSConnectionStatus(
         connected: !!merchant.shopifyAccessToken,
         shopDomain: merchant.shopifyShopDomain || undefined,
       };
+    case 'vagaro':
+      return {
+        provider,
+        connected: !!merchant.vagaroClientId,
+        locationId: merchant.vagaroBusinessId || undefined,
+      };
     default:
       return { provider, connected: false };
   }
@@ -326,7 +337,7 @@ export async function getPOSConnectionStatus(
 export async function getAllPOSConnectionStatuses(
   merchantId: string
 ): Promise<POSConnectionStatus[]> {
-  const providers: POSProvider[] = ['square', 'toast', 'clover', 'shopify'];
+  const providers: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'vagaro'];
   return Promise.all(providers.map(p => getPOSConnectionStatus(merchantId, p)));
 }
 

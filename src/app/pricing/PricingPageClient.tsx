@@ -38,7 +38,7 @@ const plans: Plan[] = [
       "Up to 1,000 active members",
       "Email support",
     ],
-    paypalLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/jqJVj70MCkSd09LxmRgLeg2?ismsaljsauthenabled",
+    paypalLink: "https://outlook.office.com/book/LoyaltyPlatformDemo@getonblockchain.com/?ismsaljsauthenabled",
   },
   {
     id: "PREMIUM",
@@ -58,7 +58,7 @@ const plans: Plan[] = [
       "Up to 5,000 active members",
       "Priority email support",
     ],
-    paypalLink: "https://outlook.office.com/book/RewardLoyaltyProgramCustomMade@gatorengineered.com/s/Oy7TZYG86EGPh2CWLbCbxw2?ismsaljsauthenabled",
+    paypalLink: "https://outlook.office.com/book/LoyaltyPlatformDemo@getonblockchain.com/?ismsaljsauthenabled",
   },
   /* COMMENTED OUT - Will be added back later
   {
