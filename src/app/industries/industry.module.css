@@ -402,14 +402,20 @@
     padding: 2rem 1.5rem;
   }
 
+  .hero {
+    padding: 6rem 1.5rem 4rem;
+  }
+
   .heroCta {
     flex-direction: column;
     gap: 0.75rem;
+    padding: 0 0.5rem;
   }
 
   .ctaPrimary,
   .ctaSecondary {
     width: 100%;
     text-align: center;
+    box-sizing: border-box;
   }
 }
