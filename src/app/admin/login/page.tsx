@@ -65,31 +65,19 @@ export default function AdminLoginPage() {
 
           <label>
             Password
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            <div className="password-input-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
                 required
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingRight: "4rem" }}
               />
-
               <button
                 type="button"
+                className="toggle-password"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                style={{
-                  position: "absolute",
-                  right: "0.75rem",
-                  background: "none",
-                  border: "none",
-                  color: "#244b7a",
-                  cursor: "pointer",
-                  fontWeight: 600,
-                  fontSize: "0.875rem",
-                  padding: "0.25rem 0.5rem",
-                }}
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -107,6 +95,41 @@ export default function AdminLoginPage() {
           Admin access only. Contact a super admin if you need access.
         </p>
       </div>
+
+      <style jsx>{`
+        .password-input-wrapper {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: center;
+        }
+
+        .password-input-wrapper input {
+          grid-column: 1 / -1;
+          grid-row: 1;
+          padding-right: 4rem;
+        }
+
+        .toggle-password {
+          grid-column: 2;
+          grid-row: 1;
+          justify-self: end;
+          margin-right: 0.75rem;
+          background: none;
+          border: none;
+          color: #244b7a;
+          cursor: pointer;
+          font-size: 0.875rem;
+          font-weight: 600;
+          padding: 0.25rem 0.5rem;
+          white-space: nowrap;
+          z-index: 1;
+          width: auto;
+        }
+
+        .toggle-password:hover {
+          color: #8bbcff;
+        }
+      `}</style>
     </div>
   );
 }
