@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface PasswordStrength {
@@ -26,8 +26,23 @@ interface StaffMember {
   email: string;
 }
 
+// Plan pricing info
+const PLAN_INFO: Record<string, { name: string; price: number; features: string[] }> = {
+  STARTER: { name: "Starter", price: 0, features: ["Up to 5 active members", "1 location", "Basic dashboard"] },
+  BASIC: { name: "Basic", price: 55, features: ["Up to 1,000 members", "Unlimited locations", "Full dashboard & analytics"] },
+  PREMIUM: { name: "Premium", price: 149, features: ["Up to 25,000 members", "POS integration", "USDC payouts"] },
+  GROWTH: { name: "Growth", price: 249, features: ["Up to 100,000 members", "Custom branded token", "Priority support"] },
+};
+
 export default function BusinessRegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Get plan from URL params (default to STARTER)
+  const selectedPlan = (searchParams.get("plan")?.toUpperCase() || "STARTER") as keyof typeof PLAN_INFO;
+  const billingCycle = searchParams.get("billing") || "monthly";
+  const planInfo = PLAN_INFO[selectedPlan] || PLAN_INFO.STARTER;
+  const isPaidPlan = selectedPlan !== "STARTER";
 
   const [formData, setFormData] = useState({
     businessName: "",
@@ -149,7 +164,7 @@ export default function BusinessRegisterPage() {
           phone: formData.phone || undefined,
           address: mainAddress,
           password: formData.password,
-          plan: "STARTER", // 7-day trial
+          plan: "STARTER", // Always start with STARTER, upgrade via PayPal
           locations: processedLocations,
           staff: staff.filter((s) => s.name && s.email),
         }),
@@ -163,12 +178,53 @@ export default function BusinessRegisterPage() {
         );
       }
 
+      // For paid plans, initiate PayPal checkout
+      if (isPaidPlan && data.merchant?.id) {
+        setMessage({
+          type: "success",
+          text: `Account created! Redirecting to ${planInfo.name} plan checkout...`,
+        });
+
+        // Create PayPal subscription
+        const planType = `${selectedPlan}_${billingCycle.toUpperCase()}`;
+        const subRes = await fetch("/api/merchant/subscription/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            merchantId: data.merchant.id,
+            planType,
+            email: formData.email,
+            firstName: formData.ownerName.split(" ")[0] || "",
+            lastName: formData.ownerName.split(" ").slice(1).join(" ") || "",
+          }),
+        });
+
+        const subData = await subRes.json();
+
+        if (subRes.ok && subData.approvalUrl) {
+          // Redirect to PayPal
+          window.location.href = subData.approvalUrl;
+          return;
+        } else {
+          // PayPal failed, but account was created - go to dashboard
+          console.error("PayPal subscription failed:", subData);
+          setMessage({
+            type: "success",
+            text: "Account created! You can upgrade your plan from the dashboard.",
+          });
+          setTimeout(() => {
+            router.push("/dashboard/settings?tab=billing");
+          }, 2000);
+          return;
+        }
+      }
+
+      // For Starter plan, just go to dashboard
       setMessage({
         type: "success",
         text: "Business registered successfully! Redirecting to dashboard...",
       });
 
-      // Redirect to dashboard after 1.5 seconds (user is already authenticated via session cookie)
       setTimeout(() => {
         router.push("/dashboard");
       }, 1500);
@@ -185,8 +241,15 @@ export default function BusinessRegisterPage() {
     <div className="business-register-page">
       <div className="register-container">
         <div className="register-header">
-          <h1>Start Your 7-Day Free Trial</h1>
+          <h1>{isPaidPlan ? `Sign Up for ${planInfo.name} Plan` : "Start Your 7-Day Free Trial"}</h1>
           <p>Join Get On Blockchain and start rewarding your customers today!</p>
+          {isPaidPlan && (
+            <div className="selected-plan-badge">
+              <span className="plan-name">{planInfo.name}</span>
+              <span className="plan-price">${planInfo.price}/month</span>
+              {billingCycle === "annual" && <span className="billing-note">(billed annually)</span>}
+            </div>
+          )}
         </div>
 
         {message && (
@@ -572,18 +635,28 @@ export default function BusinessRegisterPage() {
             ))}
           </div>
 
-          {/* Trial Info */}
+          {/* Plan Info */}
           <div className="trial-info">
-            <h4>Your 7-Day Free Trial Includes:</h4>
+            <h4>{isPaidPlan ? `${planInfo.name} Plan Includes:` : "Your 7-Day Free Trial Includes:"}</h4>
             <ul>
-              <li>✓ Unlimited member sign-ups</li>
-              <li>✓ Points and rewards management</li>
-              <li>✓ QR code check-ins</li>
-              <li>✓ Basic analytics dashboard</li>
-              <li>✓ Email support</li>
+              {isPaidPlan ? (
+                planInfo.features.map((feature, i) => (
+                  <li key={i}>✓ {feature}</li>
+                ))
+              ) : (
+                <>
+                  <li>✓ Unlimited member sign-ups</li>
+                  <li>✓ Points and rewards management</li>
+                  <li>✓ QR code check-ins</li>
+                  <li>✓ Basic analytics dashboard</li>
+                  <li>✓ Email support</li>
+                </>
+              )}
             </ul>
             <p className="trial-note">
-              No payment required now. You can add payment details later to continue after your trial.
+              {isPaidPlan
+                ? "7-day free trial included. You'll be redirected to PayPal to complete your subscription."
+                : "No payment required now. You can add payment details later to continue after your trial."}
             </p>
           </div>
 
@@ -592,7 +665,11 @@ export default function BusinessRegisterPage() {
             className="submit-button"
             disabled={loading || !isPasswordValid || !passwordsMatch}
           >
-            {loading ? "Creating account..." : "Start Free Trial"}
+            {loading
+              ? "Creating account..."
+              : isPaidPlan
+              ? `Continue to ${planInfo.name} Plan`
+              : "Start Free Trial"}
           </button>
         </form>
 
@@ -634,6 +711,34 @@ export default function BusinessRegisterPage() {
         .register-header p {
           color: #718096;
           font-size: 1rem;
+        }
+
+        .selected-plan-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.75rem;
+          background: linear-gradient(135deg, #244b7a 0%, #8bbcff 100%);
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 50px;
+          margin-top: 1rem;
+          font-weight: 600;
+        }
+
+        .plan-name {
+          font-size: 1.1rem;
+        }
+
+        .plan-price {
+          background: rgba(255, 255, 255, 0.2);
+          padding: 0.25rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.9rem;
+        }
+
+        .billing-note {
+          font-size: 0.8rem;
+          opacity: 0.9;
         }
 
         .message {
