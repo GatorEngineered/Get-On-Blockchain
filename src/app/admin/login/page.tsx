@@ -65,20 +65,31 @@ export default function AdminLoginPage() {
 
           <label>
             Password
-            <div className="password-field">
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <input
                 type={showPassword ? "text" : "password"}
                 required
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                style={{ paddingRight: "4rem" }}
               />
 
               <button
                 type="button"
-                className="password-toggle"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{
+                  position: "absolute",
+                  right: "0.75rem",
+                  background: "none",
+                  border: "none",
+                  color: "#244b7a",
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  padding: "0.25rem 0.5rem",
+                }}
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
