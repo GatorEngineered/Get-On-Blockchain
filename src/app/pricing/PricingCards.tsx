@@ -146,12 +146,12 @@ export default function PricingCards() {
 
   async function handleGetStarted(plan: Plan) {
     if (plan.id === 'STARTER') {
-      router.push('/merchant/signup');
+      router.push('/business/register');
       return;
     }
 
     if (!merchant) {
-      router.push(`/merchant/signup?plan=${plan.id}&billing=${billingCycle}`);
+      router.push(`/business/register?plan=${plan.id}&billing=${billingCycle}`);
       return;
     }
 
