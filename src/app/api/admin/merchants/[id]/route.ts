@@ -282,3 +282,88 @@ export async function PUT(
     );
   }
 }
+
+/**
+ * DELETE /api/admin/merchants/[id]
+ *
+ * Permanently deletes a merchant and all associated data.
+ * Admin-only endpoint.
+ */
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  // Require admin authentication
+  const authResult = await requireAdminOrSuperAdmin();
+  if ("error" in authResult) {
+    return authResult.error;
+  }
+
+  try {
+    const { id } = await params;
+
+    // Fetch merchant to get details for logging
+    const merchant = await prisma.merchant.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        loginEmail: true,
+        plan: true,
+        _count: {
+          select: {
+            businesses: true,
+            staff: true,
+            merchantMembers: true,
+          },
+        },
+      },
+    });
+
+    if (!merchant) {
+      return NextResponse.json(
+        { error: "Merchant not found" },
+        { status: 404 }
+      );
+    }
+
+    console.log(`[Admin Delete] Deleting merchant ${merchant.id} (${merchant.name} - ${merchant.loginEmail})`);
+    console.log(`[Admin Delete] Cascade will remove: ${merchant._count.businesses} businesses, ${merchant._count.staff} staff, ${merchant._count.merchantMembers} member relationships`);
+
+    // Delete merchant - cascades handle related records
+    await prisma.merchant.delete({
+      where: { id },
+    });
+
+    // Log the action
+    await logAdminAction({
+      adminId: authResult.admin.id,
+      action: "DELETE_MERCHANT",
+      entityType: "Merchant",
+      entityId: merchant.id,
+      changes: {
+        deleted: {
+          name: merchant.name,
+          email: merchant.loginEmail,
+          plan: merchant.plan,
+          businessCount: merchant._count.businesses,
+          staffCount: merchant._count.staff,
+          memberCount: merchant._count.merchantMembers,
+        },
+      },
+    });
+
+    console.log(`[Admin Delete] Merchant ${merchant.id} successfully deleted by admin ${authResult.admin.id}`);
+
+    return NextResponse.json({
+      success: true,
+      message: `Merchant "${merchant.name}" deleted successfully`,
+    });
+  } catch (error: any) {
+    console.error("[Admin Delete] Error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to delete merchant" },
+      { status: 500 }
+    );
+  }
+}

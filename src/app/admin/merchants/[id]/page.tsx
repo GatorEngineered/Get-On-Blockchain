@@ -126,6 +126,8 @@ export default function MerchantDetailPage() {
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editForm, setEditForm] = useState({
     name: "",
     tagline: "",
@@ -258,6 +260,31 @@ export default function MerchantDetailPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!params.id || !data) return;
+
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/merchants/${params.id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to delete merchant");
+      }
+
+      alert(`Merchant "${data.merchant.name}" has been deleted.`);
+      router.push("/admin/merchants");
+    } catch (err) {
+      console.error("Error deleting merchant:", err);
+      alert(err instanceof Error ? err.message : "Failed to delete merchant");
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="admin-card">
@@ -329,6 +356,17 @@ export default function MerchantDetailPage() {
                   className="admin-btn admin-btn-primary"
                 >
                   Edit Merchant
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="admin-btn"
+                  style={{
+                    background: "#dc2626",
+                    color: "white",
+                    border: "none",
+                  }}
+                >
+                  Delete
                 </button>
                 <Link href="/admin/merchants" className="admin-btn admin-btn-secondary">
                   Back to List
@@ -766,6 +804,80 @@ export default function MerchantDetailPage() {
               <p style={{ margin: "4px 0 0 0", fontSize: "14px" }}>
                 {new Date(selectedMember.createdAt).toLocaleDateString()}
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => !isDeleting && setShowDeleteModal(false)}
+        >
+          <div
+            className="admin-card"
+            style={{
+              maxWidth: "450px",
+              width: "90%",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "50%",
+                background: "#fef2f2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+              }}
+            >
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#dc2626">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <h3 style={{ margin: "0 0 8px", color: "#991b1b" }}>Delete Merchant</h3>
+            <p style={{ margin: "0 0 8px", color: "#666" }}>
+              Are you sure you want to delete <strong>{merchant.name}</strong>?
+            </p>
+            <p style={{ margin: "0 0 24px", color: "#991b1b", fontSize: "14px" }}>
+              This will permanently delete the merchant, all {kpis.totalLocations} locations, {kpis.totalMembers} member relationships, and all associated data. This action cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="admin-btn admin-btn-secondary"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="admin-btn"
+                disabled={isDeleting}
+                style={{
+                  background: "#dc2626",
+                  color: "white",
+                  border: "none",
+                }}
+              >
+                {isDeleting ? "Deleting..." : "Delete Merchant"}
+              </button>
             </div>
           </div>
         </div>

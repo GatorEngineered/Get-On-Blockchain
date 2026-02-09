@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './AccountSettings.module.css';
 
 interface AccountSettingsProps {
@@ -10,6 +11,7 @@ interface AccountSettingsProps {
 }
 
 export default function AccountSettings({ merchantData, onUpdate, onRefresh }: AccountSettingsProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -50,6 +52,12 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
     state: '',
     zipCode: '',
   });
+
+  // Delete Account State
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   async function handleUpdateBusinessName() {
     if (!businessName.trim()) {
@@ -312,6 +320,43 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
       state: location.state || '',
       zipCode: location.zipCode || '',
     });
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== 'DELETE') {
+      setError('Please type "DELETE" to confirm');
+      return;
+    }
+
+    if (!deletePassword) {
+      setError('Please enter your password');
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/merchant/delete-account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: deletePassword,
+          confirmText: deleteConfirmText,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to delete account');
+      }
+
+      // Account deleted - redirect to homepage
+      router.push('/?deleted=true');
+    } catch (err: any) {
+      setError(err.message);
+      setIsDeleting(false);
+    }
   }
 
   if (!merchantData) {
@@ -876,6 +921,160 @@ export default function AccountSettings({ merchantData, onUpdate, onRefresh }: A
           )}
         </div>
       </div>
+
+      {/* Delete Account Section */}
+      <div className={styles.settingCard} style={{ borderColor: '#fecaca', background: '#fef2f2' }}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h3 className={styles.cardTitle} style={{ color: '#991b1b' }}>Delete Account</h3>
+            <p className={styles.cardDescription} style={{ color: '#b91c1c' }}>
+              Permanently delete your account and all associated data. This action cannot be undone.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className={styles.deleteButton}
+            style={{
+              background: '#dc2626',
+              color: 'white',
+              border: 'none',
+              padding: '0.5rem 1rem',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: 500,
+            }}
+          >
+            Delete Account
+          </button>
+        </div>
+      </div>
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <div className={styles.modalOverlay} style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div className={styles.modal} style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '450px',
+            width: '90%',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#fef2f2',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1rem',
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#dc2626">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', color: '#991b1b' }}>Delete Account</h3>
+              <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>
+                This will permanently delete your business account, all locations, member data, rewards, and transaction history.
+              </p>
+            </div>
+
+            {error && (
+              <div style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '6px',
+                padding: '0.75rem',
+                marginBottom: '1rem',
+                color: '#991b1b',
+                fontSize: '0.875rem',
+              }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                Enter your password
+              </label>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                className={styles.input}
+                placeholder="Your current password"
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500, color: '#374151' }}>
+                Type <strong>DELETE</strong> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                className={styles.input}
+                placeholder="DELETE"
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeletePassword('');
+                  setDeleteConfirmText('');
+                  setError(null);
+                }}
+                disabled={isDeleting}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid #d1d5db',
+                  background: 'white',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isDeleting || deleteConfirmText !== 'DELETE' || !deletePassword}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: deleteConfirmText === 'DELETE' && deletePassword ? '#dc2626' : '#9ca3af',
+                  color: 'white',
+                  cursor: deleteConfirmText === 'DELETE' && deletePassword ? 'pointer' : 'not-allowed',
+                  fontWeight: 500,
+                }}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
