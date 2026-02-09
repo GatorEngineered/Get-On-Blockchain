@@ -369,7 +369,7 @@ export async function DELETE(
           staffCount: merchant._count.staff,
           memberCount: merchant._count.merchantMembers,
         },
-        after: deleteSuccessful ? null : { status: "deactivated" },
+        after: deleteSuccessful ? { status: "deleted" } : { status: "deactivated" },
       },
     });
 
