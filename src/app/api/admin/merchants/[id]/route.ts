@@ -330,10 +330,29 @@ export async function DELETE(
     console.log(`[Admin Delete] Deleting merchant ${merchant.id} (${merchant.name} - ${merchant.loginEmail})`);
     console.log(`[Admin Delete] Cascade will remove: ${merchant._count.businesses} businesses, ${merchant._count.staff} staff, ${merchant._count.merchantMembers} member relationships`);
 
-    // Delete merchant - cascades handle related records
-    await prisma.merchant.delete({
-      where: { id },
-    });
+    // Try to delete merchant - cascades handle related records
+    let deleteSuccessful = false;
+    try {
+      await prisma.merchant.delete({
+        where: { id },
+      });
+      deleteSuccessful = true;
+    } catch (deleteError: any) {
+      // If deletion fails, deactivate the account by changing the email
+      console.error(`[Admin Delete] Delete failed for ${merchant.id}, deactivating account:`, deleteError);
+
+      const deactivatedEmail = `deleted_${merchant.id}@deleteaccount.getonblockchain.com`;
+
+      await prisma.merchant.update({
+        where: { id },
+        data: {
+          loginEmail: deactivatedEmail,
+          passwordHash: `DELETED_${Date.now()}_${Math.random().toString(36)}`,
+        },
+      });
+
+      console.log(`[Admin Delete] Merchant ${merchant.id} deactivated with email ${deactivatedEmail}`);
+    }
 
     // Log the action
     await logAdminAction({
@@ -342,7 +361,7 @@ export async function DELETE(
       entityType: "Merchant",
       entityId: merchant.id,
       changes: {
-        deleted: {
+        before: {
           name: merchant.name,
           email: merchant.loginEmail,
           plan: merchant.plan,
@@ -350,14 +369,17 @@ export async function DELETE(
           staffCount: merchant._count.staff,
           memberCount: merchant._count.merchantMembers,
         },
+        after: deleteSuccessful ? null : { status: "deactivated" },
       },
     });
 
-    console.log(`[Admin Delete] Merchant ${merchant.id} successfully deleted by admin ${authResult.admin.id}`);
+    console.log(`[Admin Delete] Merchant ${merchant.id} ${deleteSuccessful ? 'deleted' : 'deactivated'} by admin ${authResult.admin.id}`);
 
     return NextResponse.json({
       success: true,
-      message: `Merchant "${merchant.name}" deleted successfully`,
+      message: deleteSuccessful
+        ? `Merchant "${merchant.name}" deleted successfully`
+        : `Merchant "${merchant.name}" has been deactivated (full deletion not possible)`,
     });
   } catch (error: any) {
     console.error("[Admin Delete] Error:", error);

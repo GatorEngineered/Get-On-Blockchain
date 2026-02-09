@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/app/lib/prisma";
-import { getMerchantFromSession } from "@/app/lib/auth";
+import { getCurrentMerchant } from "@/app/lib/auth";
 import bcrypt from "bcryptjs";
 
 /**
@@ -21,7 +21,7 @@ import bcrypt from "bcryptjs";
 export async function DELETE(req: NextRequest) {
   try {
     // Get authenticated merchant
-    const merchant = await getMerchantFromSession();
+    const merchant = await getCurrentMerchant();
     if (!merchant) {
       return NextResponse.json(
         { error: "Not authenticated" },
@@ -78,30 +78,42 @@ export async function DELETE(req: NextRequest) {
     // Log for audit purposes before deletion
     console.log(`[Account Deletion] Merchant ${fullMerchant.id} (${fullMerchant.name} - ${fullMerchant.loginEmail}) initiated self-deletion`);
 
-    // Delete merchant - cascades will handle related records
-    // Based on schema, these cascade automatically:
-    // - Business (onDelete: Cascade)
-    // - Staff (onDelete: Cascade)
-    // - Events (onDelete: Cascade)
-    // - MerchantMember (onDelete: Cascade)
-    // - Rewards (onDelete: Cascade)
-    // - MerchantToken (onDelete: Cascade)
-    // - EventQRCode (onDelete: Cascade)
-    // - ApiKey (onDelete: Cascade)
-    // - ExternalOrder (onDelete: Cascade)
-    // - PointsRule (onDelete: Cascade)
-    // And their nested relations cascade from there
+    // Try to delete merchant - cascades will handle related records
+    try {
+      await prisma.merchant.delete({
+        where: { id: merchant.id },
+      });
 
-    await prisma.merchant.delete({
-      where: { id: merchant.id },
-    });
+      console.log(`[Account Deletion] Merchant ${fullMerchant.id} successfully deleted`);
 
-    console.log(`[Account Deletion] Merchant ${fullMerchant.id} successfully deleted`);
+      return NextResponse.json({
+        success: true,
+        message: "Account deleted successfully",
+      });
+    } catch (deleteError: any) {
+      // If deletion fails, deactivate the account by changing the email
+      // This prevents the merchant from logging in again
+      console.error(`[Account Deletion] Delete failed for ${fullMerchant.id}, deactivating account:`, deleteError);
 
-    return NextResponse.json({
-      success: true,
-      message: "Account deleted successfully",
-    });
+      const deactivatedEmail = `deleted_${fullMerchant.id}@deleteaccount.getonblockchain.com`;
+
+      await prisma.merchant.update({
+        where: { id: merchant.id },
+        data: {
+          loginEmail: deactivatedEmail,
+          // Also invalidate password by setting a random hash
+          passwordHash: `DELETED_${Date.now()}_${Math.random().toString(36)}`,
+        },
+      });
+
+      console.log(`[Account Deletion] Merchant ${fullMerchant.id} deactivated with email ${deactivatedEmail}`);
+
+      return NextResponse.json({
+        success: true,
+        message: "Account has been deactivated",
+        note: "Full deletion was not possible, but your account has been disabled",
+      });
+    }
   } catch (error: any) {
     console.error("[Account Deletion] Error:", error);
     return NextResponse.json(
