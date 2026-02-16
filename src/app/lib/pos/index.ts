@@ -60,6 +60,24 @@ const getCloverConfig = (): POSOAuthConfig | null => {
   };
 };
 
+const getBooksyConfig = (): POSOAuthConfig | null => {
+  const clientId = process.env.BOOKSY_CLIENT_ID;
+  const clientSecret = process.env.BOOKSY_CLIENT_SECRET;
+  const redirectUri = process.env.BOOKSY_REDIRECT_URI ||
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/merchant/integrations/booksy/callback`;
+
+  if (!clientId || !clientSecret) return null;
+
+  return {
+    clientId,
+    clientSecret,
+    redirectUri,
+    scopes: ['business.read', 'customers.read', 'appointments.read'],
+    authUrl: 'https://us.booksy.com/public-api/us/oauth2/authorize',
+    tokenUrl: 'https://us.booksy.com/public-api/us/oauth2/token',
+  };
+};
+
 const getShopifyConfig = (): POSOAuthConfig | null => {
   const clientId = process.env.SHOPIFY_API_KEY;
   const clientSecret = process.env.SHOPIFY_API_SECRET;
@@ -89,6 +107,8 @@ export function getPOSConfig(provider: POSProvider): POSOAuthConfig | null {
       return getCloverConfig();
     case 'shopify':
       return getShopifyConfig();
+    case 'booksy':
+      return getBooksyConfig();
     default:
       return null;
   }
@@ -106,7 +126,7 @@ export function isPOSConfigured(provider: POSProvider): boolean {
  * Note: Vagaro is always available as it uses manual credential entry, not OAuth
  */
 export function getAvailablePOSProviders(): POSProvider[] {
-  const oauthProviders: POSProvider[] = ['square', 'toast', 'clover', 'shopify'];
+  const oauthProviders: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'booksy'];
   const configuredOAuth = oauthProviders.filter(isPOSConfigured);
   // Vagaro is always available since it uses manual API key entry
   return [...configuredOAuth, 'vagaro'];
@@ -253,6 +273,13 @@ export async function savePOSTokens(
           updateData.shopifyShopDomain = additionalData.shopDomain;
         }
         break;
+      case 'booksy':
+        updateData.booksyAccessToken = encryptedAccess;
+        updateData.booksyRefreshToken = encryptedRefresh;
+        if (additionalData?.locationId) {
+          updateData.booksyBusinessId = additionalData.locationId;
+        }
+        break;
     }
 
     await prisma.merchant.update({
@@ -288,6 +315,8 @@ export async function getPOSConnectionStatus(
       shopifyShopDomain: true,
       vagaroClientId: true,
       vagaroBusinessId: true,
+      booksyAccessToken: true,
+      booksyBusinessId: true,
     },
   });
 
@@ -326,6 +355,12 @@ export async function getPOSConnectionStatus(
         connected: !!merchant.vagaroClientId,
         locationId: merchant.vagaroBusinessId || undefined,
       };
+    case 'booksy':
+      return {
+        provider,
+        connected: !!merchant.booksyAccessToken,
+        locationId: merchant.booksyBusinessId || undefined,
+      };
     default:
       return { provider, connected: false };
   }
@@ -337,7 +372,7 @@ export async function getPOSConnectionStatus(
 export async function getAllPOSConnectionStatuses(
   merchantId: string
 ): Promise<POSConnectionStatus[]> {
-  const providers: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'vagaro'];
+  const providers: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'vagaro', 'booksy'];
   return Promise.all(providers.map(p => getPOSConnectionStatus(merchantId, p)));
 }
 
@@ -370,6 +405,11 @@ export async function disconnectPOS(
         updateData.shopifyAccessToken = null;
         updateData.shopifyShopDomain = null;
         break;
+      case 'booksy':
+        updateData.booksyAccessToken = null;
+        updateData.booksyRefreshToken = null;
+        updateData.booksyBusinessId = null;
+        break;
     }
 
     await prisma.merchant.update({
@@ -399,6 +439,7 @@ export async function getPOSAccessToken(
       toastAccessToken: true,
       cloverAccessToken: true,
       shopifyAccessToken: true,
+      booksyAccessToken: true,
     },
   });
 
@@ -418,6 +459,9 @@ export async function getPOSAccessToken(
       break;
     case 'shopify':
       encryptedToken = merchant.shopifyAccessToken;
+      break;
+    case 'booksy':
+      encryptedToken = merchant.booksyAccessToken;
       break;
   }
 

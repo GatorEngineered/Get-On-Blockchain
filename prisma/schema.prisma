@@ -111,6 +111,9 @@ model Merchant {
   vagaroClientId      String? // Encrypted Vagaro API client ID
   vagaroClientSecret  String? // Encrypted Vagaro API client secret
   vagaroBusinessId    String? // Vagaro business identifier (for webhook matching)
+  booksyAccessToken   String? // Encrypted Booksy OAuth token
+  booksyRefreshToken  String? // Encrypted Booksy refresh token
+  booksyBusinessId    String? // Booksy business identifier (for webhook matching)
   posPointsPerDollar  Float   @default(1.0) // Configurable points ratio
 
   // Referral settings

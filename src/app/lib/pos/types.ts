@@ -1,7 +1,7 @@
 // src/app/lib/pos/types.ts
 // POS Integration Types
 
-export type POSProvider = 'square' | 'toast' | 'clover' | 'shopify' | 'vagaro';
+export type POSProvider = 'square' | 'toast' | 'clover' | 'shopify' | 'vagaro' | 'booksy';
 
 export interface POSConfig {
   provider: POSProvider;
@@ -117,5 +117,18 @@ export const POS_PROVIDERS: Record<POSProvider, POSConfig> = {
       'Automatic points on transactions',
     ],
     docsUrl: 'https://docs.vagaro.com/',
+  },
+  booksy: {
+    provider: 'booksy',
+    name: 'Booksy',
+    description: 'Connect Booksy for salon & spa appointment loyalty',
+    logo: '/pos/booksy-logo.svg',
+    color: '#7b68ee',
+    features: [
+      'Salon & spa appointment tracking',
+      'Automatic points on bookings',
+      'Customer matching',
+    ],
+    docsUrl: 'https://docs.booksy.com/',
   },
 };
