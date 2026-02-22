@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { disconnectPOS, POSProvider } from "@/app/lib/pos";
 
-const VALID_PROVIDERS: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'booksy'];
+const VALID_PROVIDERS: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'booksy', 'boulevard'];
 
 /**
  * POST /api/merchant/integrations/[provider]/disconnect

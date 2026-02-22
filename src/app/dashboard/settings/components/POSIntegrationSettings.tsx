@@ -123,6 +123,22 @@ const PROVIDERS: POSProvider[] = [
       'Customer matching',
     ],
   },
+  {
+    id: 'boulevard',
+    name: 'Boulevard',
+    description: 'Connect Boulevard for premium salon & spa loyalty',
+    color: '#2d3748',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    ),
+    features: [
+      'Premium salon & spa management',
+      'Appointment & payment tracking',
+      'Client profile syncing',
+    ],
+  },
 ];
 
 export default function POSIntegrationSettings({ merchantData, onUpdate }: Props) {

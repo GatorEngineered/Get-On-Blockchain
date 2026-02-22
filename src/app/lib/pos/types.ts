@@ -1,7 +1,7 @@
 // src/app/lib/pos/types.ts
 // POS Integration Types
 
-export type POSProvider = 'square' | 'toast' | 'clover' | 'shopify' | 'vagaro' | 'booksy';
+export type POSProvider = 'square' | 'toast' | 'clover' | 'shopify' | 'vagaro' | 'booksy' | 'boulevard';
 
 export interface POSConfig {
   provider: POSProvider;
@@ -130,5 +130,18 @@ export const POS_PROVIDERS: Record<POSProvider, POSConfig> = {
       'Customer matching',
     ],
     docsUrl: 'https://docs.booksy.com/',
+  },
+  boulevard: {
+    provider: 'boulevard',
+    name: 'Boulevard',
+    description: 'Connect Boulevard for premium salon & spa loyalty',
+    logo: '/pos/boulevard-logo.svg',
+    color: '#2d3748',
+    features: [
+      'Premium salon & spa management',
+      'Appointment & payment tracking',
+      'Client profile syncing',
+    ],
+    docsUrl: 'https://developers.joinblvd.com/',
   },
 };

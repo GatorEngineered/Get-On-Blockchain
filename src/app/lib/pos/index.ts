@@ -78,6 +78,24 @@ const getBooksyConfig = (): POSOAuthConfig | null => {
   };
 };
 
+const getBoulevardConfig = (): POSOAuthConfig | null => {
+  const clientId = process.env.BOULEVARD_CLIENT_ID;
+  const clientSecret = process.env.BOULEVARD_CLIENT_SECRET;
+  const redirectUri = process.env.BOULEVARD_REDIRECT_URI ||
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/merchant/integrations/boulevard/callback`;
+
+  if (!clientId || !clientSecret) return null;
+
+  return {
+    clientId,
+    clientSecret,
+    redirectUri,
+    scopes: ['admin:read', 'clients:read', 'appointments:read'],
+    authUrl: 'https://dashboard.boulevard.io/oauth/authorize',
+    tokenUrl: 'https://dashboard.boulevard.io/oauth/token',
+  };
+};
+
 const getShopifyConfig = (): POSOAuthConfig | null => {
   const clientId = process.env.SHOPIFY_API_KEY;
   const clientSecret = process.env.SHOPIFY_API_SECRET;
@@ -109,6 +127,8 @@ export function getPOSConfig(provider: POSProvider): POSOAuthConfig | null {
       return getShopifyConfig();
     case 'booksy':
       return getBooksyConfig();
+    case 'boulevard':
+      return getBoulevardConfig();
     default:
       return null;
   }
@@ -126,7 +146,7 @@ export function isPOSConfigured(provider: POSProvider): boolean {
  * Note: Vagaro is always available as it uses manual credential entry, not OAuth
  */
 export function getAvailablePOSProviders(): POSProvider[] {
-  const oauthProviders: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'booksy'];
+  const oauthProviders: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'booksy', 'boulevard'];
   const configuredOAuth = oauthProviders.filter(isPOSConfigured);
   // Vagaro is always available since it uses manual API key entry
   return [...configuredOAuth, 'vagaro'];
@@ -280,6 +300,13 @@ export async function savePOSTokens(
           updateData.booksyBusinessId = additionalData.locationId;
         }
         break;
+      case 'boulevard':
+        updateData.boulevardAccessToken = encryptedAccess;
+        updateData.boulevardRefreshToken = encryptedRefresh;
+        if (additionalData?.locationId) {
+          updateData.boulevardBusinessId = additionalData.locationId;
+        }
+        break;
     }
 
     await prisma.merchant.update({
@@ -317,6 +344,8 @@ export async function getPOSConnectionStatus(
       vagaroBusinessId: true,
       booksyAccessToken: true,
       booksyBusinessId: true,
+      boulevardAccessToken: true,
+      boulevardBusinessId: true,
     },
   });
 
@@ -361,6 +390,12 @@ export async function getPOSConnectionStatus(
         connected: !!merchant.booksyAccessToken,
         locationId: merchant.booksyBusinessId || undefined,
       };
+    case 'boulevard':
+      return {
+        provider,
+        connected: !!merchant.boulevardAccessToken,
+        locationId: merchant.boulevardBusinessId || undefined,
+      };
     default:
       return { provider, connected: false };
   }
@@ -372,7 +407,7 @@ export async function getPOSConnectionStatus(
 export async function getAllPOSConnectionStatuses(
   merchantId: string
 ): Promise<POSConnectionStatus[]> {
-  const providers: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'vagaro', 'booksy'];
+  const providers: POSProvider[] = ['square', 'toast', 'clover', 'shopify', 'vagaro', 'booksy', 'boulevard'];
   return Promise.all(providers.map(p => getPOSConnectionStatus(merchantId, p)));
 }
 
@@ -410,6 +445,11 @@ export async function disconnectPOS(
         updateData.booksyRefreshToken = null;
         updateData.booksyBusinessId = null;
         break;
+      case 'boulevard':
+        updateData.boulevardAccessToken = null;
+        updateData.boulevardRefreshToken = null;
+        updateData.boulevardBusinessId = null;
+        break;
     }
 
     await prisma.merchant.update({
@@ -440,6 +480,7 @@ export async function getPOSAccessToken(
       cloverAccessToken: true,
       shopifyAccessToken: true,
       booksyAccessToken: true,
+      boulevardAccessToken: true,
     },
   });
 
@@ -462,6 +503,9 @@ export async function getPOSAccessToken(
       break;
     case 'booksy':
       encryptedToken = merchant.booksyAccessToken;
+      break;
+    case 'boulevard':
+      encryptedToken = merchant.boulevardAccessToken;
       break;
   }
 
