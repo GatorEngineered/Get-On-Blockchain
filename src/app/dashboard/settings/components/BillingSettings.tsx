@@ -37,9 +37,9 @@ const PLAN_NAMES: Record<string, string> = {
 
 const PLAN_PRICES: Record<string, number> = {
   STARTER: 0,
-  BASIC: 49,
-  PREMIUM: 99,
-  GROWTH: 199,
+  BASIC: 55,
+  PREMIUM: 149,
+  GROWTH: 249,
   PRO: 0, // Enterprise - custom pricing
 };
 
