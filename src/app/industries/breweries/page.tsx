@@ -1,98 +1,98 @@
-// src/app/industries/retail/page.tsx
+// src/app/industries/breweries/page.tsx
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "../industry.module.css";
 
 export const metadata: Metadata = {
-  title: "Retail Loyalty Program Software | Boost Customer Retention",
+  title: "Brewery & Bar Loyalty Program | Drive Repeat Visits",
   description:
-    "Increase repeat purchases by 30% with our QR-based loyalty program for retail stores. Integrates with Shopify, Square & Clover. Birthday rewards, referral system, branded tokens. Starting at $55/month.",
+    "Boost repeat visits by 30% with our QR-based loyalty program for breweries and bars. Happy hour multipliers, social engagement, referral rewards. Integrates with Square, Toast & Clover. Starting at $55/month.",
   keywords: [
-    "retail loyalty program",
-    "store rewards program",
-    "retail customer retention",
-    "increase retail sales",
-    "retail repeat customers",
-    "QR code loyalty retail",
-    "retail rewards software",
-    "boutique loyalty program",
-    "shopify loyalty integration",
-    "square retail loyalty",
+    "brewery loyalty program",
+    "bar rewards program",
+    "taproom loyalty",
+    "brewery customer retention",
+    "bar repeat customers",
+    "QR code loyalty bar",
+    "brewery rewards software",
+    "happy hour loyalty program",
+    "craft brewery loyalty",
+    "wine bar rewards",
   ],
   openGraph: {
-    title: "Retail Loyalty Program That Turns Shoppers into Regulars",
-    description: "Transform one-time buyers into loyal customers. QR-based rewards with Shopify, Square & Clover POS integration.",
-    url: "https://getonblockchain.com/industries/retail",
+    title: "Brewery & Bar Loyalty Program That Keeps Regulars Coming Back",
+    description: "Turn casual visitors into regulars with happy hour multipliers, social engagement rewards, and POS-integrated loyalty for breweries and bars.",
+    url: "https://getonblockchain.com/industries/breweries",
   },
 };
 
-const retailBenefits = [
+const breweryBenefits = [
   {
-    icon: "🛍️",
-    title: "Turn Browsers into Buyers",
-    description: "Customers return 30% more often when earning rewards. Watch occasional shoppers become your best customers.",
+    icon: "🍺",
+    title: "Happy Hour Multipliers",
+    description: "Offer 2x-3x points during slow periods. Turn quiet Tuesday nights into packed taprooms. You control when and how much.",
   },
   {
-    icon: "🎂",
-    title: "Birthday & Event Rewards",
-    description: "Automatic birthday bonuses, seasonal double-point events, and anniversary rewards. Give customers a reason to celebrate with you.",
+    icon: "📱",
+    title: "Social Engagement Rewards",
+    description: "Points for check-ins, tagging your venue, sharing photos, and leaving reviews. Turn every visit into free marketing.",
   },
   {
     icon: "🔗",
     title: "POS Integration Built In",
-    description: "Connect Shopify, Square, or Clover to automatically award points on every purchase. Online and in-store, fully synced.",
+    description: "Connect Square, Toast, or Clover to automatically award points on every tab. No extra steps for your bartenders.",
   },
   {
     icon: "📣",
-    title: "Referrals That Grow Revenue",
-    description: "Customers earn bonus points for every friend they refer. Turn your loyal shoppers into your best marketing channel.",
+    title: "Referral-Powered Growth",
+    description: "Regulars earn bonus points for bringing friends. The best brewery marketing is word of mouth — now you can reward it.",
   },
 ];
 
 const useCases = [
   {
-    scenario: "Clothing Boutique",
-    example: "Shopify integration syncs online and in-store purchases. VIP tier unlocks early access to new collections. Birthday month gets double points.",
+    scenario: "Craft Brewery / Taproom",
+    example: "Happy hour multipliers drive midweek traffic. Earn points per pint, bonus for new releases. Referral rewards build your community.",
   },
   {
-    scenario: "Gift Shop",
-    example: "Birthday bonus points, seasonal double-point events, refer-a-friend rewards. Square POS tracks it all automatically.",
+    scenario: "Sports Bar",
+    example: "Game day specials with 2x points. Social engagement rewards for check-ins. Birthday celebrations with bonus points all week.",
   },
   {
-    scenario: "Book Store",
-    example: "Every 5 purchases earns a $10 credit. Custom points rules: double points on featured titles. Social engagement points for reviews.",
+    scenario: "Wine Bar",
+    example: "Points per glass or bottle. Anniversary rewards for loyal members. Branded token on Growth plan for your own loyalty currency.",
   },
   {
-    scenario: "Home Goods Store",
-    example: "Clover integration for seamless tracking. Spend $500 total, earn $25 off or claim $25 USDC. Branded token on Growth plan.",
+    scenario: "Cocktail Lounge",
+    example: "VIP tier rewards for top spenders. Slow-night multipliers fill seats. Square POS tracks every tab automatically.",
   },
 ];
 
 const platformFeatures = [
-  { icon: "🎂", title: "Birthday Rewards", desc: "Auto-trigger bonus points on customer birthdays" },
-  { icon: "💍", title: "Anniversary Rewards", desc: "Celebrate customer relationship milestones" },
-  { icon: "📣", title: "Referral System", desc: "Reward shoppers who bring new customers" },
-  { icon: "📱", title: "Social Engagement", desc: "Points for follows, shares, and reviews" },
-  { icon: "🎯", title: "Custom Points Rules", desc: "Set rules per product category or spend" },
+  { icon: "🕐", title: "Happy Hour Points", desc: "2x-3x multipliers during slow periods" },
+  { icon: "🎂", title: "Birthday Rewards", desc: "Auto-trigger bonus points on birthdays" },
+  { icon: "📱", title: "Social Engagement", desc: "Points for check-ins, tags, and reviews" },
+  { icon: "📣", title: "Referral System", desc: "Regulars earn for bringing new customers" },
+  { icon: "💍", title: "Anniversary Rewards", desc: "Celebrate patron relationship milestones" },
   { icon: "🪙", title: "Branded Token", desc: "Your own loyalty currency on Growth plan" },
-  { icon: "🛒", title: "Online + In-Store", desc: "Unified rewards across all channels" },
-  { icon: "💸", title: "Crypto Payouts", desc: "Let customers redeem points as USDC" },
+  { icon: "🎯", title: "Custom Points Rules", desc: "Set rules per drink type or event" },
+  { icon: "💸", title: "Crypto Payouts", desc: "Let patrons redeem points as USDC" },
 ];
 
-const integrations = ["Shopify", "Square", "Clover"];
+const integrations = ["Square", "Toast", "Clover"];
 
-export default function RetailPage() {
+export default function BreweriesPage() {
   return (
     <main className={styles.industryPage}>
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1 className={styles.heroTitle}>
-            Retail Loyalty Program That<br />
-            <span className={styles.highlight}>Turns Shoppers into Regulars</span>
+            Brewery & Bar Loyalty That<br />
+            <span className={styles.highlight}>Keeps the Regulars Coming Back</span>
           </h1>
           <p className={styles.heroSubtitle}>
-            Stop losing customers to big box stores. Birthday rewards, referral bonuses, and POS integration
-            give your retail shop the same loyalty power as major chains — at a fraction of the cost.
+            Happy hour multipliers fill slow nights. Social engagement turns every visit into free marketing.
+            POS integration means zero extra work for your bartenders. Build a loyal community that keeps your taps flowing.
           </p>
           <div className={styles.heroCta}>
             <Link href="/pricing" className={styles.ctaPrimary}>
@@ -103,16 +103,16 @@ export default function RetailPage() {
             </Link>
           </div>
           <p className={styles.heroCaption}>
-            ✓ Integrates with Shopify, Square & Clover ✓ Birthday rewards ✓ Starting at $55/month
+            ✓ Happy hour multipliers ✓ Integrates with Square, Toast & Clover ✓ Starting at $55/month
           </p>
         </div>
       </section>
 
       <section className={styles.benefits}>
         <div className={styles.benefitsInner}>
-          <h2 className={styles.sectionTitle}>Why Retail Stores Love Get On Blockchain</h2>
+          <h2 className={styles.sectionTitle}>Why Breweries & Bars Love Get On Blockchain</h2>
           <div className={styles.benefitsGrid}>
-            {retailBenefits.map((benefit, index) => (
+            {breweryBenefits.map((benefit, index) => (
               <div key={index} className={styles.benefitCard}>
                 <div className={styles.benefitIcon}>{benefit.icon}</div>
                 <h3 className={styles.benefitTitle}>{benefit.title}</h3>
@@ -125,7 +125,7 @@ export default function RetailPage() {
 
       <section className={styles.featuresHighlight}>
         <div className={styles.featuresHighlightInner}>
-          <h2 className={styles.sectionTitle}>Powerful Features for Retail</h2>
+          <h2 className={styles.sectionTitle}>Powerful Features for Breweries & Bars</h2>
           <div className={styles.featuresGrid}>
             {platformFeatures.map((feature, index) => (
               <div key={index} className={styles.featureItem}>
@@ -142,7 +142,7 @@ export default function RetailPage() {
         <div className={styles.integrationsStripInner}>
           <h3 className={styles.integrationsTitle}>Seamless POS Integrations</h3>
           <p className={styles.integrationsSubtitle}>
-            Automatically award points on every purchase — online and in-store
+            Automatically award points on every tab — no extra work for your bartenders
           </p>
           <div className={styles.integrationsList}>
             {integrations.map((name) => (
@@ -154,7 +154,7 @@ export default function RetailPage() {
 
       <section className={styles.useCases}>
         <div className={styles.useCasesInner}>
-          <h2 className={styles.sectionTitle}>Perfect for Every Type of Retail Store</h2>
+          <h2 className={styles.sectionTitle}>Perfect for Every Bar & Brewery</h2>
           <div className={styles.useCasesList}>
             {useCases.map((useCase, index) => (
               <div key={index} className={styles.useCaseCard}>
@@ -173,17 +173,17 @@ export default function RetailPage() {
             <div className={styles.step}>
               <div className={styles.stepNumber}>1</div>
               <h3>Connect Your POS</h3>
-              <p>Link Shopify, Square, or Clover in one click. Or display a QR code at register — customers scan with phone camera, no app needed.</p>
+              <p>Link Square, Toast, or Clover in one click. Or display a QR code at the bar — patrons scan with their phone camera.</p>
             </div>
             <div className={styles.step}>
               <div className={styles.stepNumber}>2</div>
-              <h3>Customers Earn Points Automatically</h3>
-              <p>Points per dollar, birthday bonuses, referral rewards, seasonal multipliers. Custom rules per product category. You control everything.</p>
+              <h3>Patrons Earn Points Automatically</h3>
+              <p>Points on every tab, happy hour multipliers, birthday bonuses, referral rewards. You set the rules for your venue.</p>
             </div>
             <div className={styles.step}>
               <div className={styles.stepNumber}>3</div>
-              <h3>Redeem Rewards & Return</h3>
-              <p>Customers claim discounts, store credit, or USDC payouts. They come back to earn more and bring friends along.</p>
+              <h3>Claim Rewards & Come Back</h3>
+              <p>Patrons redeem for free drinks, discounts, merch, or USDC payouts. They come back with friends to earn more.</p>
             </div>
           </div>
         </div>
@@ -191,30 +191,30 @@ export default function RetailPage() {
 
       <section className={styles.roiSection}>
         <div className={styles.roiInner}>
-          <h2 className={styles.sectionTitle}>Real ROI for Retail Stores</h2>
+          <h2 className={styles.sectionTitle}>Real ROI for Breweries & Bars</h2>
           <div className={styles.roiCard}>
             <div className={styles.roiStats}>
               <div className={styles.roiStat}>
-                <span className={styles.roiNumber}>100</span>
-                <span className={styles.roiLabel}>Monthly Customers</span>
+                <span className={styles.roiNumber}>80</span>
+                <span className={styles.roiLabel}>Daily Patrons</span>
               </div>
               <div className={styles.roiStat}>
                 <span className={styles.roiNumber}>25%</span>
-                <span className={styles.roiLabel}>Return More Often</span>
+                <span className={styles.roiLabel}>Visit More Often</span>
               </div>
               <div className={styles.roiStat}>
-                <span className={styles.roiNumber}>$50</span>
-                <span className={styles.roiLabel}>Avg Purchase</span>
+                <span className={styles.roiNumber}>$30</span>
+                <span className={styles.roiLabel}>Avg Tab</span>
               </div>
             </div>
             <div className={styles.roiCalculation}>
               <p><strong>Your Math:</strong></p>
-              <p>25 customers × 1 extra purchase/month = 25 extra sales</p>
-              <p>25 sales × $50 average = <strong>$1,250/month in additional revenue</strong></p>
-              <p className={styles.roiHighlight}>22x return on a $55/month Basic plan</p>
+              <p>20 extra visits/day × $30 average tab = $600/day</p>
+              <p>$600/day × 30 days = <strong>$18,000/month in additional revenue</strong></p>
+              <p className={styles.roiHighlight}>120x return on a $149/month Premium plan</p>
             </div>
             <div className={styles.calculatorCta}>
-              <Link href="/roi-calculator?industry=retail" className={styles.calculatorButton}>
+              <Link href="/roi-calculator?industry=breweries" className={styles.calculatorButton}>
                 Calculate Your Exact ROI
               </Link>
               <p className={styles.calculatorCaption}>
@@ -227,8 +227,8 @@ export default function RetailPage() {
 
       <section className={styles.finalCta}>
         <div className={styles.finalCtaInner}>
-          <h2>Ready to Compete with Big Box Retailers?</h2>
-          <p>Join retail stores using POS-integrated loyalty rewards with birthday bonuses and referral growth to keep customers coming back.</p>
+          <h2>Ready to Build a Community of Regulars?</h2>
+          <p>Join breweries and bars using happy hour multipliers, referral rewards, and POS integration to drive repeat visits.</p>
           <Link href="/pricing" className={styles.ctaPrimary}>
             Get Started - $55/month
           </Link>
@@ -244,8 +244,8 @@ export default function RetailPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Product",
-            name: "Retail Loyalty Program Software",
-            description: "QR-based loyalty program for retail stores and boutiques with Shopify, Square & Clover POS integration. Increase repeat purchases by 30%.",
+            name: "Brewery & Bar Loyalty Program Software",
+            description: "QR-based loyalty program for breweries and bars with Square, Toast & Clover POS integration. Happy hour multipliers, social engagement, and referral rewards.",
             brand: {
               "@type": "Brand",
               name: "Get On Blockchain",
@@ -258,7 +258,7 @@ export default function RetailPage() {
             },
             audience: {
               "@type": "Audience",
-              audienceType: "Retail Stores, Boutiques, Gift Shops, Specialty Stores",
+              audienceType: "Breweries, Taprooms, Bars, Wine Bars, Cocktail Lounges",
             },
           }),
         }}

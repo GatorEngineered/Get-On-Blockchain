@@ -6,7 +6,7 @@ import styles from "../industry.module.css";
 export const metadata: Metadata = {
   title: "Restaurant Loyalty Program Software | Increase Repeat Customers",
   description:
-    "Boost repeat visits by 25% with our QR-based loyalty program for restaurants. Easy setup, no app required. Customers earn rewards, you see more regulars. Starting at $55/month.",
+    "Boost repeat visits by 25% with our QR-based loyalty program for restaurants. Integrates with Square, Toast & Clover. Happy hour multipliers, referral rewards, birthday bonuses. Starting at $55/month.",
   keywords: [
     "restaurant loyalty program",
     "cafe rewards program",
@@ -16,10 +16,13 @@ export const metadata: Metadata = {
     "QR code loyalty restaurant",
     "restaurant rewards software",
     "coffee shop loyalty program",
+    "square restaurant loyalty",
+    "toast pos loyalty",
+    "clover loyalty integration",
   ],
   openGraph: {
     title: "Restaurant Loyalty Program That Fills Tables with Regulars",
-    description: "Turn first-time diners into weekly regulars. QR-based rewards program designed for restaurants and cafes.",
+    description: "Turn first-time diners into weekly regulars. QR-based rewards with Square, Toast & Clover POS integration.",
     url: "https://getonblockchain.com/industries/restaurants",
   },
 };
@@ -31,45 +34,57 @@ const restaurantBenefits = [
     description: "Customers return 2-3x more often when earning rewards. Watch occasional visitors become your best regulars.",
   },
   {
-    icon: "📱",
-    title: "No App Required",
-    description: "Customers scan your QR code with their phone camera - same as viewing a menu. No downloads, no friction.",
+    icon: "🕐",
+    title: "Happy Hour Multipliers",
+    description: "Offer 2x-3x points during slow hours to drive traffic when you need it most. Fill Monday lunches like Friday dinners.",
   },
   {
-    icon: "💰",
-    title: "Proven ROI",
-    description: "If just 10 customers visit once extra per month at $25 average check, that's $3,000+ in annual revenue - 25x your investment.",
+    icon: "🔗",
+    title: "POS Integration Built In",
+    description: "Connect Square, Toast, or Clover to automatically award points on every transaction. Zero friction at checkout.",
   },
   {
     icon: "⚡",
-    title: "Setup in 30 Minutes",
-    description: "Print QR code on receipts or display at checkout. You're live. No hardware, no technical setup required.",
+    title: "No App Required",
+    description: "Customers scan your QR code with their phone camera — same as viewing a menu. No downloads, no friction, live in 30 minutes.",
   },
 ];
 
 const useCases = [
   {
     scenario: "Coffee Shop",
-    example: "Every 10 visits earns a free coffee. Customers scan QR on receipt, track progress, claim reward.",
+    example: "Every 10 visits earns a free coffee. Birthday bonus doubles points for the whole month. Square integration tracks it all.",
   },
   {
     scenario: "Quick Service Restaurant",
-    example: "Earn 10 points per visit. At 100 points, customers get $5 off their next order or claim $5 USDC (Premium plan).",
+    example: "Toast POS syncs every order automatically. Happy hour multipliers drive 2x points on slow afternoons. Referral bonuses grow your base.",
   },
   {
     scenario: "Fine Dining",
-    example: "VIP tier rewards: Priority reservations, birthday discounts, exclusive tasting events for loyal diners.",
+    example: "VIP tier rewards: Priority reservations, anniversary dining bonuses, exclusive tasting events. Clover integration for seamless tracking.",
   },
   {
     scenario: "Food Truck",
-    example: "Customers follow you to different locations. Scan QR, earn points, redeem for free items wherever you park.",
+    example: "Customers follow you anywhere. Scan QR, earn points, refer friends. Social engagement rewards for tagging your location.",
   },
 ];
+
+const platformFeatures = [
+  { icon: "🕐", title: "Happy Hour Points", desc: "2x-3x multipliers during slow periods" },
+  { icon: "🎂", title: "Birthday Rewards", desc: "Auto-trigger bonus points on birthdays" },
+  { icon: "💍", title: "Anniversary Rewards", desc: "Celebrate dining relationship milestones" },
+  { icon: "📣", title: "Referral System", desc: "Reward diners who bring new customers" },
+  { icon: "📱", title: "Social Engagement", desc: "Points for check-ins, reviews, and shares" },
+  { icon: "🪙", title: "Branded Token", desc: "Your own loyalty currency on Growth plan" },
+  { icon: "🎯", title: "Custom Points Rules", desc: "Set rules per menu item or spend level" },
+  { icon: "💸", title: "Crypto Payouts", desc: "Let customers redeem points as USDC" },
+];
+
+const integrations = ["Square", "Toast", "Clover"];
 
 export default function RestaurantsPage() {
   return (
     <main className={styles.industryPage}>
-      {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1 className={styles.heroTitle}>
@@ -77,8 +92,8 @@ export default function RestaurantsPage() {
             <span className={styles.highlight}>Fills Your Tables with Regulars</span>
           </h1>
           <p className={styles.heroSubtitle}>
-            Turn first-time diners into weekly customers. Our QR-based loyalty program
-            makes it easy for restaurants and cafes to reward regulars and boost repeat visits by 25%+.
+            Turn first-time diners into weekly customers. Happy hour multipliers drive traffic on slow days,
+            POS integration automates everything, and referral rewards grow your customer base organically.
           </p>
           <div className={styles.heroCta}>
             <Link href="/pricing" className={styles.ctaPrimary}>
@@ -89,12 +104,11 @@ export default function RestaurantsPage() {
             </Link>
           </div>
           <p className={styles.heroCaption}>
-            ✓ No app required ✓ Setup in 30 minutes ✓ Starting at $55/month
+            ✓ Integrates with Square, Toast & Clover ✓ Happy hour multipliers ✓ Starting at $55/month
           </p>
         </div>
       </section>
 
-      {/* Benefits Grid */}
       <section className={styles.benefits}>
         <div className={styles.benefitsInner}>
           <h2 className={styles.sectionTitle}>Why Restaurants Choose Get On Blockchain</h2>
@@ -110,7 +124,35 @@ export default function RestaurantsPage() {
         </div>
       </section>
 
-      {/* Use Cases */}
+      <section className={styles.featuresHighlight}>
+        <div className={styles.featuresHighlightInner}>
+          <h2 className={styles.sectionTitle}>Powerful Features for Restaurants</h2>
+          <div className={styles.featuresGrid}>
+            {platformFeatures.map((feature, index) => (
+              <div key={index} className={styles.featureItem}>
+                <div className={styles.featureItemIcon}>{feature.icon}</div>
+                <div className={styles.featureItemTitle}>{feature.title}</div>
+                <div className={styles.featureItemDesc}>{feature.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.integrationsStrip}>
+        <div className={styles.integrationsStripInner}>
+          <h3 className={styles.integrationsTitle}>Seamless POS Integrations</h3>
+          <p className={styles.integrationsSubtitle}>
+            Automatically award points on every transaction — no extra steps for your staff
+          </p>
+          <div className={styles.integrationsList}>
+            {integrations.map((name) => (
+              <span key={name} className={styles.integrationBadge}>{name}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className={styles.useCases}>
         <div className={styles.useCasesInner}>
           <h2 className={styles.sectionTitle}>Loyalty Programs for Every Restaurant Type</h2>
@@ -125,31 +167,29 @@ export default function RestaurantsPage() {
         </div>
       </section>
 
-      {/* How It Works */}
       <section className={styles.howItWorks}>
         <div className={styles.howItWorksInner}>
           <h2 className={styles.sectionTitle}>How It Works (3 Simple Steps)</h2>
           <div className={styles.steps}>
             <div className={styles.step}>
               <div className={styles.stepNumber}>1</div>
-              <h3>Customer Scans QR Code</h3>
-              <p>Display your unique QR code at checkout or on receipts. Customers scan with phone camera (like viewing a menu).</p>
+              <h3>Connect Your POS</h3>
+              <p>Link Square, Toast, or Clover in one click. Or display a QR code at checkout — customers scan with their phone camera.</p>
             </div>
             <div className={styles.step}>
               <div className={styles.stepNumber}>2</div>
-              <h3>They Earn Points Per Visit</h3>
-              <p>Set your rules: 10 points per visit, welcome bonus for new customers, bonus for high spenders. You're in control.</p>
+              <h3>Customers Earn Points Automatically</h3>
+              <p>Points per visit, happy hour multipliers, birthday bonuses, referral rewards. You set the rules, we handle the rest.</p>
             </div>
             <div className={styles.step}>
               <div className={styles.stepNumber}>3</div>
               <h3>Claim Rewards & Return</h3>
-              <p>At 100 points, customers claim rewards (free item, discount, or $5 USDC). They come back more often to earn more.</p>
+              <p>At reward threshold, customers claim free items, discounts, or USDC payouts. They come back more often to earn more.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ROI Example */}
       <section className={styles.roiSection}>
         <div className={styles.roiInner}>
           <h2 className={styles.sectionTitle}>Real ROI for Restaurants</h2>
@@ -176,7 +216,7 @@ export default function RestaurantsPage() {
             </div>
             <div className={styles.calculatorCta}>
               <Link href="/roi-calculator?industry=restaurants" className={styles.calculatorButton}>
-                📊 Calculate Your Exact ROI
+                Calculate Your Exact ROI
               </Link>
               <p className={styles.calculatorCaption}>
                 See your specific numbers with our interactive calculator
@@ -186,11 +226,10 @@ export default function RestaurantsPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className={styles.finalCta}>
         <div className={styles.finalCtaInner}>
           <h2>Ready to Fill Your Tables with Regulars?</h2>
-          <p>Join restaurants and cafes using Get On Blockchain to boost repeat customers.</p>
+          <p>Join restaurants and cafes using loyalty rewards with automatic POS integration to boost repeat customers.</p>
           <Link href="/pricing" className={styles.ctaPrimary}>
             Get Started - $55/month
           </Link>
@@ -200,7 +239,6 @@ export default function RestaurantsPage() {
         </div>
       </section>
 
-      {/* Schema.org structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -208,7 +246,7 @@ export default function RestaurantsPage() {
             "@context": "https://schema.org",
             "@type": "Product",
             name: "Restaurant Loyalty Program Software",
-            description: "QR-based loyalty program for restaurants and cafes. Increase repeat customers by 25% with easy setup and proven ROI.",
+            description: "QR-based loyalty program for restaurants and cafes with Square, Toast & Clover POS integration. Increase repeat customers by 25%.",
             brand: {
               "@type": "Brand",
               name: "Get On Blockchain",
@@ -216,8 +254,8 @@ export default function RestaurantsPage() {
             offers: {
               "@type": "AggregateOffer",
               priceCurrency: "USD",
-              lowPrice: "99",
-              highPrice: "149",
+              lowPrice: "55",
+              highPrice: "249",
             },
             audience: {
               "@type": "Audience",

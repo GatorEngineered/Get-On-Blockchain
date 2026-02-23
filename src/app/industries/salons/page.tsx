@@ -6,7 +6,7 @@ import styles from "../industry.module.css";
 export const metadata: Metadata = {
   title: "Salon & Spa Loyalty Program | Increase Client Retention",
   description:
-    "Boost rebooking rates by 40% with our QR-based loyalty program for salons and spas. Reward visits, increase retention, proven ROI. Starting at $55/month.",
+    "Boost rebooking rates by 40% with our QR-based loyalty program for salons and spas. Integrates with Vagaro, Booksy & Boulevard. Birthday rewards, referral bonuses, branded tokens. Starting at $55/month.",
   keywords: [
     "salon loyalty program",
     "spa rewards program",
@@ -16,10 +16,13 @@ export const metadata: Metadata = {
     "QR code loyalty salon",
     "salon retention software",
     "hair salon loyalty program",
+    "vagaro loyalty integration",
+    "booksy loyalty rewards",
+    "boulevard salon rewards",
   ],
   openGraph: {
     title: "Salon Loyalty Program That Keeps Clients Rebooting",
-    description: "Turn one-time clients into regulars. QR-based rewards program for salons, spas, and beauty businesses.",
+    description: "Turn one-time clients into regulars. QR-based rewards program with Vagaro, Booksy & Boulevard integration for salons, spas, and beauty businesses.",
     url: "https://getonblockchain.com/industries/salons",
   },
 };
@@ -31,40 +34,53 @@ const salonBenefits = [
     description: "Clients return 40% more often when earning rewards. Turn walk-ins into loyal regulars who book weeks ahead.",
   },
   {
-    icon: "✨",
-    title: "Reward Loyalty, Not Just Visits",
-    description: "Bonus points for referrals, birthday rewards, VIP tiers for your best clients. Make them feel special.",
+    icon: "🎂",
+    title: "Birthday & Anniversary Rewards",
+    description: "Automatic birthday bonuses and rewards for client anniversaries. Celebrate milestones and make clients feel truly special.",
   },
   {
     icon: "📅",
-    title: "Fill Your Schedule",
-    description: "Loyal clients book more frequently. Less empty slots, more predictable revenue month over month.",
+    title: "Fill Slow Days Automatically",
+    description: "Set time-based multipliers to offer bonus points on slow days. Fill empty chairs on Tuesdays the same way you fill Saturdays.",
   },
   {
-    icon: "⚡",
-    title: "No Complex Setup",
-    description: "Display QR code at checkout. Clients scan, earn points, rebook. That's it. No software training needed.",
+    icon: "🔗",
+    title: "Integrates with Your POS",
+    description: "Connect Vagaro, Booksy, or Boulevard to automatically award points on every service. No manual tracking needed.",
   },
 ];
 
 const useCases = [
   {
     scenario: "Hair Salon",
-    example: "Earn points per service. At 100 points, get $25 off next cut/color or free deep conditioning treatment.",
+    example: "Earn points per service via Vagaro integration. Birthday month gets double points. At 100 points, get $25 off next cut/color or free deep conditioning.",
   },
   {
     scenario: "Day Spa",
-    example: "Membership rewards: Book monthly massage, earn double points. VIP tier gets priority booking and exclusive treatments.",
+    example: "Connect Boulevard for automatic points on every treatment. VIP tier gets priority booking, anniversary bonuses, and exclusive packages.",
   },
   {
     scenario: "Nail Salon",
-    example: "Every 6th visit free. Birthday month gets double points. Referral bonuses for bringing friends.",
+    example: "Booksy integration tracks appointments automatically. Every 6th visit free. Refer a friend, both earn bonus points.",
   },
   {
     scenario: "Barbershop",
-    example: "Loyalty punch card, digitized. Track visits, earn rewards, claim $5 USDC or free services. Modern twist on classic loyalty.",
+    example: "Loyalty punch card, digitized. Slow-day multipliers fill midweek slots. Clients claim $5 USDC or free services. Modern twist on classic loyalty.",
   },
 ];
+
+const platformFeatures = [
+  { icon: "🎂", title: "Birthday Rewards", desc: "Auto-trigger bonus points on client birthdays" },
+  { icon: "💍", title: "Anniversary Rewards", desc: "Celebrate client relationship milestones" },
+  { icon: "🕐", title: "Slow-Day Multipliers", desc: "2x-3x points to fill empty appointment slots" },
+  { icon: "📣", title: "Referral System", desc: "Reward clients who bring new customers" },
+  { icon: "📱", title: "Social Engagement", desc: "Points for follows, shares, and reviews" },
+  { icon: "🪙", title: "Branded Token", desc: "Your own loyalty currency on Growth plan" },
+  { icon: "🎯", title: "Custom Points Rules", desc: "Set rules per service type or spend level" },
+  { icon: "💸", title: "Crypto Payouts", desc: "Let clients redeem points as USDC" },
+];
+
+const integrations = ["Vagaro", "Booksy", "Boulevard"];
 
 export default function SalonsPage() {
   return (
@@ -76,8 +92,8 @@ export default function SalonsPage() {
             <span className={styles.highlight}>Fills Your Appointment Book</span>
           </h1>
           <p className={styles.heroSubtitle}>
-            Stop losing clients after their first visit. Our QR-based loyalty program rewards repeat bookings,
-            builds relationships, and keeps your schedule full with regulars.
+            Stop losing clients after their first visit. Reward repeat bookings with birthday bonuses,
+            referral rewards, and slow-day multipliers — all synced automatically with Vagaro, Booksy, or Boulevard.
           </p>
           <div className={styles.heroCta}>
             <Link href="/pricing" className={styles.ctaPrimary}>
@@ -88,7 +104,7 @@ export default function SalonsPage() {
             </Link>
           </div>
           <p className={styles.heroCaption}>
-            ✓ No punch cards ✓ Setup in 30 minutes ✓ Starting at $55/month
+            ✓ Integrates with Vagaro, Booksy & Boulevard ✓ Setup in 30 minutes ✓ Starting at $55/month
           </p>
         </div>
       </section>
@@ -103,6 +119,35 @@ export default function SalonsPage() {
                 <h3 className={styles.benefitTitle}>{benefit.title}</h3>
                 <p className={styles.benefitDescription}>{benefit.description}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.featuresHighlight}>
+        <div className={styles.featuresHighlightInner}>
+          <h2 className={styles.sectionTitle}>Built-In Features for Beauty Businesses</h2>
+          <div className={styles.featuresGrid}>
+            {platformFeatures.map((feature, index) => (
+              <div key={index} className={styles.featureItem}>
+                <div className={styles.featureItemIcon}>{feature.icon}</div>
+                <div className={styles.featureItemTitle}>{feature.title}</div>
+                <div className={styles.featureItemDesc}>{feature.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.integrationsStrip}>
+        <div className={styles.integrationsStripInner}>
+          <h3 className={styles.integrationsTitle}>Seamless POS Integrations</h3>
+          <p className={styles.integrationsSubtitle}>
+            Automatically award points when clients pay — no extra steps at checkout
+          </p>
+          <div className={styles.integrationsList}>
+            {integrations.map((name) => (
+              <span key={name} className={styles.integrationBadge}>{name}</span>
             ))}
           </div>
         </div>
@@ -128,18 +173,18 @@ export default function SalonsPage() {
           <div className={styles.steps}>
             <div className={styles.step}>
               <div className={styles.stepNumber}>1</div>
-              <h3>Client Scans at Checkout</h3>
-              <p>Display QR code at front desk or on receipts. Clients scan with phone camera after their service.</p>
+              <h3>Connect Your POS</h3>
+              <p>Link Vagaro, Booksy, or Boulevard in one click. Or display a QR code at checkout — clients scan with their phone camera.</p>
             </div>
             <div className={styles.step}>
               <div className={styles.stepNumber}>2</div>
-              <h3>Earn Points Per Visit</h3>
-              <p>You control rewards: points per service, referral bonuses, birthday rewards, VIP tiers. Fully customizable.</p>
+              <h3>Clients Earn Points Automatically</h3>
+              <p>Points on every service, birthday bonuses, referral rewards, and slow-day multipliers. You set the rules, we handle the rest.</p>
             </div>
             <div className={styles.step}>
               <div className={styles.stepNumber}>3</div>
               <h3>Claim Rewards & Rebook</h3>
-              <p>Clients redeem for discounts or USDC (Premium plan). They book their next appointment to earn more.</p>
+              <p>Clients redeem for discounts, free services, or USDC payouts. They book their next appointment to earn more.</p>
             </div>
           </div>
         </div>
@@ -167,11 +212,11 @@ export default function SalonsPage() {
               <p><strong>Your Math:</strong></p>
               <p>45 clients × 1 extra visit/month = 45 additional bookings</p>
               <p>45 bookings × $75 average = <strong>$3,375/month in extra revenue</strong></p>
-              <p className={styles.roiHighlight}>69x return on a $55/month Basic plan</p>
+              <p className={styles.roiHighlight}>61x return on a $55/month Basic plan</p>
             </div>
             <div className={styles.calculatorCta}>
               <Link href="/roi-calculator?industry=salons" className={styles.calculatorButton}>
-                📊 Calculate Your Exact ROI
+                Calculate Your Exact ROI
               </Link>
               <p className={styles.calculatorCaption}>
                 See your specific numbers with our interactive calculator
@@ -184,7 +229,7 @@ export default function SalonsPage() {
       <section className={styles.finalCta}>
         <div className={styles.finalCtaInner}>
           <h2>Ready to Fill Your Schedule with Regulars?</h2>
-          <p>Join salons and spas using loyalty rewards to boost rebooking rates.</p>
+          <p>Join salons and spas using loyalty rewards to boost rebooking rates — with POS integration that works automatically.</p>
           <Link href="/pricing" className={styles.ctaPrimary}>
             Get Started - $55/month
           </Link>
@@ -201,7 +246,7 @@ export default function SalonsPage() {
             "@context": "https://schema.org",
             "@type": "Product",
             name: "Salon & Spa Loyalty Program Software",
-            description: "QR-based loyalty program for salons, spas, and beauty businesses. Increase rebooking rates by 40% with easy rewards.",
+            description: "QR-based loyalty program for salons, spas, and beauty businesses with Vagaro, Booksy & Boulevard integration. Increase rebooking rates by 40%.",
             brand: {
               "@type": "Brand",
               name: "Get On Blockchain",
@@ -209,8 +254,8 @@ export default function SalonsPage() {
             offers: {
               "@type": "AggregateOffer",
               priceCurrency: "USD",
-              lowPrice: "99",
-              highPrice: "149",
+              lowPrice: "55",
+              highPrice: "249",
             },
             audience: {
               "@type": "Audience",

@@ -49,6 +49,7 @@ export default function Footer() {
               <li><Link href="/industries/retail" className="site-footer-link">Retail</Link></li>
               <li><Link href="/industries/fitness" className="site-footer-link">Fitness</Link></li>
               <li><Link href="/industries/salons" className="site-footer-link">Salons & Spas</Link></li>
+              <li><Link href="/industries/breweries" className="site-footer-link">Breweries & Bars</Link></li>
             </ul>
           </nav>
 

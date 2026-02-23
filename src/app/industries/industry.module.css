@@ -370,6 +370,92 @@
   color: white;
 }
 
+/* Features Highlight Section */
+.featuresHighlight {
+  padding: 5rem 2rem;
+  background: #ffffff;
+}
+
+.featuresHighlightInner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.featureItem {
+  background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  text-align: center;
+}
+
+.featureItemIcon {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.featureItemTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.35rem;
+}
+
+.featureItemDesc {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Integrations Strip */
+.integrationsStrip {
+  padding: 3.5rem 2rem;
+  background: linear-gradient(135deg, #1a3555 0%, var(--color-primary) 100%);
+  color: white;
+  text-align: center;
+}
+
+.integrationsStripInner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.integrationsTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.integrationsSubtitle {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin-bottom: 2rem;
+}
+
+.integrationsList {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.integrationBadge {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.6rem 1.25rem;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  backdrop-filter: blur(4px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .heroTitle {
